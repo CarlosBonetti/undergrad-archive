@@ -4,24 +4,18 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-public class BinaryNodeTest {
+public class NodoTest {
 
 	@Test
-	public void testBlankInitialization() {
-		BinaryNode<Integer> node = new BinaryNode<Integer>();
-		assertEquals(null, node.getContent());
-	}
-	
-	@Test
 	public void testContentInitialization() {
-		BinaryNode<Integer> node = new BinaryNode<Integer>(2);
-		assertEquals(new Integer(2), node.getContent());
+		Nodo<Integer> node = new Nodo<Integer>(2);
+		assertEquals(new Integer(2), node.getConteudo());
 	}
 	
 	@Test
 	public void testHasLeftChild() {
-		BinaryNode<Integer> node = new BinaryNode<Integer>(2);
-		BinaryNode<Integer> child = new BinaryNode<Integer>(-1);
+		Nodo<Integer> node = new Nodo<Integer>(2);
+		Nodo<Integer> child = new Nodo<Integer>(-1);
 		assertEquals(false, node.hasLeftChild());
 		node.setLeft(child);
 		assertEquals(true, node.hasLeftChild());
@@ -29,8 +23,8 @@ public class BinaryNodeTest {
 	
 	@Test
 	public void testHasRightChild() {
-		BinaryNode<Integer> node = new BinaryNode<Integer>(2);
-		BinaryNode<Integer> child = new BinaryNode<Integer>(-1);
+		Nodo<Integer> node = new Nodo<Integer>(2);
+		Nodo<Integer> child = new Nodo<Integer>(-1);
 		assertEquals(false, node.hasRightChild());
 		node.setRight(child);
 		assertEquals(true, node.hasRightChild());
@@ -38,8 +32,8 @@ public class BinaryNodeTest {
 	
 	@Test
 	public void testClearLeft() {
-		BinaryNode<Integer> node = new BinaryNode<Integer>(2);
-		BinaryNode<Integer> child = new BinaryNode<Integer>(-1);
+		Nodo<Integer> node = new Nodo<Integer>(2);
+		Nodo<Integer> child = new Nodo<Integer>(-1);
 		node.setLeft(child);
 		assertEquals(child, node.getLeft());
 		node.clearLeft();
@@ -48,8 +42,8 @@ public class BinaryNodeTest {
 	
 	@Test
 	public void testClearRight() {
-		BinaryNode<Integer> node = new BinaryNode<Integer>(2);
-		BinaryNode<Integer> child = new BinaryNode<Integer>(-1);
+		Nodo<Integer> node = new Nodo<Integer>(2);
+		Nodo<Integer> child = new Nodo<Integer>(-1);
 		node.setRight(child);
 		assertEquals(child, node.getRight());
 		node.clearRight();
@@ -58,9 +52,9 @@ public class BinaryNodeTest {
 	
 	@Test
 	public void testClear() {
-		BinaryNode<Integer> node = new BinaryNode<Integer>(2);
-		BinaryNode<Integer> child1 = new BinaryNode<Integer>(-1);
-		BinaryNode<Integer> child2 = new BinaryNode<Integer>(1);
+		Nodo<Integer> node = new Nodo<Integer>(2);
+		Nodo<Integer> child1 = new Nodo<Integer>(-1);
+		Nodo<Integer> child2 = new Nodo<Integer>(1);
 		
 		node.setRight(child1);
 		node.setLeft(child2);
@@ -72,10 +66,10 @@ public class BinaryNodeTest {
 
 	@Test
 	public void testIsLeaf() {
-		BinaryNode<Double> node = new BinaryNode<Double>(2.0);
+		Nodo<Double> node = new Nodo<Double>(2.0);
 		assertEquals(node.isLeaf(), true);		
 		
-		BinaryNode<Double> child = new BinaryNode<Double>(-1.0);		
+		Nodo<Double> child = new Nodo<Double>(-1.0);		
 		node.setLeft(child);
 		assertEquals(node.isLeaf(), false);
 		

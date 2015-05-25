@@ -3,49 +3,52 @@ package com.bonaguiar.formais1.core;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Implementação clássica de um Nodo Binário (de uma árvore binária)
+ *
+ * @param <T> Tipo do conteúdo
+ */
 @Setter
 @Getter
-public class BinaryNode<T> {
-	private T content;
-	private BinaryNode<T> left;
-	private BinaryNode<T> right;
+public class Nodo<T> {
+	private T conteudo;
+	private Nodo<T> left;
+	private Nodo<T> right;
 	
-	public BinaryNode() {}
-	
-	public BinaryNode(T content) {
-		this.content = content;
+	public Nodo(T conteudo) {
+		this.conteudo = conteudo;
 	}
 	
 	/**
-	 * Return whether the node has a left child
+	 * Checa se o nodo tem um filho à esquerda
 	 */
 	public Boolean hasLeftChild() {
 		return this.left != null;
 	}
 	
 	/**
-	 * Return whether the node has a right child
+	 * Checa se o nodo tem um filho à direita
 	 */
 	public Boolean hasRightChild() {
 		return this.right != null;
 	}
 	
 	/**
-	 * Remove the left child
+	 * Remove o filho à esquerda
 	 */
 	public void clearLeft() {
 		this.left = null;
 	}
 	
 	/**
-	 * Remove the right child
+	 * Remove o filho à direita
 	 */
 	public void clearRight() {
 		this.right = null;
 	}
 	
 	/**
-	 * Remove both children
+	 * Remove ambos os filhos do nodo
 	 */
 	public void clear() {
 		this.clearLeft();
@@ -53,7 +56,7 @@ public class BinaryNode<T> {
 	}
 	
 	/**
-	 * Return whether the node is a leaf
+	 * Checa se o nodo é folha (não possui filhos)
 	 */
 	public Boolean isLeaf() {
 		return !this.hasLeftChild() && !this.hasRightChild();
