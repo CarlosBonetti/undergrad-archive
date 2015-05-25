@@ -27,8 +27,12 @@ public class AlfabetoTest {
 	}
 	
 	@Test
-	public void testarInicializacaoComListaInline() {
+	public void testarInicializacaoComVarArg() {
 		Alfabeto a1 = new Alfabeto('a', 'e', 'f');
+		assertTrue(a1.contains('a'));
+		assertTrue(a1.contains('e'));
+		assertFalse(a1.contains('b'));
+		assertEquals(3, a1.size());
 	}
 
 }
