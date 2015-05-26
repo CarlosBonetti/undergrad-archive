@@ -1,5 +1,7 @@
 package com.bonaguiar.formais1.core;
 
+import java.util.HashMap;
+
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
 import lombok.Getter;
@@ -24,6 +26,12 @@ public class GramaticaRegular {
 	protected Character S;
 	
 	/**
+	 * Produções da gramática
+	 */
+	@Getter
+	protected HashMap<Character, String> producoes;
+	
+	/**
 	 * Cria uma nova gramática regular
 	 * @param Vn Conjunto de caracteres não terminais (devem ser maiúsculos)
 	 * @param Vt Conjunto de caracteres terminais (devem ser minúsculos)
@@ -34,6 +42,7 @@ public class GramaticaRegular {
 		this.setVn(Vn);
 		this.setVt(Vt);
 		this.setSimboloInicial(S);
+		this.producoes = new HashMap<Character, String>();
 	}
 	
 	/**
@@ -77,8 +86,36 @@ public class GramaticaRegular {
 		this.S = S;
 	}
 	
-	public void addProducao() {
-		// TODO
+	/**
+	 * Adiciona uma produção à gramática
+	 * @param produtor Símbolo que gera a sentença (deve pertencer a Vn)
+	 * @param producao Sentença gerada (deve ser do formato aA ou a e símbolos devem pertencer à gramática)
+	 * @throws FormaisException 
+	 */
+	public void addProducao(char produtor, String producao) throws FormaisException {
+		if (!this.Vn.contains(produtor)) {
+			throw new FormaisException("Símbolo produtor `" + produtor + "` não pertence "
+					+ "ao conjunto de símbolos não terminais da gramática");
+		}
+		
+		// Produções devem ter 1 ou 2 caracteres
+		if (producao.length() != 1 && producao.length() != 2) {
+			throw new FormaisException("Produções de uma gramática regular devem ter apenas os "
+					+ "formatos S->aB ou S -> a");
+		}
+		
+		// Primeiro caracter da produção é obrigatório e deve ser um símbolo terminal
+		if (!this.Vt.contains(producao.charAt(0))) {
+			throw new FormaisException("Caracter `" + producao.charAt(0) + "` não é um símbolo terminal "
+					+ "válido desta gramática");
+		}
+		
+		if (producao.length() == 2 && !this.Vn.contains(producao.charAt(1))) {
+			throw new FormaisException("Caracter `" + producao.charAt(1) + "` não é um símbolo não terminal "
+					+ "válido desta gramática");
+		}
+		
+		this.producoes.put(produtor, producao);
 	}
 
 }
