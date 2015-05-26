@@ -1,6 +1,8 @@
 package com.bonaguiar.formais1.core;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
@@ -29,7 +31,7 @@ public class GramaticaRegular {
 	 * Produções da gramática
 	 */
 	@Getter
-	protected HashMap<Character, String> producoes;
+	protected HashMap<Character, List<String>> producoes;
 	
 	/**
 	 * Cria uma nova gramática regular
@@ -41,8 +43,8 @@ public class GramaticaRegular {
 	public GramaticaRegular(Alfabeto Vn, Alfabeto Vt, Character S) throws FormaisException {
 		this.setVn(Vn);
 		this.setVt(Vt);
-		this.setSimboloInicial(S);
-		this.producoes = new HashMap<Character, String>();
+		this.setSimboloInicial(S);		
+		this.limparProducoes();
 	}
 	
 	/**
@@ -87,6 +89,16 @@ public class GramaticaRegular {
 	}
 	
 	/**
+	 * Remove todas as produções da gramática
+	 */
+	public void limparProducoes() {
+		this.producoes = new HashMap<Character, List<String>>();
+		for(Character sn : this.Vn) {
+			this.producoes.put(sn, new ArrayList<String>());
+		}
+	}
+	
+	/**
 	 * Adiciona uma produção à gramática
 	 * @param produtor Símbolo que gera a sentença (deve pertencer a Vn)
 	 * @param producao Sentença gerada (deve ser do formato aA ou a e símbolos devem pertencer à gramática)
@@ -114,8 +126,22 @@ public class GramaticaRegular {
 			throw new FormaisException("Caracter `" + producao.charAt(1) + "` não é um símbolo não terminal "
 					+ "válido desta gramática");
 		}
-		
-		this.producoes.put(produtor, producao);
+			
+		this.producoes.get(produtor).add(producao);	
 	}
 
+	/**
+	 * Retorna todas as produções do símbolo
+	 * @param produtor
+	 * @return
+	 * @throws FormaisException
+	 */
+	public List<String> getProducoes(char produtor) throws FormaisException {
+		if (!this.Vn.contains(produtor)) {
+			throw new FormaisException("Símbolo produtor `" + produtor + "` não pertence "
+					+ "ao conjunto de símbolos não terminais da gramática");
+		}
+		
+		return this.producoes.get(produtor);
+	}
 }

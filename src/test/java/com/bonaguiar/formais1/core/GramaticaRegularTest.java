@@ -48,8 +48,17 @@ public class GramaticaRegularTest {
 	@Test
 	public void testarAddProducaoCorreta() throws FormaisException {
 		g1.addProducao('S', "aS");
-		assertEquals("aS", g1.getProducoes().get('S'));
-		assertEquals(1, g1.getProducoes().size());
+		assertEquals("aS", g1.getProducoes().get('S').get(0));
+		assertEquals(1, g1.getProducoes().get('S').size());
+		
+		g1.addProducao('S', "a");
+		assertEquals("aS", g1.getProducoes().get('S').get(0));
+		assertEquals("a", g1.getProducoes().get('S').get(1));
+		assertEquals(2, g1.getProducoes().get('S').size());
+		
+		g1.addProducao('A', "b");
+		assertEquals("b", g1.getProducoes().get('A').get(0));
+		assertEquals(1, g1.getProducoes().get('A').size());
 	}
 	
 	@Test(expected=FormaisException.class)
@@ -76,4 +85,25 @@ public class GramaticaRegularTest {
 	public void testarAddProducaoComSimboloNaoTerminalInexistente() throws FormaisException {
 		g1.addProducao('S', "aC");
 	}
+	
+	@Test
+	public void testarGetProducoesDeSimbolo() throws FormaisException {
+		assertEquals(0, g1.getProducoes('S').size());
+		g1.addProducao('S', "aS");
+		assertEquals(1, g1.getProducoes('S').size());
+		assertEquals("aS", g1.getProducoes('S').get(0));
+		
+		g1.addProducao('A', "b");
+		g1.addProducao('S', "a");
+		assertEquals(2, g1.getProducoes('S').size());
+		assertEquals("a", g1.getProducoes('S').get(1));
+	}
+	
+	@Test
+	public void testarLimparProducoes() throws FormaisException {
+		g1.addProducao('S', "aS");
+		g1.limparProducoes();
+		assertEquals(0, g1.getProducoes('S').size());
+	}
+
 }
