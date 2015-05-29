@@ -20,5 +20,9 @@ public class Alfabeto extends HashSet<Character> {
 			super.add(c);
 		}
 	}
+	
+	public Alfabeto(String caracteres) {
+		this(caracteres.toCharArray());
+	}
 
 }

@@ -34,5 +34,15 @@ public class AlfabetoTest {
 		assertFalse(a1.contains('b'));
 		assertEquals(3, a1.size());
 	}
+	
+	@Test
+	public void testarInicializacaoCOmString() {
+		Alfabeto a1 = new Alfabeto("xyz");
+		assertFalse(a1.contains('a'));
+		assertTrue(a1.contains('x'));
+		assertTrue(a1.contains('y'));
+		assertTrue(a1.contains('z'));
+		assertEquals(a1.size(), 3);
+	}
 
 }
