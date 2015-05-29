@@ -1,7 +1,6 @@
 package com.bonaguiar.formais1.core;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import com.bonaguiar.formais1.core.exception.FormaisException;
@@ -96,8 +95,25 @@ public class AF {
 		if (!this.estados.contains(estadoChegada)) {
 			throw new FormaisException("Estado `" + estadoChegada + "` não pertence ao AF");
 		}		
-		
+		// TODO checar se transição já existe?
 		this.transicoes.add(new Transicao(estadoPartida, caracter, estadoChegada));
+	}
+	
+	/**
+	 * Função de transição
+	 * Retorna quais são os novos estados do AF ao consumir o caracter a partir do estadoOrigem
+	 * @param estadoOrigem
+	 * @param caracter
+	 * @return Lista de estados alcançáveis
+	 */
+	public List<String> transicao(String estadoOrigem, Character caracter) {
+		List<String> estados = new ArrayList<String>();
+		for(Transicao t : this.transicoes) {
+			if (t.estadoOrigem.equals(estadoOrigem) && t.simboloTransicao.equals(caracter)) {
+				estados.add(t.estadoDestino);
+			}
+		}
+		return estados;
 	}
 	
 }

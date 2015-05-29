@@ -80,5 +80,33 @@ public class AFTest {
 		af.addEstado("q1", false);
 		af.addTransicao("q1", 'a', "q2");
 	}
+	
+	@Test
+	public void testarTransicao() throws FormaisException {
+		AF af = new AF(new Alfabeto("abc"));
+		af.addEstado("q0", true);
+		af.addEstado("q1", false);
+
+		// Uma transição simples (q0, a) -> q1
+		af.addTransicao("q0", 'a', "q1");
+		assertEquals("q1", af.transicao("q0", 'a').get(0));
+		assertEquals(1, af.transicao("q0", 'a').size());
+		
+		// Outra transição simples (q1, b) -> q0
+		af.addTransicao("q1", 'b', "q0");
+		assertEquals(0, af.transicao("q1", 'a').size());
+		assertEquals(1, af.transicao("q1", 'b').size());
+		
+		// Segunda transição a partir de q0 (q0, c) -> q0
+		af.addTransicao("q0", 'c', "q0");
+		assertEquals("q0", af.transicao("q0", 'c').get(0));
+		assertEquals(1, af.transicao("q0", 'a').size());
+		
+		// Add transição não determinística (q0, a) -> {q1, q0}
+		af.addTransicao("q0", 'a', "q0");
+		assertEquals("q1", af.transicao("q0", 'a').get(0));
+		assertEquals("q0", af.transicao("q0", 'a').get(1));
+		assertEquals(2, af.transicao("q0", 'a').size());
+	}
 
 }
