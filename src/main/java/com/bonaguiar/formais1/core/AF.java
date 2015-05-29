@@ -1,7 +1,11 @@
 package com.bonaguiar.formais1.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
@@ -67,12 +71,21 @@ public class AF {
 	}
 	
 	/**
+	 * Checa se o estado pertence ao autômato
+	 * @param estado
+	 * @return
+	 */
+	public Boolean contemEstado(String estado) {
+		return this.getEstados().contains(estado);
+	}
+	
+	/**
 	 * Seta o estado inicial do autômato
 	 * @param nomeEstado Nome do novo estado inicial (deve pertencer ao autômato)
 	 * @throws FormaisException 
 	 */
 	public void setEstadoInicial(String nomeEstado) throws FormaisException {
-		if (!this.estados.contains(nomeEstado)) {
+		if (!this.contemEstado(nomeEstado)) {
 			throw new FormaisException("Estado `" + nomeEstado + "` não pertence ao AF");
 		}
 		this.estadoInicial = nomeEstado;
@@ -86,13 +99,13 @@ public class AF {
 	 * @throws FormaisException 
 	 */
 	public void addTransicao(String estadoPartida, Character caracter, String estadoChegada) throws FormaisException {
-		if (!this.estados.contains(estadoPartida)) {
+		if (!this.contemEstado(estadoPartida)) {
 			throw new FormaisException("Estado `" + estadoPartida + "` não pertence ao AF");
 		}
 		if (!this.alfabeto.contains(caracter)) {
 			throw new FormaisException("Caracter `" + caracter + "` não pertence ao alfabeto de AF");
 		}		
-		if (!this.estados.contains(estadoChegada)) {
+		if (!this.contemEstado(estadoChegada)) {
 			throw new FormaisException("Estado `" + estadoChegada + "` não pertence ao AF");
 		}		
 		// TODO checar se transição já existe?
@@ -102,11 +115,20 @@ public class AF {
 	/**
 	 * Função de transição
 	 * Retorna quais são os novos estados do AF ao consumir o caracter a partir do estadoOrigem
+	 * Lança uma exception se o estado ou o símbolo passados como argumentos não pertençam ao AF
 	 * @param estadoOrigem
 	 * @param caracter
 	 * @return Lista de estados alcançáveis
+	 * @throws FormaisException 
 	 */
-	public List<String> transicao(String estadoOrigem, Character caracter) {
+	public List<String> transicao(String estadoOrigem, Character caracter) throws FormaisException {
+		if (!this.contemEstado(estadoOrigem)) {
+			throw new FormaisException("Estado `" + estadoOrigem + "` não pertence ao AF");
+		} 
+		if (!this.alfabeto.contains(caracter)) {
+			throw new FormaisException("Estado `" + estadoOrigem + "` não pertence ao AF");
+		} 
+		
 		List<String> estados = new ArrayList<String>();
 		for(Transicao t : this.transicoes) {
 			if (t.estadoOrigem.equals(estadoOrigem) && t.simboloTransicao.equals(caracter)) {
@@ -114,6 +136,133 @@ public class AF {
 			}
 		}
 		return estados;
+	}
+	
+	/**
+	 * Checa se o estado é final
+	 * Lança uma exception caso o estado parâmetro não pertença ao AF
+	 * @param estado
+	 * @return
+	 * @throws FormaisException 
+	 */
+	public Boolean ehFinal(String estado) throws FormaisException {
+		if (!this.contemEstado(estado)) {
+			throw new FormaisException("Estado `" + estado + "` não pertence ao AF");
+		}
+		return this.estadosFinais.contains(estado);
+	}
+		
+	// =====================================================================================
+	// Determinização + helper methods
+	
+	/**
+	 * Retorna uma versão do AF determinizada, ou seja, sem transição não-determinísticas
+	 * @return
+	 * @throws FormaisException 
+	 */
+	public AFD determinizar() throws FormaisException {
+		AFD afd = new AFD(this.alfabeto);
+		
+		String estadoInicial = this.getEstadoInicial();		
+		if (estadoInicial == null) {
+			throw new FormaisException("AF deve ter um estado inicial para determinizá-lo");
+		}
+		AF.MesclaDeEstados mesclaInicial = new AF.MesclaDeEstados(this.getEstadoInicial());
+		String novoEstadoInicial = mesclaInicial.toString();
+		afd.addEstado(novoEstadoInicial, mesclaInicial.ehFinal());
+		afd.setEstadoInicial(novoEstadoInicial);		
+		
+		List<AF.MesclaDeEstados> novasMesclas = new ArrayList<AF.MesclaDeEstados>();
+		novasMesclas.add(mesclaInicial);
+		
+		while(!novasMesclas.isEmpty()) {
+			AF.MesclaDeEstados mesclaAtual = novasMesclas.remove(0);
+			
+			for (Character simbolo : this.getAlfabeto()) {
+				AF.MesclaDeEstados mesclaDestino = mesclaAtual.transicao(simbolo);
+				String novoDestino = mesclaDestino.toString();
+				
+				if (!afd.contemEstado(novoDestino)) {
+					afd.addEstado(novoDestino, mesclaDestino.ehFinal());
+					novasMesclas.add(mesclaDestino);
+				}
+				
+				afd.addTransicao(mesclaAtual.toString(), simbolo, novoDestino);
+			}
+		}
+		
+		return afd;
+	}
+	
+	/**
+	 * Estrutura que representa uma mescla de estados, usado no processo de determinização 
+	 * Uma mescla de estados geralmente é representada por '[q0, q3, q4]', por exemplo, e
+	 * se trata da união dos respectivos estados, durante o processo de determinização
+	 */
+	protected class MesclaDeEstados {
+		@Getter
+		protected List<String> estados;
+		
+		public MesclaDeEstados(List<String> estados) {
+			this.estados = estados;
+			Collections.sort(this.estados);
+		}
+		
+		public MesclaDeEstados(String estado) {
+			this(Arrays.asList(estado));
+		}
+		
+		/**
+		 * Transforma os nomes dos estados para o padrão 'mesclado'
+		 * Exemplo: transforma 'q0' para '[q0]', transforma {q5, q1, A, q0} para '[A, q0, q1, q5]'
+		 * @return
+		 */
+		public String toString() {
+			String nome = "[";
+			int i = 0;
+			for(String es : estados) {
+				i++;
+				nome += es + (i != estados.size() ? ", " : "");
+			}		
+			nome += "]";
+			return nome;
+		}
+		
+		/**
+		 * Retorna a mescla de estados resultante da união de todas as transições da mescla de estados atual 
+		 * dado o caracter de transição.
+		 * Lança uma exception se o estado ou o símbolo passados como argumentos não pertençam ao AF
+		 * @param caracter
+		 * @return
+		 * @throws FormaisException 
+		 */
+		public MesclaDeEstados transicao(Character caracter) throws FormaisException {
+			// Adicionamos a um set para não contar estados duplicados
+			Set<String> destinos = new HashSet<String>();			
+			for(String estado : this.estados) {
+				destinos.addAll(AF.this.transicao(estado, caracter));
+			}			
+			
+			// Convertemos de volta para list para criar a MesclaDeEstados
+			List<String> destinosList = new ArrayList<String>();
+			destinosList.addAll(destinos);
+			return AF.this.new MesclaDeEstados(destinosList);
+		}
+		
+		/**
+		 * Checa se a mescla de estados é final.
+		 * Uma mescla é final se qualquer um de seus estados originais for final
+		 * @return
+		 * @throws FormaisException 
+		 */
+		public Boolean ehFinal() throws FormaisException {
+			for (String estado : this.getEstados()) {
+				if (AF.this.ehFinal(estado)) {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 	
 }
