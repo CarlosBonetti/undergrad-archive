@@ -31,12 +31,6 @@ public class AFD extends AF {
 	@Override
 	public void addTransicao(String estadoPartida, Character caracter,
 			String estadoChegada) throws FormaisException {
-		// Epsolon transições não são permitidas em AF determinísticos
-		if (caracter == Alfabeto.EPSOLON) {
-			throw new FormaisException("Epsolon transição não é uma transição "
-					+ "determinística válida para este AFD");
-		}
-		
 		// Transições ambíguas não são permitidas em AF determinísticos
 		List<String> transicoes = this.transicao(estadoPartida, caracter);
 		if (!transicoes.isEmpty()) {

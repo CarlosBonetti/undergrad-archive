@@ -43,13 +43,4 @@ public class Alfabeto extends HashSet<Character> {
 		this(caracteres.toCharArray());
 	}
 	
-	/**
-	 * Checa se o alfabeto contém o símbolo informado
-	 * Por definição, epsolon pertence a todo alfabeto
-	 */
-	@Override
-	public boolean contains(Object o) {
-		return super.contains(o) || o == EPSOLON;
-	}
-
 }

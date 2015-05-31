@@ -90,6 +90,14 @@ public class AFTest {
 	}
 	
 	@Test(expected=FormaisException.class)
+	public void testarAddEpsolonTransicao() throws FormaisException {
+		AF afd1 = new AF(new Alfabeto("abcde"));
+		afd1.addEstado("q0", true);
+		afd1.addEstado("q1", true);
+		afd1.addTransicao("q0", Alfabeto.EPSOLON, "q1");
+	}
+	
+	@Test(expected=FormaisException.class)
 	public void testarAddTransicaoComEstadoDestinoNaoPertencenteAoAF() throws FormaisException {
 		AF af = new AF(new Alfabeto("abc"));
 		af.addEstado("q0", true);
@@ -200,8 +208,6 @@ public class AFTest {
 		testarTransicoesCriadas(af);
 		testarMesclaDeEstadosEhFinal(af);
 		testarEstadosFinais(af);
-		
-		// TODO: testar outro autômato, com epsolon-transicões
 	}
 
 	@Test
