@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -159,6 +160,69 @@ public class AFTest {
 	public void testarEhFinalComEstadoInexistente() throws FormaisException {
 		AF af = new AF(new Alfabeto("abc"));
 		af.ehFinal("q5");
+	}
+	
+	@Test
+	public void testarGetEstadosAlcancaveis() throws FormaisException {
+		AF af = new AF(new Alfabeto("abc"));
+		af.addEstado("q0", true);
+		af.addEstado("q1", false);
+		af.addEstado("q2", false);
+		af.addEstado("q3", false);
+		af.addEstado("q4", false);
+		af.addEstado("q5", false);
+		af.setEstadoInicial("q0");
+		
+		// Estado inicial sempre é alcancável
+		assertTrue(af.getEstadosAlcancaveis().contains("q0"));
+		
+		af.addTransicao("q0", 'a', "q1");
+		af.addTransicao("q0", 'a', "q2");
+		af.addTransicao("q0", 'c', "q3");
+		af.addTransicao("q1", 'b', "q2");
+		af.addTransicao("q2", 'c', "q4");
+		
+		Set<String> alc = af.getEstadosAlcancaveis();
+		assertTrue(alc.contains("q0"));
+		assertTrue(alc.contains("q1"));
+		assertTrue(alc.contains("q2"));
+		assertTrue(alc.contains("q3"));
+		assertTrue(alc.contains("q4"));
+		assertFalse(alc.contains("q5"));
+		
+		af.addTransicao("q2", 'b', "q5");
+		alc = af.getEstadosAlcancaveis();
+		assertTrue(alc.contains("q5"));
+	}
+	
+	@Test
+	public void testarGetEstadosVivos() throws FormaisException {
+		AF af = new AF(new Alfabeto("abc"));
+		af.addEstado("q0", false);
+		af.addEstado("q1", false);
+		af.addEstado("q2", false);
+		af.addEstado("q3", false);
+		af.addEstado("q4", true);
+		af.addEstado("q5", true);
+		af.setEstadoInicial("q0");
+		
+		// Estados finais são vivos por definição
+		Set<String> vivos = af.getEstadosVivos();
+		assertEquals(2, vivos.size());
+		assertTrue(vivos.contains("q4"));
+		assertTrue(vivos.contains("q5"));
+
+		// Adicionando transições para os estados finais e checando se eles se tornam vivos
+		af.addTransicao("q2", 'b', "q4");
+		af.addTransicao("q0", 'a', "q4");
+		af.addTransicao("q1", 'c', "q5");
+		vivos = af.getEstadosVivos();
+		assertEquals(5, vivos.size());
+		assertTrue(vivos.contains("q4"));
+		assertTrue(vivos.contains("q5"));
+		assertTrue(vivos.contains("q2"));
+		assertTrue(vivos.contains("q0"));
+		assertTrue(vivos.contains("q1"));
 	}
 	
 	// ======================================================================================

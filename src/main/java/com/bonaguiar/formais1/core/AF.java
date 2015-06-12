@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -150,6 +151,63 @@ public class AF {
 			throw new FormaisException("Estado `" + estado + "` não pertence ao AF");
 		}
 		return this.estadosFinais.contains(estado);
+	}
+	
+	/**
+	 * Retorna o conjunto de estados alcançáveis deste AF
+	 * Estados alcancáveis são aqueles que podem ser acessados através de transições a partir do estado inicial
+	 * @return
+	 * @throws FormaisException
+	 */
+	public Set<String> getEstadosAlcancaveis() throws FormaisException {
+		Set<String> alc = new HashSet<String>();
+		List<String> check = new ArrayList<String>();
+		
+		if (this.getEstadoInicial() != null) {
+			check.add(this.getEstadoInicial());
+		}
+		
+		while(!check.isEmpty()) {
+			String estado = check.remove(0);
+			alc.add(estado);
+			
+			for (Character c : this.getAlfabeto()) {
+				for (String novoEstado : this.transicao(estado, c)) {
+					if (!check.contains(novoEstado) && !alc.contains(novoEstado)) {
+						check.add(novoEstado);
+					}
+				}
+			}
+		}		
+		
+		return alc;
+	}
+	
+	/**
+	 * Retorna o conjunto de estados vivos deste AF
+	 * Estados vivos são aqueles que podem levar a um estado final através de transições deste AF
+	 * @return
+	 */
+	public Set<String> getEstadosVivos() {
+		Set<String> vivos = new HashSet<String>(); // Guarda os estados vivos alcançados
+
+		Set<String> novos = new HashSet<String>(); // Guarda os novos estados vivos que devem ser considerados na próxima iteração
+		novos.addAll(this.getEstadosFinais()); // Estados finais são vivos por definição
+		
+		while(!novos.isEmpty()) {
+			vivos.addAll(novos);
+			
+			for(String estado : new HashSet<String>(novos)) {
+				novos.remove(estado);
+				for (Transicao t : this.getTransicoes()) {
+					if (t.estadoDestino.equals(estado) && !vivos.contains(t.estadoOrigem)) {
+						novos.add(t.estadoOrigem);
+					}
+				}
+			}
+		}
+		
+		return vivos;
 	}
 		
 	// =====================================================================================
