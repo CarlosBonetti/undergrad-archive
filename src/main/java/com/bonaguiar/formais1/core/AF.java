@@ -16,7 +16,6 @@ import lombok.Getter;
  * Autômato finito
  */
 public class AF {
-	
 	/**
 	 * Alfabeto de entrada do autômato
 	 */
@@ -46,6 +45,13 @@ public class AF {
 	 */
 	@Getter 
 	protected List<Transicao> transicoes;
+	
+	/**
+	 * Nome do estado de erro padrão
+	 * Uma transição de um estado qualquer a um estado de erro sempre existe com cada caracter do alfabeto
+	 * caso nenhuma outra transição tenha sido definida
+	 */
+	public static final String ESTADO_ERRO = "qerr";
 	
 	/**
 	 * Constroi um novo AF vazio
@@ -208,6 +214,44 @@ public class AF {
 		}
 		
 		return vivos;
+	}
+	
+	/**
+	 * Retorna o complemento deste AF
+	 * @return
+	 * @throws FormaisException 
+	 */
+	public AF getComplemento() throws FormaisException {
+		AF comp = new AF(this.alfabeto); // Alfabeto do complemento é o mesmo
+		comp.estados.addAll(this.getEstados()); // Conjunto de estados do complemento é o mesmo
+		comp.setEstadoInicial(this.getEstadoInicial()); // Estado inicial do complemento é o mesmo
+		comp.transicoes.addAll(this.getTransicoes()); // Transições do complemento são as mesmas
+		
+		// Completamos o autômato
+		// Cada transição não definida levará um estado de erro
+		// TODO: se for criada transição ao estado de erro e posteriormente uma transição for definida		
+		for(String estado : this.getEstados()) {
+			for(Character caracter : this.getAlfabeto()) {
+				if (this.transicao(estado, caracter).isEmpty()) {
+					// Se ainda não possuir ESTADO_ERRO, adiciona como estado final:
+					if (!comp.contemEstado(ESTADO_ERRO)) {
+						comp.addEstado(ESTADO_ERRO, false);
+						comp.estadosFinais.add(ESTADO_ERRO); // Estado de erro sempre é final no complemento
+					}
+					
+					comp.addTransicao(estado, caracter, ESTADO_ERRO);
+				}
+			}
+		}
+		
+		// Estados finais se tornam não-finais. Estados não-finais se tornam finais
+		for (String estado : this.getEstados()) {
+			if (!this.ehFinal(estado)) {
+				comp.estadosFinais.add(estado);
+			}
+		}
+		
+		return comp;
 	}
 		
 	// =====================================================================================

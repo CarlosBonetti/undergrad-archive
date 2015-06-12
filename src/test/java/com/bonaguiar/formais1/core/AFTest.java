@@ -214,6 +214,7 @@ public class AFTest {
 
 		// Adicionando transições para os estados finais e checando se eles se tornam vivos
 		af.addTransicao("q2", 'b', "q4");
+		af.addTransicao("q2", 'b', "q2"); // Transição não determinística pra testar se algoritmo finaliza
 		af.addTransicao("q0", 'a', "q4");
 		af.addTransicao("q1", 'c', "q5");
 		vivos = af.getEstadosVivos();
@@ -223,6 +224,60 @@ public class AFTest {
 		assertTrue(vivos.contains("q2"));
 		assertTrue(vivos.contains("q0"));
 		assertTrue(vivos.contains("q1"));
+	}
+	
+	@Test
+	public void testarGetComplemento() throws FormaisException {
+		AF af = new AF(new Alfabeto("ab"));
+		af.addEstado("q0", false);
+		af.addEstado("q1", false);
+		af.addEstado("q2", true);
+		af.setEstadoInicial("q0");
+		af.addTransicao("q0", 'b', "q0");
+		af.addTransicao("q0", 'a', "q1");
+		af.addTransicao("q1", 'b', "q1");
+		af.addTransicao("q1", 'a', "q2");		
+		af.addTransicao("q2", 'a', "q2");
+		af.addTransicao("q2", 'b', "q2");
+		
+		AF comp = af.getComplemento();
+		
+		// Complemento deve ter o mesmo alfabeto
+		assertEquals(af.getAlfabeto(), comp.getAlfabeto());
+		
+		// Complemento deve ter o mesmo conjunto de estados
+		assertEquals(af.getEstados(), comp.getEstados());
+		
+		// Complemento deve ter o mesmo estado inicial
+		assertEquals(af.getEstadoInicial(), comp.getEstadoInicial());
+		
+		// Complemento deve ter as mesmas transições
+		assertEquals(af.getTransicoes(), comp.getTransicoes());
+		
+		// Estados finais se tornam não-finais. Estados não-finais se tornam finais
+		assertEquals(Arrays.asList("q0", "q1"), comp.getEstadosFinais());
+	}
+	
+	@Test
+	public void testarGetComplementoDeAutomatoIncompleto() throws FormaisException {
+		AF af = new AF(new Alfabeto("ab")); // (ab)* onde não é permitido 'aa'
+		af.addEstado("q0", true);
+		af.addEstado("q1", true);
+		af.setEstadoInicial("q0");
+		af.addTransicao("q0", 'b', "q0");
+		af.addTransicao("q0", 'a', "q1");
+		af.addTransicao("q1", 'b', "q0");
+		
+		AF comp = af.getComplemento();
+		
+		// Complemento deve ter o estado de erro
+		assertTrue(comp.estados.contains(AF.ESTADO_ERRO));
+		
+		// Estado de erro deve ser final
+		assertEquals(Arrays.asList(AF.ESTADO_ERRO), comp.getEstadosFinais());
+		
+		// Transições de erro devem ter sido criadas
+		assertEquals(Arrays.asList(AF.ESTADO_ERRO), comp.transicao("q1", 'a'));
 	}
 	
 	// ======================================================================================
