@@ -94,7 +94,7 @@ public class AFTest {
 		AF afd1 = new AF(new Alfabeto("abcde"));
 		afd1.addEstado("q0", true);
 		afd1.addEstado("q1", true);
-		afd1.addTransicao("q0", Alfabeto.EPSOLON, "q1");
+		afd1.addTransicao("q0", Alfabeto.EPSILON, "q1");
 	}
 	
 	@Test(expected=FormaisException.class)

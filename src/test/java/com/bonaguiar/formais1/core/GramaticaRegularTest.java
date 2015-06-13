@@ -106,4 +106,12 @@ public class GramaticaRegularTest {
 		assertEquals(0, g1.getProducoes('S').size());
 	}
 
+//	@Test
+//	public void testarExisteEpisilon() throws FormaisException {
+//		g1.addProducao('S', Alfabeto.EPSILON.toString());
+//		assertTrue("Epsilon deveria existir", g1.existeEpsilon('S'));
+//		g1.addProducao('A', "aA");
+//		assertTrue("Epsilon NÃO deveria existir",!g1.existeEpsilon('A'));
+//	}
+
 }
