@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -15,7 +16,6 @@ import lombok.Getter;
  * Autômato finito
  */
 public class AF {
-	
 	/**
 	 * Alfabeto de entrada do autômato
 	 */
@@ -45,6 +45,13 @@ public class AF {
 	 */
 	@Getter 
 	protected List<Transicao> transicoes;
+	
+	/**
+	 * Nome do estado de erro padrão
+	 * Uma transição de um estado qualquer a um estado de erro sempre existe com cada caracter do alfabeto
+	 * caso nenhuma outra transição tenha sido definida
+	 */
+	public static final String ESTADO_ERRO = "qerr";
 	
 	/**
 	 * Constroi um novo AF vazio
@@ -150,6 +157,101 @@ public class AF {
 			throw new FormaisException("Estado `" + estado + "` não pertence ao AF");
 		}
 		return this.estadosFinais.contains(estado);
+	}
+	
+	/**
+	 * Retorna o conjunto de estados alcançáveis deste AF
+	 * Estados alcancáveis são aqueles que podem ser acessados através de transições a partir do estado inicial
+	 * @return
+	 * @throws FormaisException
+	 */
+	public Set<String> getEstadosAlcancaveis() throws FormaisException {
+		Set<String> alc = new HashSet<String>();
+		List<String> check = new ArrayList<String>();
+		
+		if (this.getEstadoInicial() != null) {
+			check.add(this.getEstadoInicial());
+		}
+		
+		while(!check.isEmpty()) {
+			String estado = check.remove(0);
+			alc.add(estado);
+			
+			for (Character c : this.getAlfabeto()) {
+				for (String novoEstado : this.transicao(estado, c)) {
+					if (!check.contains(novoEstado) && !alc.contains(novoEstado)) {
+						check.add(novoEstado);
+					}
+				}
+			}
+		}		
+		
+		return alc;
+	}
+	
+	/**
+	 * Retorna o conjunto de estados vivos deste AF
+	 * Estados vivos são aqueles que podem levar a um estado final através de transições deste AF
+	 * @return
+	 */
+	public Set<String> getEstadosVivos() {
+		Set<String> vivos = new HashSet<String>(); // Guarda os estados vivos alcançados
+
+		Set<String> novos = new HashSet<String>(); // Guarda os novos estados vivos que devem ser considerados na próxima iteração
+		novos.addAll(this.getEstadosFinais()); // Estados finais são vivos por definição
+		
+		while(!novos.isEmpty()) {
+			vivos.addAll(novos);
+			
+			for(String estado : new HashSet<String>(novos)) {
+				novos.remove(estado);
+				for (Transicao t : this.getTransicoes()) {
+					if (t.estadoDestino.equals(estado) && !vivos.contains(t.estadoOrigem)) {
+						novos.add(t.estadoOrigem);
+					}
+				}
+			}
+		}
+		
+		return vivos;
+	}
+	
+	/**
+	 * Retorna o complemento deste AF
+	 * @return
+	 * @throws FormaisException 
+	 */
+	public AF getComplemento() throws FormaisException {
+		AF comp = new AF(this.alfabeto); // Alfabeto do complemento é o mesmo
+		comp.estados.addAll(this.getEstados()); // Conjunto de estados do complemento é o mesmo
+		comp.setEstadoInicial(this.getEstadoInicial()); // Estado inicial do complemento é o mesmo
+		comp.transicoes.addAll(this.getTransicoes()); // Transições do complemento são as mesmas
+		
+		// Completamos o autômato
+		// Cada transição não definida levará um estado de erro
+		// TODO: se for criada transição ao estado de erro e posteriormente uma transição for definida		
+		for(String estado : this.getEstados()) {
+			for(Character caracter : this.getAlfabeto()) {
+				if (this.transicao(estado, caracter).isEmpty()) {
+					// Se ainda não possuir ESTADO_ERRO, adiciona como estado final:
+					if (!comp.contemEstado(ESTADO_ERRO)) {
+						comp.addEstado(ESTADO_ERRO, false);
+						comp.estadosFinais.add(ESTADO_ERRO); // Estado de erro sempre é final no complemento
+					}
+					
+					comp.addTransicao(estado, caracter, ESTADO_ERRO);
+				}
+			}
+		}
+		
+		// Estados finais se tornam não-finais. Estados não-finais se tornam finais
+		for (String estado : this.getEstados()) {
+			if (!this.ehFinal(estado)) {
+				comp.estadosFinais.add(estado);
+			}
+		}
+		
+		return comp;
 	}
 		
 	// =====================================================================================

@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -159,6 +160,124 @@ public class AFTest {
 	public void testarEhFinalComEstadoInexistente() throws FormaisException {
 		AF af = new AF(new Alfabeto("abc"));
 		af.ehFinal("q5");
+	}
+	
+	@Test
+	public void testarGetEstadosAlcancaveis() throws FormaisException {
+		AF af = new AF(new Alfabeto("abc"));
+		af.addEstado("q0", true);
+		af.addEstado("q1", false);
+		af.addEstado("q2", false);
+		af.addEstado("q3", false);
+		af.addEstado("q4", false);
+		af.addEstado("q5", false);
+		af.setEstadoInicial("q0");
+		
+		// Estado inicial sempre é alcancável
+		assertTrue(af.getEstadosAlcancaveis().contains("q0"));
+		
+		af.addTransicao("q0", 'a', "q1");
+		af.addTransicao("q0", 'a', "q2");
+		af.addTransicao("q0", 'c', "q3");
+		af.addTransicao("q1", 'b', "q2");
+		af.addTransicao("q2", 'c', "q4");
+		
+		Set<String> alc = af.getEstadosAlcancaveis();
+		assertTrue(alc.contains("q0"));
+		assertTrue(alc.contains("q1"));
+		assertTrue(alc.contains("q2"));
+		assertTrue(alc.contains("q3"));
+		assertTrue(alc.contains("q4"));
+		assertFalse(alc.contains("q5"));
+		
+		af.addTransicao("q2", 'b', "q5");
+		alc = af.getEstadosAlcancaveis();
+		assertTrue(alc.contains("q5"));
+	}
+	
+	@Test
+	public void testarGetEstadosVivos() throws FormaisException {
+		AF af = new AF(new Alfabeto("abc"));
+		af.addEstado("q0", false);
+		af.addEstado("q1", false);
+		af.addEstado("q2", false);
+		af.addEstado("q3", false);
+		af.addEstado("q4", true);
+		af.addEstado("q5", true);
+		af.setEstadoInicial("q0");
+		
+		// Estados finais são vivos por definição
+		Set<String> vivos = af.getEstadosVivos();
+		assertEquals(2, vivos.size());
+		assertTrue(vivos.contains("q4"));
+		assertTrue(vivos.contains("q5"));
+
+		// Adicionando transições para os estados finais e checando se eles se tornam vivos
+		af.addTransicao("q2", 'b', "q4");
+		af.addTransicao("q2", 'b', "q2"); // Transição não determinística pra testar se algoritmo finaliza
+		af.addTransicao("q0", 'a', "q4");
+		af.addTransicao("q1", 'c', "q5");
+		vivos = af.getEstadosVivos();
+		assertEquals(5, vivos.size());
+		assertTrue(vivos.contains("q4"));
+		assertTrue(vivos.contains("q5"));
+		assertTrue(vivos.contains("q2"));
+		assertTrue(vivos.contains("q0"));
+		assertTrue(vivos.contains("q1"));
+	}
+	
+	@Test
+	public void testarGetComplemento() throws FormaisException {
+		AF af = new AF(new Alfabeto("ab"));
+		af.addEstado("q0", false);
+		af.addEstado("q1", false);
+		af.addEstado("q2", true);
+		af.setEstadoInicial("q0");
+		af.addTransicao("q0", 'b', "q0");
+		af.addTransicao("q0", 'a', "q1");
+		af.addTransicao("q1", 'b', "q1");
+		af.addTransicao("q1", 'a', "q2");		
+		af.addTransicao("q2", 'a', "q2");
+		af.addTransicao("q2", 'b', "q2");
+		
+		AF comp = af.getComplemento();
+		
+		// Complemento deve ter o mesmo alfabeto
+		assertEquals(af.getAlfabeto(), comp.getAlfabeto());
+		
+		// Complemento deve ter o mesmo conjunto de estados
+		assertEquals(af.getEstados(), comp.getEstados());
+		
+		// Complemento deve ter o mesmo estado inicial
+		assertEquals(af.getEstadoInicial(), comp.getEstadoInicial());
+		
+		// Complemento deve ter as mesmas transições
+		assertEquals(af.getTransicoes(), comp.getTransicoes());
+		
+		// Estados finais se tornam não-finais. Estados não-finais se tornam finais
+		assertEquals(Arrays.asList("q0", "q1"), comp.getEstadosFinais());
+	}
+	
+	@Test
+	public void testarGetComplementoDeAutomatoIncompleto() throws FormaisException {
+		AF af = new AF(new Alfabeto("ab")); // (ab)* onde não é permitido 'aa'
+		af.addEstado("q0", true);
+		af.addEstado("q1", true);
+		af.setEstadoInicial("q0");
+		af.addTransicao("q0", 'b', "q0");
+		af.addTransicao("q0", 'a', "q1");
+		af.addTransicao("q1", 'b', "q0");
+		
+		AF comp = af.getComplemento();
+		
+		// Complemento deve ter o estado de erro
+		assertTrue(comp.estados.contains(AF.ESTADO_ERRO));
+		
+		// Estado de erro deve ser final
+		assertEquals(Arrays.asList(AF.ESTADO_ERRO), comp.getEstadosFinais());
+		
+		// Transições de erro devem ter sido criadas
+		assertEquals(Arrays.asList(AF.ESTADO_ERRO), comp.transicao("q1", 'a'));
 	}
 	
 	// ======================================================================================
