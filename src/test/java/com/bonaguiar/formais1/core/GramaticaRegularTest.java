@@ -1,6 +1,10 @@
 package com.bonaguiar.formais1.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +14,11 @@ import com.bonaguiar.formais1.core.exception.FormaisException;
 public class GramaticaRegularTest {
 	public GramaticaRegular g1;
 
+	@Before
+	public void setup() throws FormaisException {
+		g1 = new GramaticaRegular(new Alfabeto('S', 'A'), new Alfabeto('a', 'b', 'c'), 'S');
+	}
+	
 	@Test
 	public void testarInicializacaoCorreta() throws FormaisException {
 		GramaticaRegular g = new GramaticaRegular(new Alfabeto('S', 'A'), new Alfabeto('a', 'b', 'c'), 'S');	
@@ -40,11 +49,6 @@ public class GramaticaRegularTest {
 		new GramaticaRegular(new Alfabeto('S', 'A'), new Alfabeto('a', 'b'), 'U');
 	}
 	
-	@Before
-	public void setup() throws FormaisException {
-		g1 = new GramaticaRegular(new Alfabeto('S', 'A'), new Alfabeto('a', 'b', 'c'), 'S');
-	}
-
 	@Test
 	public void testarAddProducaoCorreta() throws FormaisException {
 		g1.addProducao('S', "aS");
@@ -113,5 +117,44 @@ public class GramaticaRegularTest {
 //		g1.addProducao('A', "aA");
 //		assertTrue("Epsilon NÃO deveria existir",!g1.existeEpsilon('A'));
 //	}
+
+
+	@Test
+	public void testarGRparaAF() throws FormaisException {
+		g1.limparProducoes();
+		g1.addProducao('S', "aS");
+		g1.addProducao('S', "bA");
+		g1.addProducao('A', "bA");
+		g1.addProducao('A', "c");
+		AF af = g1.getAutomatoFinito();
+		
+		//testando criacao do objeto
+		assertSame("Objeto não é AF", AF.class, g1.getAutomatoFinito().getClass());
+		assertNotNull("Objeto é null", af);
+
+		//testando simbolos terminais como transicoes
+		assertEquals("tamanho de simbolos de transição invalidos", g1.getVt().size(), af.getAlfabeto().size());
+		for (Character character : g1.getVt()) {
+			assertTrue("simbolos invalidos", g1.getVt().contains(character));
+		}
+
+		//testando simbolos nao-terminais como estados
+		//+1 pq eh criado um novo estado final.
+		assertEquals("numero de Estados invalidos", g1.getVn().size() + 1, af.getEstados().size());
+		assertTrue("Simbolo inexistente - S", g1.getVn().contains("S".charAt(0)));
+		assertTrue("Simbolo inexistente - A", g1.getVn().contains("A".charAt(0)));
+		assertFalse("Simbolo existente - C", g1.getVn().contains("C".charAt(0)));
+		assertFalse("Simbolo existente - Δ", g1.getVn().contains("Δ".charAt(0)));
+		
+		//testando criacao dos addTransicoes
+		assertEquals(4, af.getTransicoes().size());
+		//TODO validar criacao de transicoes
+		for (Transicao trans : af.getTransicoes()) {
+			System.out.println(trans.estadoOrigem);
+			System.out.println(trans.simboloTransicao);
+			System.out.println(trans.estadoDestino);
+			System.out.println("-------------------");
+		}
+	}
 
 }

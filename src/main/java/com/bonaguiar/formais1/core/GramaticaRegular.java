@@ -159,21 +159,20 @@ public class GramaticaRegular {
 	/**
 	 * Retorna um automato finito
 	 * Teorema 3.2
-	 * 
+	 * Novo estado final criado representado por "Δ" 
 	 * @return AF
 	 * @throws FormaisException
 	 */
 	public AF getAutomatoFinito() throws FormaisException{
 		//criado novo estado de aceitação
 		final String estadoFinal ="Δ";
-		this.getVn().add(estadoFinal.charAt(0));
 		
 		AF af = new AF(this.getVt());
 		for (Character charVn : this.getVn()) {
 			af.addEstado(charVn.toString(), false);
 		}
 		af.setEstadoInicial(this.getS().toString());
-		af.getEstadosFinais().add(estadoFinal);
+		af.addEstado(estadoFinal, true);
 
 		//adiciona estado inicial também como final se epsilon existir como produção
 //		if (gr.possuiEpsilon(gr.getS().charValue())) {
@@ -183,18 +182,17 @@ public class GramaticaRegular {
 		
 		Iterator<Character> it = this.getVn().iterator();
 		while (it.hasNext()) {
-			Character character = (Character) it.next();
-			af.getEstados().add(character.toString());
-			if(this.getProducoes(character) != null)
-				for (String s : this.getProducoes(character)) {
-					if (s.length() == 1) {
-						af.addTransicao(character.toString(), s.charAt(0), estadoFinal);
+			Character afEstado = (Character) it.next();
+			if(this.getProducoes(afEstado) != null)
+				for (String producao : this.getProducoes(afEstado)) {
+					if (producao.length() == 1) {
+						af.addTransicao(afEstado.toString(), producao.charAt(0), estadoFinal);
 					} else {
-						af.addTransicao(character.toString(), s.charAt(0), s.substring(1, 2));
+						af.addTransicao(afEstado.toString(), producao.charAt(0), producao.substring(1, 2));
 					}
 				}
-			else 
-				af.addTransicao(character.toString(), Alfabeto.EPSILON, character.toString());
+//			else //TODO rever epsilon E 5c do algoritmo
+//				af.addTransicao(character.toString(), Alfabeto.EPSILON, character.toString());
 		}
 		
 		return af;
