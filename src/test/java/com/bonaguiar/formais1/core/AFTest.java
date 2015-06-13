@@ -22,7 +22,7 @@ public class AFTest {
 	}
 	
 	@Test
-	public void testarAddEstado() {
+	public void testarAddEstado() throws FormaisException {
 		AF af = new AF(new Alfabeto("abc"));
 		af.addEstado("q1", false);
 		assertEquals("q1", af.getEstados().get(0));
@@ -35,8 +35,15 @@ public class AFTest {
 		assertEquals(1, af.getEstadosFinais().size());
 	}
 	
+	@Test(expected=FormaisException.class)
+	public void testarAddEstadoDuplicado() throws FormaisException {
+		AF af = new AF(new Alfabeto("abc"));
+		af.addEstado("q0", true);
+		af.addEstado("q0", false);
+	}
+	
 	@Test
-	public void testarContemEstado() {
+	public void testarContemEstado() throws FormaisException {
 		AF af = new AF(new Alfabeto("abc"));
 		af.addEstado("q4", false);
 		af.addEstado("A", true);
