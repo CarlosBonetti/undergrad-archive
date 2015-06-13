@@ -70,6 +70,7 @@ public class AF {
 	 * @param ehFinal Se o estado é final ou não
 	 */
 	public void addEstado(String nome, Boolean ehFinal) {
+		// TODO: jogar exception se estado já existir
 		this.estados.add(nome);
 		
 		if (ehFinal) {
@@ -252,6 +253,55 @@ public class AF {
 		}
 		
 		return comp;
+	}
+	
+	/**
+	 * Retorna um novo autômato que é a intersecção do AF atual com o parâmetro
+	 * @param af2
+	 * @return
+	 * @throws FormaisException 
+	 */
+	public AF intersectar(AF af2) throws FormaisException {
+		if (!this.alfabeto.equals(af2.alfabeto)) {
+			throw new FormaisException("Alfabeto dos AF devem ser iguais para intersecção. Alfabeto 1: "
+					+ this.alfabeto.toString() + ". Alfabeto 2: "
+					+ af2.alfabeto.toString());
+		}
+		
+		AF novo = new AF(this.alfabeto);
+		
+		// Estados da intersecção é produto cartesiano dos estados
+		for (String estado1 : this.getEstados()) {
+			for (String estado2 : af2.getEstados()) {
+				novo.addEstado("[" + estado1 + ", " + estado2 + "]", false);
+			}
+		}
+		
+		// Estados finais da intersecção é o produto cartesiano dos estados finais originais
+		for (String estado1 : this.getEstadosFinais()) {
+			for (String estado2 : af2.getEstadosFinais()) {
+				novo.estadosFinais.add("[" + estado1 + ", " + estado2 + "]");
+			}
+		}
+		
+		// TODO: checar se estado inicial existe?
+		
+		// Estado inicial da intersecção é a combinação dos estados iniciais originais
+		novo.setEstadoInicial("[" + this.getEstadoInicial() + ", " + af2.getEstadoInicial() + "]");
+		
+		// Transições devem ser da forma ([q0, q1], a) -> ((q0, a), (q1, a))
+		// TODO: testar transições não definidas
+		for (Transicao t1 : this.getTransicoes()) {
+			for (Transicao t2 : af2.getTransicoes()) {
+				if (t1.simboloTransicao.equals(t2.simboloTransicao)) {
+					novo.addTransicao("[" + t1.estadoOrigem + ", " + t2.estadoOrigem + "]", 
+							t1.simboloTransicao, 
+							"[" + t1.estadoDestino + ", " + t2.estadoDestino + "]");
+				}
+			}
+		}
+		
+		return novo;
 	}
 		
 	// =====================================================================================

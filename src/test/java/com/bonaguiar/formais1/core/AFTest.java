@@ -280,6 +280,58 @@ public class AFTest {
 		assertEquals(Arrays.asList(AF.ESTADO_ERRO), comp.transicao("q1", 'a'));
 	}
 	
+	@Test
+	public void testarIntersectar() throws FormaisException {
+		AF af = new AF(new Alfabeto("ab"));
+		AF af2 = new AF(new Alfabeto("ab"));
+		
+		af.addEstado("q0", true);
+		af.addEstado("q1", false);
+		af.setEstadoInicial("q0");
+		af.addTransicao("q0", 'a', "q1");
+		af.addTransicao("q0", 'b', "q1");
+		af.addTransicao("q1", 'a', "q0");
+		af.addTransicao("q1", 'b', "q0");
+		
+		af2.addEstado("q3", false);
+		af2.addEstado("q4", true);
+		af2.setEstadoInicial("q3");
+		af2.addTransicao("q3", 'a', "q3");
+		af2.addTransicao("q3", 'b', "q4");
+		af2.addTransicao("q4", 'b', "q4");
+		
+		AF inter = af.intersectar(af2);
+		
+		// Alfabeto da intersecção deve ser o mesmo
+		assertEquals(af.getAlfabeto(), inter.getAlfabeto());		
+		
+		// Estados da intersecção deve ser o produto cartesiano dos conjuntos dos estados originais
+		assertEquals(Arrays.asList("[q0, q3]", "[q0, q4]", "[q1, q3]", "[q1, q4]"), inter.getEstados());
+		
+		// Estados finais deve ser o produto cartesiano dos conjuntos dos estados finais originais
+		assertEquals(Arrays.asList("[q0, q4]"), inter.getEstadosFinais());
+		
+		// Estado inicial é a combinação dos estados iniciais originais
+		assertEquals("[q0, q3]", inter.getEstadoInicial());
+		
+		// Transições devem ser da forma ([q0, q1], a) -> ((q0, a), (q1, a))
+		assertEquals(Arrays.asList("[q1, q3]"), inter.transicao("[q0, q3]", 'a'));
+		assertEquals(Arrays.asList("[q1, q4]"), inter.transicao("[q0, q3]", 'b'));
+		assertEquals(Arrays.asList(), inter.transicao("[q0, q4]", 'a'));
+		assertEquals(Arrays.asList("[q1, q4]"), inter.transicao("[q0, q4]", 'b'));
+		assertEquals(Arrays.asList("[q0, q3]"), inter.transicao("[q1, q3]", 'a'));
+		assertEquals(Arrays.asList("[q0, q4]"), inter.transicao("[q1, q3]", 'b'));
+		assertEquals(Arrays.asList(), inter.transicao("[q1, q4]", 'a'));
+		assertEquals(Arrays.asList("[q0, q4]"), inter.transicao("[q1, q4]", 'b'));
+	}
+	
+	@Test(expected=FormaisException.class)
+	public void testarIntersectarComAlfabetosDiferentes() throws FormaisException {
+		AF af = new AF(new Alfabeto("ab"));
+		AF af2 = new AF(new Alfabeto("abc"));
+		af.intersectar(af2);
+	}
+	
 	// ======================================================================================
 	// Testes de determinização
 	
