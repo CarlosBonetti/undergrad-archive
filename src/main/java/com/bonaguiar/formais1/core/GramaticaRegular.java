@@ -2,6 +2,8 @@ package com.bonaguiar.formais1.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.bonaguiar.formais1.core.exception.FormaisException;
@@ -143,5 +145,56 @@ public class GramaticaRegular {
 		}
 		
 		return this.producoes.get(produtor);
+	}
+	
+	public boolean possuiEpsilon(char produtor) throws FormaisException{
+		for (String string : this.getProducoes(produtor)) {
+			if (string.startsWith(Alfabeto.EPSILON.toString(), 0)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Retorna um automato finito
+	 * Teorema 3.2
+	 * Novo estado final criado representado por "Δ" 
+	 * @return AF
+	 * @throws FormaisException
+	 */
+	public AF getAutomatoFinito() throws FormaisException{
+		//criado novo estado de aceitação
+		final String estadoFinal ="Δ";
+		
+		AF af = new AF(this.getVt());
+		for (Character charVn : this.getVn()) {
+			af.addEstado(charVn.toString(), false);
+		}
+		af.setEstadoInicial(this.getS().toString());
+		af.addEstado(estadoFinal, true);
+
+		//adiciona estado inicial também como final se epsilon existir como produção
+//		if (gr.possuiEpsilon(gr.getS().charValue())) {
+//			af.getEstadosFinais().add(af.getEstadoInicial());
+//		}//TODO
+		
+		
+		Iterator<Character> it = this.getVn().iterator();
+		while (it.hasNext()) {
+			Character afEstado = (Character) it.next();
+			if(this.getProducoes(afEstado) != null)
+				for (String producao : this.getProducoes(afEstado)) {
+					if (producao.length() == 1) {
+						af.addTransicao(afEstado.toString(), producao.charAt(0), estadoFinal);
+					} else {
+						af.addTransicao(afEstado.toString(), producao.charAt(0), producao.substring(1, 2));
+					}
+				}
+//			else //TODO rever epsilon E 5c do algoritmo
+//				af.addTransicao(character.toString(), Alfabeto.EPSILON, character.toString());
+		}
+		
+		return af;
 	}
 }

@@ -12,7 +12,7 @@ public class Alfabeto extends HashSet<Character> {
 	/**
 	 * Caracter que deve ser considerado como o epsolon
 	 */
-	public static final Character EPSOLON = '&';
+	public static final Character EPSILON = '&';
 
 	/**
 	 * Cria um novo alfabeto a partir da lista de caracteres informada

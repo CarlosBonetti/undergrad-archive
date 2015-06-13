@@ -27,7 +27,7 @@ public class AFDTest {
 		AFD afd1 = new AFD(new Alfabeto("abcde"));
 		afd1.addEstado("q0", true);
 		afd1.addEstado("q1", true);
-		afd1.addTransicao("q0", Alfabeto.EPSOLON, "q1");
+		afd1.addTransicao("q0", Alfabeto.EPSILON, "q1");
 	}
 	
 	@Test(expected=FormaisException.class)
