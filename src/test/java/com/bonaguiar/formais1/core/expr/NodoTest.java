@@ -24,7 +24,7 @@ public class NodoTest {
 	}
 	
 	@Test
-	public void testHasRightChild() {
+	public void testTemDir() {
 		Nodo<Integer> node = new Nodo<Integer>(2);
 		Nodo<Integer> child = new Nodo<Integer>(-1);
 		assertEquals(false, node.temDir());
@@ -33,7 +33,7 @@ public class NodoTest {
 	}
 	
 	@Test
-	public void testIsLeaf() {
+	public void testarEhFolha() {
 		Nodo<Double> node = new Nodo<Double>(2.0);
 		assertEquals(node.ehFolha(), true);		
 		
@@ -72,7 +72,7 @@ public class NodoTest {
 		concat2.setEsq(opcional);
 		opcional.setEsq(c);
 		
-		root.costurar();
+		root.costurar(Simone.FIM_DA_COSTURA);
 		assertEquals(null, root.getCostura());
 		assertEquals(root, fechamento.getCostura());
 		assertEquals(null, concat1.getCostura());
@@ -81,6 +81,20 @@ public class NodoTest {
 		assertEquals(null, concat2.getCostura());
 		assertEquals(concat2, opcional.getCostura());
 		assertEquals(opcional, c.getCostura());
-		assertEquals(null, d.getCostura());
+		assertEquals(Simone.FIM_DA_COSTURA, d.getCostura());
+		
+		// Numeração das folhas
+		assertEquals(1, a.getId());
+		assertEquals(2, b.getId());
+		assertEquals(3, c.getId());
+		assertEquals(4, d.getId());
+	}
+	
+	@Test
+	public void testarToString() {
+		Nodo<Character> nodo = new Nodo<Character>('b');
+		assertEquals("b", nodo.toString());
+		nodo.setId(3);
+		assertEquals("3b", nodo.toString());
 	}
 }

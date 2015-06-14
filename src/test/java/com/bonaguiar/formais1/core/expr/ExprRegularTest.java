@@ -2,6 +2,8 @@ package com.bonaguiar.formais1.core.expr;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 
 import com.bonaguiar.formais1.core.exception.FormaisException;
@@ -30,6 +32,13 @@ public class ExprRegularTest {
 		
 		// Deve estar costurada
 		assertEquals(expr1.getTree(), expr1.getTree().getEsq().getCostura());
+	}
+	
+	@Test
+	public void testarExtrairAlfabeto() throws FormaisException {
+		ExprRegular exp = new ExprRegular("(ab)*|c?de");
+		assertTrue(exp.extrairAlfabeto().containsAll(Arrays.asList('a', 'b', 'c', 'd', 'd')));
+		assertEquals(5, exp.extrairAlfabeto().size());
 	}
 
 }

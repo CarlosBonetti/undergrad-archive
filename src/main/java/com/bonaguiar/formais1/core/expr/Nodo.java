@@ -17,6 +17,10 @@ public class Nodo<T> {
 	
 	@Setter
 	@Getter
+	private int id;
+	
+	@Setter
+	@Getter
 	private Nodo<T> esq;
 	
 	@Setter
@@ -55,34 +59,47 @@ public class Nodo<T> {
 	 * Prepara a costura da árvore para executar um caminhamento inorder posteriormente
 	 * Após chamar este método, cada nodo terá a referência do próximo nodo "seguindo pela costura"
 	 * A referência é mantida no atributo 'costura'
+	 * @param fimDaCostura Nodo que marcará o fim da costura
 	 */
-	public void costurar() {
+	public void costurar(Nodo<T> fimDaCostura) {
 		Stack<Nodo<T>> stack = new Stack<Nodo<T>>();
-		stack.push(null); // O null marca o fim da costura
-		this.costurar(stack);
+		stack.push(fimDaCostura);
+		this.costurar(stack, 0);
 	}
 	
 	/**
 	 * Método recursivo de costura. Usado pelo `costurar()`
 	 * @param stack
 	 */
-	private void costurar(Stack<Nodo<T>> stack) {
-		// Se for folha, cria a costura
+	private int costurar(Stack<Nodo<T>> stack, int id) {
+		// Se for folha, cria a costura e associa o id
 		if (this.ehFolha()) {
 			this.costura = stack.pop();
-			return;
+			this.id = ++id;
+			return id;
 		}
 		
 		stack.push(this);
 		
 		// Não é folha, então visite o filho à esquerda
-		this.getEsq().costurar(stack);
+		id = this.getEsq().costurar(stack, id);
 		
 		// Se tiver filho à direita, visite-o, senão crie a costura
 		if (this.temDir()) {
-			this.getDir().costurar(stack);
+			id = this.getDir().costurar(stack, id);
 		} else {
 			this.costura = stack.pop();
 		}
+		
+		return id;
+	}
+	
+	@Override
+	public String toString() {
+		if (this.getId() != 0) {
+			return this.getId() + this.getConteudo().toString();
+		}
+		
+		return this.getConteudo().toString();
 	}
 }

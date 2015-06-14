@@ -1,5 +1,6 @@
 package com.bonaguiar.formais1.core.expr;
 
+import com.bonaguiar.formais1.core.Alfabeto;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
 import lombok.Getter;
@@ -29,7 +30,29 @@ public class ExprRegular {
 	public ExprRegular(String expr) throws FormaisException {
 		this.expr = expr;
 		this.tree = ERParser.parse(this.expr);
-		this.tree.costurar();
+		this.tree.costurar(Simone.FIM_DA_COSTURA);
+	}
+	
+	/**
+	 * Extrai o alfabeto da expressão regular
+	 * O alfabeto da ER é o conjunto de caracteres que a expressão pode gerar
+	 * Exemplo: O alfabeto da expressão (ab)*|c?d é [a, b, c, d]
+	 * @return
+	 */
+	public Alfabeto extrairAlfabeto() {
+		Alfabeto alfabeto = new Alfabeto();
+
+		for (Character c : expr.toCharArray()) {
+			if (ERParser.CARACTERES.contains(c)) {
+				alfabeto.add(c);
+			}
+		}
+		
+		return alfabeto;
+	}
+	
+	public void getAFD() {
+		// TODO
 	}
 	
 }
