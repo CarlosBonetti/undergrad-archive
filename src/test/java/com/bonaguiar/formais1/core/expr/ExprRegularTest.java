@@ -26,7 +26,10 @@ public class ExprRegularTest {
 		assertEquals(new Character('a'), expr1.getTree().getEsq().getEsq().getEsq().getConteudo());
 		assertEquals(new Character('b'), expr1.getTree().getEsq().getEsq().getDir().getConteudo());
 		assertEquals(new Character('c'), expr1.getTree().getDir().getEsq().getEsq().getConteudo());
-		assertEquals(new Character('c'), expr1.getTree().getDir().getEsq().getDir().getConteudo());		
+		assertEquals(new Character('c'), expr1.getTree().getDir().getEsq().getDir().getConteudo());
+		
+		// Deve estar costurada
+		assertEquals(expr1.getTree(), expr1.getTree().getEsq().getCostura());
 	}
 
 }

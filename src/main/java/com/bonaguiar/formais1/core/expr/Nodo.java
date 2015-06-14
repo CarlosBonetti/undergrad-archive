@@ -1,5 +1,7 @@
 package com.bonaguiar.formais1.core.expr;
 
+import java.util.Stack;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,12 +10,21 @@ import lombok.Setter;
  *
  * @param <T> Tipo do conteúdo
  */
-@Setter
-@Getter
 public class Nodo<T> {
+	@Setter
+	@Getter
 	private T conteudo;
+	
+	@Setter
+	@Getter
 	private Nodo<T> esq;
+	
+	@Setter
+	@Getter
 	private Nodo<T> dir;
+	
+	@Getter
+	private Nodo<T> costura;
 	
 	public Nodo(T conteudo) {
 		this.conteudo = conteudo;
@@ -40,4 +51,38 @@ public class Nodo<T> {
 		return !this.temEsq() && !this.temDir();
 	}
 	
+	/**
+	 * Prepara a costura da árvore para executar um caminhamento inorder posteriormente
+	 * Após chamar este método, cada nodo terá a referência do próximo nodo "seguindo pela costura"
+	 * A referência é mantida no atributo 'costura'
+	 */
+	public void costurar() {
+		Stack<Nodo<T>> stack = new Stack<Nodo<T>>();
+		stack.push(null); // O null marca o fim da costura
+		this.costurar(stack);
+	}
+	
+	/**
+	 * Método recursivo de costura. Usado pelo `costurar()`
+	 * @param stack
+	 */
+	private void costurar(Stack<Nodo<T>> stack) {
+		// Se for folha, cria a costura
+		if (this.ehFolha()) {
+			this.costura = stack.pop();
+			return;
+		}
+		
+		stack.push(this);
+		
+		// Não é folha, então visite o filho à esquerda
+		this.getEsq().costurar(stack);
+		
+		// Se tiver filho à direita, visite-o, senão crie a costura
+		if (this.temDir()) {
+			this.getDir().costurar(stack);
+		} else {
+			this.costura = stack.pop();
+		}
+	}
 }

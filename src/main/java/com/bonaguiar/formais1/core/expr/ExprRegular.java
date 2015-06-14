@@ -29,6 +29,7 @@ public class ExprRegular {
 	public ExprRegular(String expr) throws FormaisException {
 		this.expr = expr;
 		this.tree = ERParser.parse(this.expr);
+		this.tree.costurar();
 	}
 	
 }

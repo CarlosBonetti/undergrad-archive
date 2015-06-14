@@ -50,4 +50,37 @@ public class NodoTest {
 		node.setEsq(child);
 		assertEquals(node.ehFolha(), false);
 	}
+	
+	@Test
+	public void testarCosturar() {
+		// (ab)*|c?d
+		Nodo<Character> root = new Nodo<Character>('|');
+		Nodo<Character> fechamento = new Nodo<Character>('*');
+		Nodo<Character> opcional = new Nodo<Character>('?');
+		Nodo<Character> concat1 = new Nodo<Character>('.');
+		Nodo<Character> concat2 = new Nodo<Character>('.');
+		Nodo<Character> a = new Nodo<Character>('a');
+		Nodo<Character> b = new Nodo<Character>('b');
+		Nodo<Character> c = new Nodo<Character>('c');
+		Nodo<Character> d = new Nodo<Character>('d');		
+		root.setEsq(fechamento);
+		fechamento.setEsq(concat1);
+		concat1.setEsq(a);
+		concat1.setDir(b);
+		root.setDir(concat2);
+		concat2.setDir(d);
+		concat2.setEsq(opcional);
+		opcional.setEsq(c);
+		
+		root.costurar();
+		assertEquals(null, root.getCostura());
+		assertEquals(root, fechamento.getCostura());
+		assertEquals(null, concat1.getCostura());
+		assertEquals(concat1, a.getCostura());
+		assertEquals(fechamento, b.getCostura());
+		assertEquals(null, concat2.getCostura());
+		assertEquals(concat2, opcional.getCostura());
+		assertEquals(opcional, c.getCostura());
+		assertEquals(null, d.getCostura());
+	}
 }
