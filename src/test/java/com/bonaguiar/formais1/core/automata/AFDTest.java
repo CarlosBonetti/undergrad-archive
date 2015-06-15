@@ -1,9 +1,12 @@
-package com.bonaguiar.formais1.core;
+package com.bonaguiar.formais1.core.automata;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import com.bonaguiar.formais1.core.Alfabeto;
+import com.bonaguiar.formais1.core.automata.AF;
+import com.bonaguiar.formais1.core.automata.AFD;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
 public class AFDTest {

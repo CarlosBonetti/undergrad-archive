@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.bonaguiar.formais1.core.automata.AF;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
 import lombok.Getter;

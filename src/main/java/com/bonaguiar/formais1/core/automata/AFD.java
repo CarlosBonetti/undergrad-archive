@@ -1,7 +1,8 @@
-package com.bonaguiar.formais1.core;
+package com.bonaguiar.formais1.core.automata;
 
 import java.util.List;
 
+import com.bonaguiar.formais1.core.Alfabeto;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
 /**

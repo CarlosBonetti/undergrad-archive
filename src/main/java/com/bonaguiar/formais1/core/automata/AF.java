@@ -1,4 +1,4 @@
-package com.bonaguiar.formais1.core;
+package com.bonaguiar.formais1.core.automata;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.bonaguiar.formais1.core.Alfabeto;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
 import lombok.Getter;

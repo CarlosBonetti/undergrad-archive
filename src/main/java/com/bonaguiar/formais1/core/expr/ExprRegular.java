@@ -3,8 +3,8 @@ package com.bonaguiar.formais1.core.expr;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.bonaguiar.formais1.core.AFD;
 import com.bonaguiar.formais1.core.Alfabeto;
+import com.bonaguiar.formais1.core.automata.AFD;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 import com.bonaguiar.formais1.core.expr.Simone.Composicao;
 

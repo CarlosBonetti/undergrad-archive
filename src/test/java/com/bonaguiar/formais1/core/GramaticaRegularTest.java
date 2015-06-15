@@ -9,6 +9,8 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.bonaguiar.formais1.core.automata.AF;
+import com.bonaguiar.formais1.core.automata.Transicao;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
 public class GramaticaRegularTest {

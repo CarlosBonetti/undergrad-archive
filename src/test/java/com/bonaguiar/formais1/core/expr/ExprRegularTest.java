@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import com.bonaguiar.formais1.core.AFD;
+import com.bonaguiar.formais1.core.automata.AFD;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
 public class ExprRegularTest {

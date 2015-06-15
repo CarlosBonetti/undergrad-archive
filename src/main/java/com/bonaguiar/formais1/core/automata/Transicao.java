@@ -1,4 +1,4 @@
-package com.bonaguiar.formais1.core;
+package com.bonaguiar.formais1.core.automata;
 
 import lombok.AllArgsConstructor;
 
