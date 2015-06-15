@@ -10,7 +10,7 @@ import lombok.Setter;
  *
  * @param <T> Tipo do conteúdo
  */
-public class Nodo<T> {
+public class Nodo<T> implements Comparable<Nodo<T>> {
 	@Setter
 	@Getter
 	private T conteudo;
@@ -101,5 +101,9 @@ public class Nodo<T> {
 		}
 		
 		return this.getConteudo().toString();
+	}
+
+	public int compareTo(Nodo<T> o) {
+		return this.toString().compareTo(o.toString());
 	}
 }

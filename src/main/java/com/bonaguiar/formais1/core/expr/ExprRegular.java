@@ -1,7 +1,12 @@
 package com.bonaguiar.formais1.core.expr;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import com.bonaguiar.formais1.core.AFD;
 import com.bonaguiar.formais1.core.Alfabeto;
 import com.bonaguiar.formais1.core.exception.FormaisException;
+import com.bonaguiar.formais1.core.expr.Simone.Composicao;
 
 import lombok.Getter;
 
@@ -51,8 +56,60 @@ public class ExprRegular {
 		return alfabeto;
 	}
 	
-	public void getAFD() {
-		// TODO
+	/**
+	 * Retorna o Autômado Finito Determinístico equivalente a esta expressão regular
+	 * O AFD é gerado através do método de Simone e pode ser mínimo ou não
+	 * @return
+	 * @throws FormaisException 
+	 */	
+	public AFD getAFD() throws FormaisException {
+		AFD afd = new AFD(this.extrairAlfabeto());
+		
+		Simone.Composicao rootComp = Simone.obterComposicao(this.tree);
+		
+		// Mapeia as composições para os estados associados
+		HashMap<String, String> hash = new HashMap<String, String>();
+		ArrayList<Simone.Composicao> novasComposicoes = new ArrayList<Simone.Composicao>();
+				
+		novasComposicoes.add(rootComp);
+		afd.addEstado("q0", rootComp.ehFinal());
+		afd.setEstadoInicial("q0");
+		hash.put(rootComp.toString(), "q0");
+		
+		int i = 1;
+		while (!novasComposicoes.isEmpty()) {
+			Composicao comp = novasComposicoes.remove(0);
+			String estadoOrigem = hash.get(comp.toString());
+		
+			for (Character c : afd.getAlfabeto()) {
+				// Obtém a composição referente à transição com o caracter c
+				Composicao transComp = comp.transicao(c);
+				
+				if (transComp.isEmpty()) {
+					continue;
+				}
+				
+				String estadoDestino;
+				
+				// Checa os nodos alcançados a partir de transComp, se já existir no hash, então
+				// é um estado equivalente, senão é um novo estado
+				Composicao novaComp = Simone.obterComposicao(transComp);
+				if (hash.containsKey(novaComp.toString())) {
+					// Composição já existe (estado equivalente)
+					estadoDestino = hash.get(novaComp.toString());
+				} else {
+					// Nova composição = novo estado
+					estadoDestino = "q" + (i++);
+					afd.addEstado(estadoDestino, novaComp.ehFinal());
+					novasComposicoes.add(novaComp);
+					hash.put(novaComp.toString(), estadoDestino);
+				}
+				
+				afd.addTransicao(estadoOrigem, c, estadoDestino);
+			}
+		}
+		
+		return afd;
 	}
 	
 }
