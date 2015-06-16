@@ -19,4 +19,13 @@ public class AFMin extends AFD {
 		super(alfabeto);
 	}
 
+	/**
+	 * Checa se o Autômato atual é igual ao AFMin passado como parâmetro
+	 * @param o
+	 * @return
+	 */
+	public boolean equals(AFMin o) {
+		// TODO
+		return super.equals(o);
+	}
 }
