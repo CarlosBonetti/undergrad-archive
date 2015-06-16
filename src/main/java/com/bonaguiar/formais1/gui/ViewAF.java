@@ -1,35 +1,31 @@
 package com.bonaguiar.formais1.gui;
 
-import java.awt.Color;
 import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JTextField;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SwingConstants;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+
+import com.bonaguiar.formais1.core.automata.AF;
+import com.bonaguiar.formais1.core.exception.FormaisException;
+import com.bonaguiar.formais1.core.expr.ExprRegular;
+
 import java.awt.event.InputMethodListener;
 import java.awt.event.InputMethodEvent;
+import java.util.ArrayList;
+
+import javax.swing.JScrollPane;
 
 public class ViewAF extends JFrame {
+	private static final long serialVersionUID = 8673596743628693904L;
 	private JTable table;
 
-	/**
-	 * Launch the application.
-	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					ViewAF frame = new ViewAF();
+					ExprRegular exp = new ExprRegular("(aa|(bb)*)cc");
+					ViewAF frame = new ViewAF(exp.getAFD());
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -41,22 +37,12 @@ public class ViewAF extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public ViewAF() {
-		setTitle("Automato Finito");
+	public ViewAF(AF af) {
+		setTitle("Autômato Finito");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 519, 422);
 		
-		JButton btnCancelar = new JButton("Cancelar");
-		btnCancelar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-			}
-		});
-		
-		JButton btnSalvar = new JButton("Salvar");
-		
 		table = new JTable();
-		table.setColumnSelectionAllowed(true);
 		table.addInputMethodListener(new InputMethodListener() {
 			public void caretPositionChanged(InputMethodEvent arg0) {
 			}
@@ -64,52 +50,54 @@ public class ViewAF extends JFrame {
 				
 			}
 		});
-		table.setModel(new DefaultTableModel(
-			new Object[][] {
-				{"this", null, null, null, null},
-				{null, null, null, null, new Integer(456)},
-				{null, null, null, null, null},
-				{null, null, null, null, null},
-				{null, null, null, null, null},
-				{null, null, null, null, null},
-			},
-			new String[] {
-				"Final/Inicial", "Estados", "Transicao1", "Transicao2", "..."
+		
+		try {
+			fillTable(af);
+		} catch (FormaisException e) {
+			e.printStackTrace();
+		}	
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setViewportView(table);
+		this.add(scrollPane);
+	}
+	
+	/**
+	 * Preenche a table com o conteúdo do AF
+	 * @param af
+	 * @throws FormaisException
+	 */
+	protected void fillTable(AF af) throws FormaisException {
+		DefaultTableModel model = new DefaultTableModel();
+		
+		// Cria nomes das colunas
+		model.addColumn("δ");
+		for (Character c : af.getAlfabeto().sorted()) {
+			model.addColumn(c.toString());	
+		}
+		
+		// Cria linhas
+		for (String q : af.getEstados()) {
+			ArrayList<String> row = new ArrayList<String>();
+			String estado = q;
+			
+			if (af.getEstadoInicial().equals(q)) {
+				estado = "->" + estado;
 			}
-		));
-		table.setCellSelectionEnabled(true);
-		GroupLayout groupLayout = new GroupLayout(getContentPane());
-		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addGroup(groupLayout.createSequentialGroup()
-							.addGap(117)
-							.addComponent(btnCancelar)
-							.addGap(67)
-							.addComponent(btnSalvar))
-						.addGroup(groupLayout.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(table, GroupLayout.PREFERRED_SIZE, 482, GroupLayout.PREFERRED_SIZE)))
-					.addContainerGap(25, Short.MAX_VALUE))
-		);
-		groupLayout.setVerticalGroup(
-			groupLayout.createParallelGroup(Alignment.TRAILING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(29)
-					.addComponent(table, GroupLayout.PREFERRED_SIZE, 169, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED, 138, Short.MAX_VALUE)
-					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnSalvar)
-						.addComponent(btnCancelar))
-					.addContainerGap())
-		);
-		getContentPane().setLayout(groupLayout);
+			
+			if (af.getEstadosFinais().contains(q)) {
+				estado = "*" + estado;
+			}
+			
+			row.add(estado);			
+			
+			for (Character c : af.getAlfabeto().sorted()) {
+				row.add(af.transicao(q, c).toString());
+			}
+			
+			model.addRow(row.toArray());
+		}
 		
-		JMenuBar menuBar = new JMenuBar();
-		setJMenuBar(menuBar);
-		
-		JMenu mnNewMenu = new JMenu("New menu");
-		menuBar.add(mnNewMenu);
+		table.setModel(model);	
 	}
 }

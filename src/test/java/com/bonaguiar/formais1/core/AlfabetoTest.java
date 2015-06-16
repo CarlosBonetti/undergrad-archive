@@ -2,6 +2,8 @@ package com.bonaguiar.formais1.core;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 
 public class AlfabetoTest {
@@ -43,6 +45,12 @@ public class AlfabetoTest {
 		assertTrue(a1.contains('y'));
 		assertTrue(a1.contains('z'));
 		assertEquals(a1.size(), 3);
+	}
+	
+	@Test
+	public void testarSorted() {
+		Alfabeto a = new Alfabeto("bdga");
+		assertEquals(Arrays.asList('a', 'b', 'd', 'g'), a.sorted());
 	}
 
 }

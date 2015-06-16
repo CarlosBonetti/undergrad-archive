@@ -1,6 +1,9 @@
 package com.bonaguiar.formais1.core;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Um conjunto qualquer de caracteres
@@ -41,6 +44,16 @@ public class Alfabeto extends HashSet<Character> {
 	 */
 	public Alfabeto(String caracteres) {
 		this(caracteres.toCharArray());
+	}
+	
+	/**
+	 * Retorna uma lista ordenada que é um cópia do alfabeto atual
+	 * @return
+	 */
+	public List<Character> sorted() {
+		List<Character> list = new ArrayList<Character>(this);
+		Collections.sort(list);
+		return list;
 	}
 	
 }
