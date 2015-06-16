@@ -1,4 +1,4 @@
-package com.bonaguiar.formais1.core;
+package com.bonaguiar.formais1.core.grammar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.bonaguiar.formais1.core.Alfabeto;
 import com.bonaguiar.formais1.core.automata.AF;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 

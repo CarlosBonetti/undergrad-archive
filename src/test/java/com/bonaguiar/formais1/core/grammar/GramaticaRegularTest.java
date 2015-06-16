@@ -1,4 +1,4 @@
-package com.bonaguiar.formais1.core;
+package com.bonaguiar.formais1.core.grammar;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -9,9 +9,11 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.bonaguiar.formais1.core.Alfabeto;
 import com.bonaguiar.formais1.core.automata.AF;
 import com.bonaguiar.formais1.core.automata.Transicao;
 import com.bonaguiar.formais1.core.exception.FormaisException;
+import com.bonaguiar.formais1.core.grammar.GramaticaRegular;
 
 public class GramaticaRegularTest {
 	public GramaticaRegular g1;
