@@ -23,6 +23,7 @@ import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
+import com.bonaguiar.formais1.core.exception.FormaisException;
 import com.bonaguiar.formais1.core.expr.ExprRegular;
 import com.bonaguiar.formais1.core.grammar.GRParser;
 import com.bonaguiar.formais1.core.grammar.GramaticaRegular;
@@ -37,7 +38,8 @@ public class App extends JFrame {
 	private HashMap<String, GramaticaRegular> gramHash = new HashMap<String, GramaticaRegular>();
 	private DefaultListModel<String> modeloER = new DefaultListModel<String>();
 	private DefaultListModel<String> modeloGR = new DefaultListModel<String>();
-	private JList<String> listagem;
+	private JList<String> listagemEr;
+	private JList<String> listagemGr;
 
 	private void adicionaNaListaER(String nome) {
 		modeloER.addElement(nome);
@@ -101,7 +103,7 @@ public class App extends JFrame {
 
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null,
-					"Entrada inválida. Tente novamente");
+					e.getMessage());
 		}
 	}
 	
@@ -128,7 +130,7 @@ public class App extends JFrame {
 	 * Create the frame.
 	 */
 	public App() {
-		listagem = new JList<String>(modeloER);
+		listagemEr = new JList<String>(modeloER);
 
 		setTitle("Programa Tela Inicial");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -148,11 +150,17 @@ public class App extends JFrame {
 			}
 		});
 
-		listagem.addMouseListener(new MouseAdapter() {
+		listagemEr.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				JList list = (JList) e.getSource();
 				if (e.getClickCount() == 2) {
+					try {
+						new ViewAF(expRegHash.get(list.getSelectedValue().toString()).getAFD()).setVisible(true);
+					} catch (FormaisException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 					System.out.println("Clicked twice - "
 							+ expRegHash
 									.get(list.getSelectedValue().toString())
@@ -160,10 +168,27 @@ public class App extends JFrame {
 				}
 			}
 		});
-		listagem.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		listagemEr.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		JList<String> list = new JList<String>(modeloGR);
-		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		listagemGr = new JList<String>(modeloGR);
+		listagemGr.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JList list = (JList) e.getSource();
+				if (e.getClickCount() == 2) {
+					try {
+						new ViewAF(gramHash.get(list.getSelectedValue().toString()).getAutomatoFinito()).setVisible(true);
+					} catch (FormaisException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					System.out.println("Clicked twice - "
+							+ gramHash
+									.keySet().toString());
+				}
+			}
+		});
+		listagemGr.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		JLabel lblGramar = new JLabel("Gramaticas:");
 
@@ -174,9 +199,9 @@ public class App extends JFrame {
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(49)
-					.addComponent(list, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE)
+					.addComponent(listagemGr, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED, 47, Short.MAX_VALUE)
-					.addComponent(listagem, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE)
+					.addComponent(listagemEr, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE)
 					.addGap(62))
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
@@ -205,8 +230,8 @@ public class App extends JFrame {
 						.addComponent(lblEr))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-						.addComponent(listagem, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE)
-						.addComponent(list, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE))
+						.addComponent(listagemEr, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE)
+						.addComponent(listagemGr, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE))
 					.addContainerGap(52, Short.MAX_VALUE))
 		);
 		getContentPane().setLayout(groupLayout);
