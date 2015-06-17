@@ -84,7 +84,7 @@ public class GRParser {
 				gr.addProducao(p.produtor, destino);
 			}
 		}
-
+		gr.setGramaticaPura(text);
 		return gr;
 	}
 

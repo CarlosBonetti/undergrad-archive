@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import com.bonaguiar.formais1.core.Alfabeto;
 import com.bonaguiar.formais1.core.automata.AF;
@@ -217,4 +218,12 @@ public class GramaticaRegular implements Serializable {
 
 		return af;
 	}
+
+	/**
+	 * Gramatica pura
+	 */
+	@Getter
+	@Setter
+	private String gramaticaPura;
+
 }

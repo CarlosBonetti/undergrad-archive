@@ -60,11 +60,11 @@ public class App extends JFrame {
 	}
 
 	private void editarNaListaER(String nome, ExprRegular er) {
-		//TODO
+		expRegHash.put(nome, er);
 	}
 	
 	private void editarNaListaGR(String nome, GramaticaRegular gr) {
-		//TODO
+		gramHash.put(nome, gr);
 	}
 
 	private void removeDaListaGR(String nome) {
@@ -137,10 +137,33 @@ public class App extends JFrame {
 		}
 	}
 	
-	public void editarER(String nome, String erString){
-		String nomeExpReg;
+	private void editarGramatica(String chave) {
+		String gramatica;
+		JTextArea area = new JTextArea(gramHash.get(chave).getGramaticaPura(), 20, 15);
+		int botaoOk = JOptionPane.showConfirmDialog(null,
+				new JScrollPane(area), "Gramática",
+				JOptionPane.OK_CANCEL_OPTION);
+
+		if (botaoOk == JOptionPane.OK_OPTION) {
+			gramatica = area.getText();
+
+			if (gramatica.trim().isEmpty()) {
+				JOptionPane.showMessageDialog(null,
+						"Campo texto não pode estar vazio.\nTente novamente.");
+			} else {
+				try {
+					GramaticaRegular gr = GRParser.parse(gramatica);
+					editarNaListaGR(chave, gr);
+				} catch (Exception e2) {
+					JOptionPane.showMessageDialog(null, e2.getMessage()
+							+ "\nTente novamente.");
+				}
+			}
+		}
+	}
+	public void editarER(String chave){
 		String expReg = JOptionPane.showInputDialog(null,
-				"Editar a Expressão Regular: ", erString);
+				"Editar a Expressão Regular: ", expRegHash.get(chave).getExpr());
 		while (expReg.trim().isEmpty()) {
 			expReg = JOptionPane
 					.showInputDialog(null,
@@ -148,10 +171,7 @@ public class App extends JFrame {
 		}
 		try {
 			ExprRegular er = new ExprRegular(expReg);
-			nomeExpReg = JOptionPane.showInputDialog(null,
-					"Entre com um nome para a Expressão Regular: ");
-			adicionaNaListaER(nomeExpReg, er);
-
+			editarNaListaER(chave, er);
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null,
 					e.getMessage());
@@ -211,13 +231,8 @@ public class App extends JFrame {
 					try {
 						new ViewAF(expRegHash.get(valorSelecao).getAFD()).setVisible(true);
 					} catch (FormaisException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-					System.out.println("Clicked twice - "
-							+ expRegHash
-									.get(list.getSelectedValue().toString())
-									.getExpr());
 				}
 			}
 		});
@@ -252,6 +267,7 @@ public class App extends JFrame {
 		JButton btnEditarGramtica = new JButton("Editar Gramática");
 		btnEditarGramtica.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				editarGramatica(grSelecionado);
 			}
 		});
 		
@@ -268,6 +284,11 @@ public class App extends JFrame {
 		});
 		
 		JButton btnEditarEr = new JButton("Editar E.R.");
+		btnEditarEr.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				editarER(erSelecionado);
+			}
+		});
 		
 		JButton btnExcluirEr = new JButton("Excluir E.R.");
 		btnExcluirEr.addActionListener(new ActionListener() {
