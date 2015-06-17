@@ -55,7 +55,7 @@ public class AF {
 
 	/**
 	 * Constroi um novo AF vazio
-	 * 
+	 *
 	 * @param alfabeto Alfabeto de aceitação do AF
 	 */
 	public AF(Alfabeto alfabeto) {
@@ -67,7 +67,7 @@ public class AF {
 
 	/**
 	 * Adiciona um estado ao autômato
-	 * 
+	 *
 	 * @param nome Nome do novo estado (deve ser único no contexto do autômato)
 	 * @param ehFinal Se o estado é final ou não
 	 * @throws FormaisException
@@ -86,7 +86,7 @@ public class AF {
 
 	/**
 	 * Checa se o estado pertence ao autômato
-	 * 
+	 *
 	 * @param estado
 	 * @return
 	 */
@@ -96,7 +96,7 @@ public class AF {
 
 	/**
 	 * Seta o estado inicial do autômato
-	 * 
+	 *
 	 * @param nomeEstado Nome do novo estado inicial (deve pertencer ao autômato)
 	 * @throws FormaisException
 	 */
@@ -109,7 +109,7 @@ public class AF {
 
 	/**
 	 * Adiciona uma transição ao autômato
-	 * 
+	 *
 	 * @param estadoPartida Nome do estado de partida (deve pertencer ao autômato)
 	 * @param caracter Caracter de transição (deve pertencer ao alfabeto do autômato)
 	 * @param estadoChegada Nome do estado de chegada (deve pertencer ao autômato)
@@ -133,7 +133,7 @@ public class AF {
 	 * Função de transição
 	 * Retorna quais são os novos estados do AF ao consumir o caracter a partir do estadoOrigem
 	 * Lança uma exception se o estado ou o símbolo passados como argumentos não pertençam ao AF
-	 * 
+	 *
 	 * @param estadoOrigem
 	 * @param caracter
 	 * @return Lista de estados alcançáveis
@@ -159,7 +159,7 @@ public class AF {
 	/**
 	 * Checa se o estado é final
 	 * Lança uma exception caso o estado parâmetro não pertença ao AF
-	 * 
+	 *
 	 * @param estado
 	 * @return
 	 * @throws FormaisException
@@ -174,7 +174,7 @@ public class AF {
 	/**
 	 * Retorna o conjunto de estados alcançáveis deste AF
 	 * Estados alcancáveis são aqueles que podem ser acessados através de transições a partir do estado inicial
-	 * 
+	 *
 	 * @return
 	 * @throws FormaisException
 	 */
@@ -205,7 +205,7 @@ public class AF {
 	/**
 	 * Retorna o conjunto de estados vivos deste AF
 	 * Estados vivos são aqueles que podem levar a um estado final através de transições deste AF
-	 * 
+	 *
 	 * @return
 	 */
 	public Set<String> getEstadosVivos() {
@@ -232,7 +232,7 @@ public class AF {
 
 	/**
 	 * Retorna o complemento deste AF
-	 * 
+	 *
 	 * @return
 	 * @throws FormaisException
 	 */
@@ -272,7 +272,7 @@ public class AF {
 
 	/**
 	 * Retorna um novo autômato que é a intersecção do AF atual com o parâmetro
-	 * 
+	 *
 	 * @param af2
 	 * @return
 	 * @throws FormaisException
@@ -321,7 +321,7 @@ public class AF {
 
 	/**
 	 * Retorna uma versão do AF determinizada, ou seja, sem transição não-determinísticas
-	 * 
+	 *
 	 * @return
 	 * @throws FormaisException
 	 */
@@ -387,7 +387,7 @@ public class AF {
 		/**
 		 * Transforma os nomes dos estados para o padrão 'mesclado'
 		 * Exemplo: transforma 'q0' para '[q0]', transforma {q5, q1, A, q0} para '[A, q0, q1, q5]'
-		 * 
+		 *
 		 * @return
 		 */
 		@Override
@@ -406,7 +406,7 @@ public class AF {
 		 * Retorna a mescla de estados resultante da união de todas as transições da mescla de estados atual
 		 * dado o caracter de transição.
 		 * Lança uma exception se o estado ou o símbolo passados como argumentos não pertençam ao AF
-		 * 
+		 *
 		 * @param caracter
 		 * @return
 		 * @throws FormaisException
@@ -427,7 +427,7 @@ public class AF {
 		/**
 		 * Checa se a mescla de estados é final.
 		 * Uma mescla é final se qualquer um de seus estados originais for final
-		 * 
+		 *
 		 * @return
 		 * @throws FormaisException
 		 */
@@ -441,4 +441,61 @@ public class AF {
 		}
 	}
 
+	/**
+	 * Consome a palavra e retorna se ela foi aceita pelo autômato ou não
+	 * Uma palavra é aceita se AF se encontrar em um estado final após a palvra ser completamente consumida
+	 *
+	 * @param palavra
+	 * @return
+	 * @throws FormaisException
+	 */
+	public Boolean run(String palavra) throws FormaisException {
+		return this.run(palavra, this.getEstadoInicial());
+	}
+
+	/**
+	 * Consome a palavra e retorna se ela foi aceita pelo autômato ou não, partindo do estado inicial passado
+	 * como parâmetro
+	 * Uma palavra é aceita se AF se encontrar em um estado final após a palvra ser completamente consumida
+	 *
+	 * @param palavra
+	 * @return
+	 * @throws FormaisException
+	 */
+	protected Boolean run(String palavra, String estadoInicial) throws FormaisException {
+		String estadoAtual = estadoInicial;
+		String resto = palavra; // Guarda a parte da palavra que ainda não foi consumida
+
+		if (palavra == null) {
+			palavra = "";
+		}
+
+		for (Character c : palavra.toCharArray()) {
+			resto = resto.substring(1);
+
+			List<String> destinos = this.transicao(estadoAtual, c);
+			// Se não houver transição, a palavra é rejeitada
+			if (destinos.isEmpty()) {
+				return false;
+			}
+
+			// Se só houver uma transição, siga-a
+			if (destinos.size() == 1) {
+				estadoAtual = destinos.get(0);
+			} else {
+				// Se houver mais de uma transição, segue todas de forma não determinística
+				for (String q : destinos) {
+					// Se algum caminho retornar verdadeiro, a palavra é aceita
+					if (this.run(resto, q)) {
+						return true;
+					}
+				}
+				// Se chegar neste ponto, nenhum caminho retornou verdadeiro, e podemos rejeitar a palavra
+				return false;
+			}
+		}
+
+		// Se o estado final for de aceitação, a palavra é aceita pelo AF
+		return this.ehFinal(estadoAtual);
+	}
 }
