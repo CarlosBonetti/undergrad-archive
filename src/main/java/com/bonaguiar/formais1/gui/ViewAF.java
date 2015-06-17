@@ -32,19 +32,20 @@ public class ViewAF extends JFrame {
 	private JTable table;
 	private AF af;
 	private App frame;
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					GramaticaRegular exp = GRParser.parse("S->bS|b | & \n");
-					ViewAF frame = new ViewAF(exp.getAutomatoFinito(), null);
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	
+//	public static void main(String[] args) {
+//		EventQueue.invokeLater(new Runnable() {
+//			public void run() {
+//				try {
+//					GramaticaRegular exp = GRParser.parse("S->bS|b | & \n");
+//					ViewAF frame = new ViewAF(exp.getAutomatoFinito(), null);
+//					frame.setVisible(true);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//	}
 
 	/**
 	 * Create the frame.
@@ -232,10 +233,7 @@ public class ViewAF extends JFrame {
 
 		if (botaoOk == JOptionPane.OK_OPTION) {
 			itemSelecionado = comboBox.getSelectedItem().toString();
-			System.out.println(itemSelecionado);
-
-			if (itemSelecionado.trim().isEmpty()) 
-				return itemSelecionado.trim();
+			return itemSelecionado.trim();
 		}
 		return null;
 	}
