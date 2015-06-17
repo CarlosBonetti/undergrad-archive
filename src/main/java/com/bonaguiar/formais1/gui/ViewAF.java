@@ -28,28 +28,30 @@ import com.bonaguiar.formais1.core.grammar.GRParser;
 import com.bonaguiar.formais1.core.grammar.GramaticaRegular;
 
 public class ViewAF extends JFrame {
+
 	private static final long serialVersionUID = 8673596743628693904L;
 	private JTable table;
 	private AF af;
 	private App frame;
-	
-//	public static void main(String[] args) {
-//		EventQueue.invokeLater(new Runnable() {
-//			public void run() {
-//				try {
-//					GramaticaRegular exp = GRParser.parse("S->bS|b | & \n");
-//					ViewAF frame = new ViewAF(exp.getAutomatoFinito(), null);
-//					frame.setVisible(true);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
+
+	// public static void main(String[] args) {
+	// EventQueue.invokeLater(new Runnable() {
+	// public void run() {
+	// try {
+	// GramaticaRegular exp = GRParser.parse("S->bS|b | & \n");
+	// ViewAF frame = new ViewAF(exp.getAutomatoFinito(), null);
+	// frame.setVisible(true);
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// }
+	// });
+	// }
 
 	/**
 	 * Create the frame.
-	 * @param frame2 
+	 * 
+	 * @param frame2
 	 */
 	public ViewAF(AF af, App frame2) {
 		this.frame = frame2;
@@ -81,7 +83,8 @@ public class ViewAF extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent event) {
 				try {
-					abrirOutro(ViewAF.this.af.determinizar(), "Determinização de " + ViewAF.this.getTitle());
+					abrirOutro(ViewAF.this.af.determinizar(),
+							"Determinização de " + ViewAF.this.getTitle());
 				} catch (Exception e) {
 					tratarException(e);
 				}
@@ -95,9 +98,11 @@ public class ViewAF extends JFrame {
 			public void mouseClicked(MouseEvent event) {
 				try {
 					if (ViewAF.this.af instanceof AFD) {
-						abrirOutro(((AFD) ViewAF.this.af).getAFMin(), "Minimização de " + ViewAF.this.getTitle());
+						abrirOutro(((AFD) ViewAF.this.af).getAFMin(),
+								"Minimização de " + ViewAF.this.getTitle());
 					} else {
-						abrirOutro(ViewAF.this.af.determinizar().getAFMin(), "Minimização de " + ViewAF.this.getTitle());
+						abrirOutro(ViewAF.this.af.determinizar().getAFMin(),
+								"Minimização de " + ViewAF.this.getTitle());
 					}
 				} catch (Exception e) {
 					tratarException(e);
@@ -112,9 +117,12 @@ public class ViewAF extends JFrame {
 			public void mouseClicked(MouseEvent event) {
 				try {
 					if (ViewAF.this.af instanceof AFD) {
-						abrirOutro(((AFD) ViewAF.this.af).getComplemento(), "Complementação de " + ViewAF.this.getTitle());
+						abrirOutro(((AFD) ViewAF.this.af).getComplemento(),
+								"Complementação de " + ViewAF.this.getTitle());
 					} else {
-						abrirOutro(ViewAF.this.af.determinizar().getComplemento(), "Complementação de " + ViewAF.this.getTitle());
+						abrirOutro(ViewAF.this.af.determinizar()
+								.getComplemento(), "Complementação de "
+								+ ViewAF.this.getTitle());
 					}
 				} catch (Exception e) {
 					tratarException(e);
@@ -148,6 +156,7 @@ public class ViewAF extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent event) {
 				System.out.println("Busca");
+				something();
 			}
 		});
 		menuBar.add(busca);
@@ -213,23 +222,26 @@ public class ViewAF extends JFrame {
 
 		table.setModel(model);
 	}
-	
+
 	/**
-	 * chama uma caixa de dialogo com uma comboBox com todas as opcoes de ER e GR que estao presentes em App
-	 * @return String no <b> ER - chave<\b> ou <b>GR - chave<\b>
+	 * chama uma caixa de dialogo com uma comboBox com todas as opcoes de ER e
+	 * GR que estao presentes em App
+	 * 
+	 * @return String no <b>ER - chave<\b> ou <b>GR - chave<\b>
 	 * 
 	 */
-	
+
 	private String selecionaOpcao() {
 		String itemSelecionado;
-		JComboBox<String> comboBox  = new JComboBox<String>();
+		JComboBox<String> comboBox = new JComboBox<String>();
 		for (String chaveEr : frame.getExpRegHash().keySet()) {
-			comboBox.addItem("ER - "+ chaveEr);
+			comboBox.addItem("ER - " + chaveEr);
 		}
 		for (String chaveGr : frame.getGramHash().keySet()) {
 			comboBox.addItem("GR - " + chaveGr);
 		}
-		int botaoOk = JOptionPane.showConfirmDialog(null, comboBox, "Compare com:", JOptionPane.OK_CANCEL_OPTION);
+		int botaoOk = JOptionPane.showConfirmDialog(null, comboBox,
+				"Selecione uma opção:", JOptionPane.OK_CANCEL_OPTION);
 
 		if (botaoOk == JOptionPane.OK_OPTION) {
 			itemSelecionado = comboBox.getSelectedItem().toString();
@@ -238,4 +250,15 @@ public class ViewAF extends JFrame {
 		return null;
 	}
 
+	public void something() {
+		String[] chave = selecionaOpcao().split("-");
+		if (chave[0].trim().equals("GR")) {
+			System.out.println(frame.getGramHash().get(chave[1].trim())
+					.getGramaticaPura());
+		} else if (chave[0].trim().equals("ER")) {
+				System.out.println(frame.getExpRegHash().get(chave[1].trim())
+						.getExpr());
+		}
+
+	}
 }
