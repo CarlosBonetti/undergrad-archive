@@ -33,7 +33,7 @@ public class ViewAF extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					GramaticaRegular exp = GRParser.parse("S->aS|a \n");
+					GramaticaRegular exp = GRParser.parse("S->bS|b | & \n");
 					ViewAF frame = new ViewAF(exp.getAutomatoFinito());
 					frame.setVisible(true);
 				} catch (Exception e) {
