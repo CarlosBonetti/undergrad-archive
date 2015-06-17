@@ -103,6 +103,9 @@ public class AFD extends AF {
 			}
 		}
 
+		// Seta o estado inicial
+		min.setEstadoInicial(this.getEstadoInicial());
+
 		// Para cada classe de equivalência, elege um estado representante e modifica as ocorrências
 		// das transições dos demais estados para este representante
 		for (ClasseEq ce : classes) {
@@ -129,9 +132,6 @@ public class AFD extends AF {
 				min.estadosFinais.removeAll(ce);
 			}
 		}
-
-		// Seta o estado inicial
-		min.setEstadoInicial(this.getEstadoInicial());
 
 		return min;
 	}
