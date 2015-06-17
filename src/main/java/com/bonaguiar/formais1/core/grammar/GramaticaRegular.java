@@ -1,5 +1,6 @@
 package com.bonaguiar.formais1.core.grammar;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,7 +12,9 @@ import com.bonaguiar.formais1.core.Alfabeto;
 import com.bonaguiar.formais1.core.automata.AF;
 import com.bonaguiar.formais1.core.exception.FormaisException;
 
-public class GramaticaRegular {
+public class GramaticaRegular implements Serializable {
+	private static final long serialVersionUID = -7299347814328494949L;
+
 	/**
 	 * Conjunto de símbolos não terminais
 	 */
