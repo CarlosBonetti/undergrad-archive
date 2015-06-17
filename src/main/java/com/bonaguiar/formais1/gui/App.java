@@ -267,7 +267,6 @@ public class App extends JFrame {
 					} catch (FormaisException e1) {
 						e1.printStackTrace();
 					}
-					System.out.println("Clicked twice - " + gramHash.keySet().toString());
 				}
 			}
 		});
@@ -397,12 +396,10 @@ public class App extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				int opcao = JOptionPane.showConfirmDialog(null, "Esta ação irá apagar dados não salvos.\nDeseja continuar?", null, JOptionPane.YES_NO_OPTION);
 				if (JOptionPane.YES_OPTION == opcao) {
-
 					GRBase rgbBase = new GRBase();
 					gramHash = rgbBase.get();
 					modeloGR.clear();
 					for (String chave : gramHash.keySet()) {
-						System.err.println("fore + " + chave);
 						modeloGR.addElement(chave);
 					}
 				}
@@ -413,14 +410,12 @@ public class App extends JFrame {
 		JMenuItem mntmAbrirExpresses = new JMenuItem("Abrir Expressões");
 		mntmAbrirExpresses.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
 				int opcao = JOptionPane.showConfirmDialog(null, "Esta ação irá apagar dados não salvos.\nDeseja continuar?", null, JOptionPane.YES_NO_OPTION);
 				if (JOptionPane.YES_OPTION == opcao) {
 					ERBase erBase = new ERBase();
 					expRegHash = erBase.get();
 					modeloER.clear();
 					for (String chave : expRegHash.keySet()) {
-						System.err.println("fore + " + chave);
 						modeloER.addElement(chave);
 					}
 				}
