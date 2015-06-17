@@ -1,14 +1,12 @@
 package com.bonaguiar.formais1.gui;
 
 import java.awt.BorderLayout;
-import java.awt.EventQueue;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -17,15 +15,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import com.bonaguiar.formais1.core.automata.AF;
 import com.bonaguiar.formais1.core.automata.AFD;
+import com.bonaguiar.formais1.core.automata.AFMin;
 import com.bonaguiar.formais1.core.exception.FormaisException;
-import com.bonaguiar.formais1.core.grammar.GRParser;
-import com.bonaguiar.formais1.core.grammar.GramaticaRegular;
 
 public class ViewAF extends JFrame {
 
@@ -34,23 +30,9 @@ public class ViewAF extends JFrame {
 	private AF af;
 	private App frame;
 
-	// public static void main(String[] args) {
-	// EventQueue.invokeLater(new Runnable() {
-	// public void run() {
-	// try {
-	// GramaticaRegular exp = GRParser.parse("S->bS|b | & \n");
-	// ViewAF frame = new ViewAF(exp.getAutomatoFinito(), null);
-	// frame.setVisible(true);
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// }
-	// });
-	// }
-
 	/**
 	 * Create the frame.
-	 * 
+	 *
 	 * @param frame2
 	 */
 	public ViewAF(AF af, App frame2) {
@@ -83,8 +65,7 @@ public class ViewAF extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent event) {
 				try {
-					abrirOutro(ViewAF.this.af.determinizar(),
-							"Determinização de " + ViewAF.this.getTitle());
+					abrirOutro(ViewAF.this.af.determinizar(), "Determinização de " + ViewAF.this.getTitle());
 				} catch (Exception e) {
 					tratarException(e);
 				}
@@ -98,11 +79,9 @@ public class ViewAF extends JFrame {
 			public void mouseClicked(MouseEvent event) {
 				try {
 					if (ViewAF.this.af instanceof AFD) {
-						abrirOutro(((AFD) ViewAF.this.af).getAFMin(),
-								"Minimização de " + ViewAF.this.getTitle());
+						abrirOutro(((AFD) ViewAF.this.af).getAFMin(), "Minimização de " + ViewAF.this.getTitle());
 					} else {
-						abrirOutro(ViewAF.this.af.determinizar().getAFMin(),
-								"Minimização de " + ViewAF.this.getTitle());
+						abrirOutro(ViewAF.this.af.determinizar().getAFMin(), "Minimização de " + ViewAF.this.getTitle());
 					}
 				} catch (Exception e) {
 					tratarException(e);
@@ -117,12 +96,9 @@ public class ViewAF extends JFrame {
 			public void mouseClicked(MouseEvent event) {
 				try {
 					if (ViewAF.this.af instanceof AFD) {
-						abrirOutro(((AFD) ViewAF.this.af).getComplemento(),
-								"Complementação de " + ViewAF.this.getTitle());
+						abrirOutro(((AFD) ViewAF.this.af).getComplemento(), "Complementação de " + ViewAF.this.getTitle());
 					} else {
-						abrirOutro(ViewAF.this.af.determinizar()
-								.getComplemento(), "Complementação de "
-								+ ViewAF.this.getTitle());
+						abrirOutro(ViewAF.this.af.determinizar().getComplemento(), "Complementação de " + ViewAF.this.getTitle());
 					}
 				} catch (Exception e) {
 					tratarException(e);
@@ -135,8 +111,25 @@ public class ViewAF extends JFrame {
 		comparar.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent event) {
-				System.out.println("Comparar");
-				System.out.println(selecionaOpcao());
+				opBinaria(new OpBinaria() {
+
+					@Override
+					public void run(AF af1, AF af2) {
+						try {
+							AFMin afMin1 = af1.determinizar().getAFMin();
+							AFMin afMin2 = af2.determinizar().getAFMin();
+
+							if (afMin1.equals(afMin2)) {
+								JOptionPane.showMessageDialog(null, "As linguagens geradas pelos autômatos são as mesmas");
+							} else {
+								JOptionPane.showMessageDialog(null, "As linguagens geradas pelos autômatos NÃO são as mesmas");
+							}
+
+						} catch (Exception e) {
+							tratarException(e);
+						}
+					}
+				});
 			}
 		});
 		menuBar.add(comparar);
@@ -145,8 +138,19 @@ public class ViewAF extends JFrame {
 		interseccionar.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent event) {
-				System.out.println("Interseccionar");
-				System.out.println(selecionaOpcao());
+				opBinaria(new OpBinaria() {
+
+					@Override
+					public void run(AF af1, AF af2) {
+						try {
+							ViewAF view = new ViewAF(af1.intersectar(af2), ViewAF.this.frame);
+							view.setVisible(true);
+						} catch (Exception e) {
+							tratarException(e);
+						}
+
+					}
+				});
 			}
 		});
 		menuBar.add(interseccionar);
@@ -156,7 +160,6 @@ public class ViewAF extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent event) {
 				System.out.println("Busca");
-				something();
 			}
 		});
 		menuBar.add(busca);
@@ -226,11 +229,10 @@ public class ViewAF extends JFrame {
 	/**
 	 * chama uma caixa de dialogo com uma comboBox com todas as opcoes de ER e
 	 * GR que estao presentes em App
-	 * 
+	 *
 	 * @return String no <b>ER - chave<\b> ou <b>GR - chave<\b>
-	 * 
+	 *
 	 */
-
 	private String selecionaOpcao() {
 		String itemSelecionado;
 		JComboBox<String> comboBox = new JComboBox<String>();
@@ -240,8 +242,7 @@ public class ViewAF extends JFrame {
 		for (String chaveGr : frame.getGramHash().keySet()) {
 			comboBox.addItem("GR - " + chaveGr);
 		}
-		int botaoOk = JOptionPane.showConfirmDialog(null, comboBox,
-				"Selecione uma opção:", JOptionPane.OK_CANCEL_OPTION);
+		int botaoOk = JOptionPane.showConfirmDialog(null, comboBox, "Selecione uma opção:", JOptionPane.OK_CANCEL_OPTION);
 
 		if (botaoOk == JOptionPane.OK_OPTION) {
 			itemSelecionado = comboBox.getSelectedItem().toString();
@@ -250,15 +251,24 @@ public class ViewAF extends JFrame {
 		return null;
 	}
 
-	public void something() {
-		String[] chave = selecionaOpcao().split("-");
-		if (chave[0].trim().equals("GR")) {
-			System.out.println(frame.getGramHash().get(chave[1].trim())
-					.getGramaticaPura());
-		} else if (chave[0].trim().equals("ER")) {
-				System.out.println(frame.getExpRegHash().get(chave[1].trim())
-						.getExpr());
-		}
+	public void opBinaria(OpBinaria op) {
+		try {
+			String[] chave = selecionaOpcao().split("-");
+			AF af2 = null;
+			if (chave[0].trim().equals("GR")) {
+				af2 = frame.getGramHash().get(chave[1].trim()).getAutomatoFinito();
+			} else if (chave[0].trim().equals("ER")) {
+				af2 = frame.getExpRegHash().get(chave[1].trim()).getAFD();
+			}
 
+			op.run(this.af, af2);
+
+		} catch (Exception e) {
+			tratarException(e);
+		}
+	}
+
+	public static interface OpBinaria {
+		public void run(AF af1, AF af2);
 	}
 }
