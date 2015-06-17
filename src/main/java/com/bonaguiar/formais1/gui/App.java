@@ -1,37 +1,35 @@
 package com.bonaguiar.formais1.gui;
 
 import java.awt.EventQueue;
-import java.awt.ScrollPane;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.HashMap;
 
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 
 import com.bonaguiar.formais1.core.exception.FormaisException;
 import com.bonaguiar.formais1.core.expr.ExprRegular;
 import com.bonaguiar.formais1.core.grammar.GRParser;
 import com.bonaguiar.formais1.core.grammar.GramaticaRegular;
-
-import javax.swing.ListModel;
-import javax.swing.JLabel;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.JMenuItem;
+import com.bonaguiar.formais1.persistence.ERBase;
+import com.bonaguiar.formais1.persistence.GRBase;
 
 public class App extends JFrame {
 	private HashMap<String, ExprRegular> expRegHash = new HashMap<String, ExprRegular>();
@@ -40,9 +38,42 @@ public class App extends JFrame {
 	private DefaultListModel<String> modeloGR = new DefaultListModel<String>();
 	private JList<String> listagemEr;
 	private JList<String> listagemGr;
+	private String grSelecionado;
+	private String erSelecionado;
 
-	private void adicionaNaListaER(String nome) {
+	private void setGrSelecionado(String selecao){
+		grSelecionado = selecao;
+	}
+
+	private void setErSelecionado(String selecao){
+		erSelecionado = selecao;
+	}
+	
+	private void adicionaNaListaER(String nome, ExprRegular er) {
+		expRegHash.put(nome, er);
 		modeloER.addElement(nome);
+	}
+	
+	private void adicionaNaListaGR(String nome, GramaticaRegular gr) {
+		gramHash.put(nome, gr);
+		modeloGR.addElement(nome);
+	}
+
+	private void editarNaListaER(String nome, ExprRegular er) {
+		//TODO
+	}
+	
+	private void editarNaListaGR(String nome, GramaticaRegular gr) {
+		//TODO
+	}
+
+	private void removeDaListaGR(String nome) {
+		gramHash.remove(nome);
+		modeloGR.removeElement(nome);
+	}
+	private void removeDaListaER(String nome) {
+		expRegHash.remove(nome);
+		modeloER.removeElement(nome);
 	}
 
 	private void adicionarGramatica() {
@@ -69,9 +100,7 @@ public class App extends JFrame {
 						nomeGram = JOptionPane
 								.showInputDialog("Campo obrigatório.!\nDigite um nome para a gramática:");
 					}
-
-					gramHash.put(nomeGram, gr);
-					modeloGR.addElement(nomeGram);
+					adicionaNaListaGR(nomeGram, gr);
 
 				} catch (Exception e2) {
 					JOptionPane.showMessageDialog(null, e2.getMessage()
@@ -91,6 +120,8 @@ public class App extends JFrame {
 						.showInputDialog(null,
 								"Campo obrigatorio.!\nEntre com a Expressão Regular: ");
 			}
+			ExprRegular er = new ExprRegular(expReg);
+
 			nomeExpReg = JOptionPane.showInputDialog(null,
 					"Entre com um nome para a Expressão Regular: ");
 			while (nomeExpReg.trim().isEmpty()) {
@@ -98,8 +129,28 @@ public class App extends JFrame {
 						.showInputDialog(null,
 								"Campo obrigatorio.!\nEntre com um nome para a Expressão Regular: ");
 			}
-			expRegHash.put(nomeExpReg, new ExprRegular(expReg));
-			adicionaNaListaER(nomeExpReg);
+			adicionaNaListaER(nomeExpReg, er);
+
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null,
+					e.getMessage());
+		}
+	}
+	
+	public void editarER(String nome, String erString){
+		String nomeExpReg;
+		String expReg = JOptionPane.showInputDialog(null,
+				"Editar a Expressão Regular: ", erString);
+		while (expReg.trim().isEmpty()) {
+			expReg = JOptionPane
+					.showInputDialog(null,
+							"Campo obrigatorio.!\nEntre com a Expressão Regular: ");
+		}
+		try {
+			ExprRegular er = new ExprRegular(expReg);
+			nomeExpReg = JOptionPane.showInputDialog(null,
+					"Entre com um nome para a Expressão Regular: ");
+			adicionaNaListaER(nomeExpReg, er);
 
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null,
@@ -154,9 +205,11 @@ public class App extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				JList list = (JList) e.getSource();
+				String valorSelecao = list.getSelectedValue().toString();
+				setErSelecionado(valorSelecao);
 				if (e.getClickCount() == 2) {
 					try {
-						new ViewAF(expRegHash.get(list.getSelectedValue().toString()).getAFD()).setVisible(true);
+						new ViewAF(expRegHash.get(valorSelecao).getAFD()).setVisible(true);
 					} catch (FormaisException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -175,9 +228,11 @@ public class App extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				JList list = (JList) e.getSource();
+				String valorSelecao = list.getSelectedValue().toString();
+				setGrSelecionado(valorSelecao);
 				if (e.getClickCount() == 2) {
 					try {
-						new ViewAF(gramHash.get(list.getSelectedValue().toString()).getAutomatoFinito()).setVisible(true);
+						new ViewAF(gramHash.get(valorSelecao).getAutomatoFinito()).setVisible(true);
 					} catch (FormaisException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -193,6 +248,38 @@ public class App extends JFrame {
 		JLabel lblGramar = new JLabel("Gramaticas:");
 
 		JLabel lblEr = new JLabel("ER:");
+		
+		JButton btnEditarGramtica = new JButton("Editar Gramática");
+		btnEditarGramtica.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		
+		JButton btnExcluirGramtica = new JButton("Excluir Gramática");
+		btnExcluirGramtica.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (!modeloGR.isEmpty()) {
+					int opcao = JOptionPane.showConfirmDialog(null, "Confirmar exclusão de " + grSelecionado, null,JOptionPane.YES_NO_OPTION);
+					if (JOptionPane.YES_OPTION == opcao) {
+						removeDaListaGR(grSelecionado);
+					}
+				}
+			}
+		});
+		
+		JButton btnEditarEr = new JButton("Editar E.R.");
+		
+		JButton btnExcluirEr = new JButton("Excluir E.R.");
+		btnExcluirEr.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (!modeloER.isEmpty()) {
+					int opcao = JOptionPane.showConfirmDialog(null, "Confirmar exclusão de " + erSelecionado, null,JOptionPane.YES_NO_OPTION);
+					if (JOptionPane.YES_OPTION == opcao) {
+						removeDaListaER(erSelecionado);
+					}
+				}
+			}
+		});
 
 		GroupLayout groupLayout = new GroupLayout(getContentPane());
 		groupLayout.setHorizontalGroup(
@@ -212,9 +299,17 @@ public class App extends JFrame {
 							.addComponent(lblEr, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addGap(98)
-							.addComponent(btAddGramatica)
-							.addPreferredGap(ComponentPlacement.RELATED, 95, Short.MAX_VALUE)
-							.addComponent(btAddEr)))
+							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+								.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+									.addComponent(btAddGramatica, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+									.addComponent(btnEditarGramtica, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+								.addComponent(btnExcluirGramtica))
+							.addPreferredGap(ComponentPlacement.RELATED, 75, Short.MAX_VALUE)
+							.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+								.addComponent(btAddEr, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(btnEditarEr, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(btnExcluirEr, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+							.addPreferredGap(ComponentPlacement.RELATED)))
 					.addGap(168))
 		);
 		groupLayout.setVerticalGroup(
@@ -224,7 +319,15 @@ public class App extends JFrame {
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(btAddGramatica)
 						.addComponent(btAddEr))
-					.addGap(91)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(btnEditarGramtica)
+						.addComponent(btnEditarEr))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(btnExcluirEr)
+						.addComponent(btnExcluirGramtica))
+					.addGap(23)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblGramar)
 						.addComponent(lblEr))
@@ -232,7 +335,7 @@ public class App extends JFrame {
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(listagemEr, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE)
 						.addComponent(listagemGr, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap(52, Short.MAX_VALUE))
+					.addContainerGap(30, Short.MAX_VALUE))
 		);
 		getContentPane().setLayout(groupLayout);
 
@@ -241,6 +344,69 @@ public class App extends JFrame {
 
 		JMenu menuArquivo = new JMenu("Arquivo");
 		menuBar.add(menuArquivo);
+		
+		JMenuItem mntmSalvarGramticas = new JMenuItem("Salvar Gramáticas");
+		mntmSalvarGramticas.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				GRBase rgbBase = new GRBase();
+				try {
+					rgbBase.save(gramHash);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		
+		JMenuItem mntmAbrirGramticas = new JMenuItem("Abrir Gramáticas");
+		mntmAbrirGramticas.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int opcao = JOptionPane.showConfirmDialog(null, "Esta ação irá apagar dados não salvos.\nDeseja continuar?", null,JOptionPane.YES_NO_OPTION);
+				if (JOptionPane.YES_OPTION == opcao) {
+					
+					GRBase rgbBase = new GRBase();
+					gramHash = rgbBase.get();
+					modeloGR.clear();
+					for (String chave : gramHash.keySet()) {
+						System.err.println("fore + " + chave);
+						modeloGR.addElement(chave);
+					}
+				}
+			}
+		});
+		menuArquivo.add(mntmAbrirGramticas);
+		
+		JMenuItem mntmAbrirExpresses = new JMenuItem("Abrir Expressões");
+		mntmAbrirExpresses.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				int opcao = JOptionPane.showConfirmDialog(null, "Esta ação irá apagar dados não salvos.\nDeseja continuar?", null,JOptionPane.YES_NO_OPTION);
+				if (JOptionPane.YES_OPTION == opcao) {
+					ERBase erBase = new ERBase();
+					expRegHash = erBase.get();
+					modeloER.clear();
+					for (String chave : expRegHash.keySet()) {
+						System.err.println("fore + " + chave);
+						modeloER.addElement(chave);
+					}
+				}
+			}
+		});
+		menuArquivo.add(mntmAbrirExpresses);
+		menuArquivo.add(mntmSalvarGramticas);
+		
+		JMenuItem mntmSalvarExpresses = new JMenuItem("Salvar Expressões");
+		mntmSalvarExpresses.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ERBase erBase = new ERBase();
+				try {
+					erBase.save(expRegHash);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		menuArquivo.add(mntmSalvarExpresses);
 		
 		JMenuItem mntmSair = new JMenuItem("Sair");
 		mntmSair.addActionListener(new ActionListener() {
