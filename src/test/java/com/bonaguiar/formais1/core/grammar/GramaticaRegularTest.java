@@ -25,7 +25,7 @@ public class GramaticaRegularTest {
 
 	@Test
 	public void testarInicializacaoCorreta() throws FormaisException {
-		GramaticaRegular g = new GramaticaRegular(new Alfabeto('S', 'A'), new Alfabeto('a', 'b', 'c'), 'S');
+		GramaticaRegular g = new GramaticaRegular(new Alfabeto('S', 'A'), new Alfabeto('a', 'b', 'c', '1', '2'), 'S');
 
 		assertEquals(new Character('S'), g.getS());
 		assertTrue(g.getVn().contains('S'));
@@ -35,7 +35,7 @@ public class GramaticaRegularTest {
 		assertTrue(g.getVt().contains('a'));
 		assertTrue(g.getVt().contains('b'));
 		assertTrue(g.getVt().contains('c'));
-		assertEquals(3, g.getVt().size());
+		assertEquals(5, g.getVt().size());
 	}
 
 	@Test(expected = FormaisException.class)

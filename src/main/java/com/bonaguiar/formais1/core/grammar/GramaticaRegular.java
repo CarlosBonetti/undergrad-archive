@@ -85,8 +85,8 @@ public class GramaticaRegular implements Serializable {
 	 */
 	protected void setVt(Alfabeto Vt) throws FormaisException {
 		for (Character c : Vt) {
-			if (!Character.isLowerCase(c)) {
-				throw new FormaisException("Símbolo terminal `" + c + "` deve ser minúsculo.");
+			if (Character.isUpperCase(c) && !Character.isDigit(c)) {
+				throw new FormaisException("Símbolo terminal `" + c + "` deve ser minúsculo ou um número.");
 			}
 		}
 		this.Vt = Vt;
