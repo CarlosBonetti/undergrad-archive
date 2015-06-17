@@ -8,6 +8,8 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
@@ -15,6 +17,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -28,13 +31,13 @@ public class ViewAF extends JFrame {
 	private static final long serialVersionUID = 8673596743628693904L;
 	private JTable table;
 	private AF af;
-
+	private App frame;
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					GramaticaRegular exp = GRParser.parse("S->bS|b | & \n");
-					ViewAF frame = new ViewAF(exp.getAutomatoFinito());
+					ViewAF frame = new ViewAF(exp.getAutomatoFinito(), null);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -45,8 +48,10 @@ public class ViewAF extends JFrame {
 
 	/**
 	 * Create the frame.
+	 * @param frame2 
 	 */
-	public ViewAF(AF af) {
+	public ViewAF(AF af, App frame2) {
+		this.frame = frame2;
 		this.af = af;
 		setTitle("Autômato Finito");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -122,6 +127,7 @@ public class ViewAF extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent event) {
 				System.out.println("Comparar");
+				System.out.println(selecionaOpcao());
 			}
 		});
 		menuBar.add(comparar);
@@ -131,6 +137,7 @@ public class ViewAF extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent event) {
 				System.out.println("Interseccionar");
+				System.out.println(selecionaOpcao());
 			}
 		});
 		menuBar.add(interseccionar);
@@ -151,7 +158,7 @@ public class ViewAF extends JFrame {
 	}
 
 	protected void abrirOutro(AF af, String title) {
-		ViewAF view = new ViewAF(af);
+		ViewAF view = new ViewAF(af, frame);
 		view.setVisible(true);
 		Rectangle bounds = this.getBounds();
 		bounds.setLocation(bounds.x + 30, bounds.y + 15);
@@ -205,4 +212,32 @@ public class ViewAF extends JFrame {
 
 		table.setModel(model);
 	}
+	
+	/**
+	 * chama uma caixa de dialogo com uma comboBox com todas as opcoes de ER e GR que estao presentes em App
+	 * @return String no <b> ER - chave<\b> ou <b>GR - chave<\b>
+	 * 
+	 */
+	
+	private String selecionaOpcao() {
+		String itemSelecionado;
+		JComboBox<String> comboBox  = new JComboBox<String>();
+		for (String chaveEr : frame.getExpRegHash().keySet()) {
+			comboBox.addItem("ER - "+ chaveEr);
+		}
+		for (String chaveGr : frame.getGramHash().keySet()) {
+			comboBox.addItem("GR - " + chaveGr);
+		}
+		int botaoOk = JOptionPane.showConfirmDialog(null, comboBox, "Compare com:", JOptionPane.OK_CANCEL_OPTION);
+
+		if (botaoOk == JOptionPane.OK_OPTION) {
+			itemSelecionado = comboBox.getSelectedItem().toString();
+			System.out.println(itemSelecionado);
+
+			if (itemSelecionado.trim().isEmpty()) 
+				return itemSelecionado.trim();
+		}
+		return null;
+	}
+
 }
