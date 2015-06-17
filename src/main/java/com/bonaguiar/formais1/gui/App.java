@@ -50,7 +50,15 @@ public class App extends JFrame {
 	private void setErSelecionado(String selecao) {
 		erSelecionado = selecao;
 	}
-
+	
+	private boolean ehChaveERNova(String chave){
+		return expRegHash.containsKey(chave);
+	}
+	
+	private boolean ehChaveGRNova(String chave){
+		return gramHash.containsKey(chave);
+	}
+	
 	private void tratarException(Exception e) {
 		e.printStackTrace();
 		JOptionPane.showMessageDialog(null, e.getMessage());
@@ -122,13 +130,13 @@ public class App extends JFrame {
 					GramaticaRegular gr = GRParser.parse(gramatica);
 
 					String nomeGram = JOptionPane.showInputDialog("Digite um nome para a gramática:");
-					while (nomeGram.trim().isEmpty()) {
-						nomeGram = JOptionPane.showInputDialog("Campo obrigatório.!\nDigite um nome para a gramática:");
+					while (nomeGram.trim().isEmpty() | ehChaveGRNova(nomeGram)) {
+						nomeGram = JOptionPane.showInputDialog("Campo obrigatório e único.!\nDigite um nome para a gramática:");
 					}
 					adicionaNaListaGR(nomeGram, gr);
 
 				} catch (Exception e2) {
-					JOptionPane.showMessageDialog(null, e2.getMessage() + "\nTente novamente.");
+					tratarException(e2);
 				}
 			}
 		}
@@ -144,13 +152,13 @@ public class App extends JFrame {
 			ExprRegular er = new ExprRegular(expReg);
 
 			nomeExpReg = JOptionPane.showInputDialog(null, "Entre com um nome para a Expressão Regular: ");
-			while (nomeExpReg.trim().isEmpty()) {
+			while (nomeExpReg.trim().isEmpty() | ehChaveERNova(nomeExpReg)) {
 				nomeExpReg = JOptionPane.showInputDialog(null, "Campo obrigatorio.!\nEntre com um nome para a Expressão Regular: ");
 			}
 			adicionaNaListaER(nomeExpReg, er);
 
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(null, e.getMessage());
+			tratarException(e);		
 		}
 	}
 
@@ -169,7 +177,7 @@ public class App extends JFrame {
 					GramaticaRegular gr = GRParser.parse(gramatica);
 					editarNaListaGR(chave, gr);
 				} catch (Exception e2) {
-					JOptionPane.showMessageDialog(null, e2.getMessage() + "\nTente novamente.");
+					tratarException(e2);		
 				}
 			}
 		}
@@ -184,7 +192,7 @@ public class App extends JFrame {
 			ExprRegular er = new ExprRegular(expReg);
 			editarNaListaER(chave, er);
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(null, e.getMessage());
+			tratarException(e);		
 		}
 	}
 
@@ -257,7 +265,6 @@ public class App extends JFrame {
 					try {
 						new ViewAF(gramHash.get(valorSelecao).getAutomatoFinito()).setVisible(true);
 					} catch (FormaisException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 					System.out.println("Clicked twice - " + gramHash.keySet().toString());
@@ -380,7 +387,6 @@ public class App extends JFrame {
 				try {
 					rgbBase.save(gramHash);
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
