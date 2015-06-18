@@ -516,8 +516,10 @@ public class AF {
 		int tamanho = 0; // Tamanho atual do possível match
 
 		for (int i = 0; i < text.length(); i++) {
+			
 			List<String> destinos = null;
 			try {
+				char a = text.charAt(i);
 				destinos = this.transicao(estadoAtual, text.charAt(i));
 			} catch (FormaisException e) {
 				lastPos = i + 1;
@@ -538,6 +540,9 @@ public class AF {
 				if (this.ehFinal(estadoAtual)) {
 					hash.put(lastPos, tamanho);
 				}
+			}
+			for (String string : destinos) {
+				System.out.println(string);
 			}
 		}
 

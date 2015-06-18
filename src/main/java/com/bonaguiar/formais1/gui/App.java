@@ -13,7 +13,6 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -23,8 +22,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
 
@@ -46,8 +43,8 @@ public class App extends JFrame {
 	private DefaultListModel<String> modeloGR = new DefaultListModel<String>();
 	private JList<String> listagemEr;
 	private JList<String> listagemGr;
-	private String grSelecionado;
-	private String erSelecionado;
+	private String grSelecionado = "";
+	private String erSelecionado = "";
 	private ERBase erBase = new ERBase();
 	private GRBase grBase = new GRBase();
 
@@ -113,12 +110,14 @@ public class App extends JFrame {
 	private void removeDaListaGR(String nome) {
 		gramHash.remove(nome);
 		modeloGR.removeElement(nome);
+		grSelecionado = "";
 		persistGR();
 	}
 
 	private void removeDaListaER(String nome) {
 		expRegHash.remove(nome);
 		modeloER.removeElement(nome);
+		grSelecionado = "";
 		persistER();
 	}
 
@@ -297,14 +296,18 @@ public class App extends JFrame {
 		JButton btnEditarGramtica = new JButton("Editar Gramática");
 		btnEditarGramtica.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				editarGramatica(grSelecionado);
+				try {
+					editarGramatica(grSelecionado);
+				} catch (Exception e2) {
+				}
+				
 			}
 		});
 
 		JButton btnExcluirGramtica = new JButton("Excluir Gramática");
 		btnExcluirGramtica.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (!modeloGR.isEmpty()) {
+				if (!modeloGR.isEmpty() && !grSelecionado.isEmpty()) {
 					int opcao = JOptionPane.showConfirmDialog(null, "Confirmar exclusão de " + grSelecionado, null, JOptionPane.YES_NO_OPTION);
 					if (JOptionPane.YES_OPTION == opcao) {
 						removeDaListaGR(grSelecionado);
@@ -316,14 +319,17 @@ public class App extends JFrame {
 		JButton btnEditarEr = new JButton("Editar E.R.");
 		btnEditarEr.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				editarER(erSelecionado);
+				try {
+					editarER(erSelecionado);
+				} catch (Exception e2) {
+				}
 			}
 		});
 
 		JButton btnExcluirEr = new JButton("Excluir E.R.");
 		btnExcluirEr.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (!modeloER.isEmpty()) {
+				if (!modeloER.isEmpty() && !erSelecionado.isEmpty()) {
 					int opcao = JOptionPane.showConfirmDialog(null, "Confirmar exclusão de " + erSelecionado, null, JOptionPane.YES_NO_OPTION);
 					if (JOptionPane.YES_OPTION == opcao) {
 						removeDaListaER(erSelecionado);

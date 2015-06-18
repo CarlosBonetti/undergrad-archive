@@ -1,10 +1,12 @@
 package com.bonaguiar.formais1.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JComboBox;
@@ -16,6 +18,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -172,6 +175,28 @@ public class ViewAF extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent event) {
 				System.out.println("Busca");
+				JTextArea area = new JTextArea("", 20, 15);
+				int botaoOk = JOptionPane.showConfirmDialog(null, new JScrollPane(area), "Busca por padrões", JOptionPane.OK_CANCEL_OPTION);
+				if (botaoOk == JOptionPane.OK_OPTION) {
+					try {
+						HashMap<Integer, Integer> a = ViewAF.this.af.textSearch(area.getText());
+//						HashMap<Integer, Integer> a = ViewAF.this.af.textSearchNova(area.getText());
+						String padroes = "";
+						for (int chave : a.keySet()) {
+							padroes += area.getText().substring(chave, chave+a.get(chave)) + "\n";
+						}
+						if (padroes.trim().isEmpty()) {
+							JOptionPane.showConfirmDialog(null, "Nenhum padrao encontrado", "Busca", JOptionPane.CLOSED_OPTION);							
+						} else {
+							JOptionPane.showConfirmDialog(null, a.size() + " matches\n"+ padroes, "Busca", JOptionPane.CLOSED_OPTION);
+						}
+								
+					} catch (FormaisException e) {
+						tratarException(e);
+					}
+
+				}
+				
 			}
 		});
 		menuBar.add(busca);
@@ -179,7 +204,7 @@ public class ViewAF extends JFrame {
 
 	protected void tratarException(Exception e) {
 		e.printStackTrace();
-		JOptionPane.showMessageDialog(this, e.getMessage() != null? e.getMessage(): "\nTente novamente.");
+		JOptionPane.showMessageDialog(this, e.getMessage() != null || e.getMessage().isEmpty()? e.getMessage(): "\nTente novamente.");
 	}
 
 	protected void abrirOutro(AF af, String title) {
