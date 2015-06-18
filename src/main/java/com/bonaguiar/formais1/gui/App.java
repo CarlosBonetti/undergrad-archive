@@ -12,6 +12,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -65,7 +66,7 @@ public class App extends JFrame {
 
 	private void tratarException(Exception e) {
 		e.printStackTrace();
-		JOptionPane.showMessageDialog(null, e.getMessage());
+		JOptionPane.showMessageDialog(this, e.getMessage() != null? e.getMessage(): "\nTente novamente.");
 	}
 
 	private void persistER() {
@@ -121,14 +122,14 @@ public class App extends JFrame {
 	private void adicionarGramatica() {
 		String gramatica;
 		JTextArea area = new JTextArea("", 20, 15);
-		int botaoOk = JOptionPane.showConfirmDialog(null, new JScrollPane(area), "Gramática", JOptionPane.OK_CANCEL_OPTION);
+		int botaoOk = JOptionPane.showConfirmDialog(this, new JScrollPane(area), "Gramática", JOptionPane.OK_CANCEL_OPTION);
 
 		if (botaoOk == JOptionPane.OK_OPTION) {
 			gramatica = area.getText();
 			System.out.println(gramatica);
 
 			if (gramatica.trim().isEmpty()) {
-				JOptionPane.showMessageDialog(null, "Campo texto não pode estar vazio.\nTente novamente.");
+				JOptionPane.showMessageDialog(this, "Campo texto não pode estar vazio.\nTente novamente.");
 			} else {
 				try {
 					GramaticaRegular gr = GRParser.parse(gramatica);
@@ -139,8 +140,8 @@ public class App extends JFrame {
 					}
 					adicionaNaListaGR(nomeGram, gr);
 
-				} catch (Exception e2) {
-					tratarException(e2);
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(this, e.getMessage() != null? e.getMessage(): "\nTente novamente.");
 				}
 			}
 		}
@@ -148,21 +149,21 @@ public class App extends JFrame {
 
 	public void adicionarER() {
 		String nomeExpReg;
-		String expReg = JOptionPane.showInputDialog(null, "Entre com a Expressão Regular: ");
+		String expReg = JOptionPane.showInputDialog(this, "Entre com a Expressão Regular: ");
 		try {
 			while (expReg.trim().isEmpty()) {
-				expReg = JOptionPane.showInputDialog(null, "Campo obrigatorio.!\nEntre com a Expressão Regular: ");
+				expReg = JOptionPane.showInputDialog(this, "Campo obrigatório.!\nEntre com a Expressão Regular: ");
 			}
 			ExprRegular er = new ExprRegular(expReg);
 
-			nomeExpReg = JOptionPane.showInputDialog(null, "Entre com um nome para a Expressão Regular: ");
+			nomeExpReg = JOptionPane.showInputDialog(this, "Entre com um nome para a Expressão Regular: ");
 			while (nomeExpReg.trim().isEmpty() | ehChaveERNova(nomeExpReg)) {
-				nomeExpReg = JOptionPane.showInputDialog(null, "Campo obrigatorio.!\nEntre com um nome para a Expressão Regular: ");
+				nomeExpReg = JOptionPane.showInputDialog(this, "Campo obrigatorio.!\nEntre com um nome para a Expressão Regular: ");
 			}
 			adicionaNaListaER(nomeExpReg, er);
 
 		} catch (Exception e) {
-			tratarException(e);
+			JOptionPane.showMessageDialog(null, e.getMessage() != null? e.getMessage(): "\nTente novamente.");
 		}
 	}
 
@@ -175,7 +176,10 @@ public class App extends JFrame {
 			gramatica = area.getText();
 
 			if (gramatica.trim().isEmpty()) {
-				JOptionPane.showMessageDialog(null, "Campo texto não pode estar vazio.\nTente novamente.");
+				JOptionPane pane = new JOptionPane("Campo texto não pode estar vazio.\nTente novamente.");
+				JDialog d =	pane.createDialog((JFrame)null, "Comparação")	;
+				d.setLocation(getLocation());
+				d.setVisible(true);
 			} else {
 				try {
 					GramaticaRegular gr = GRParser.parse(gramatica);
@@ -188,9 +192,9 @@ public class App extends JFrame {
 	}
 
 	public void editarER(String chave) {
-		String expReg = JOptionPane.showInputDialog(null, "Editar a Expressão Regular: ", expRegHash.get(chave).getExpr());
+		String expReg = JOptionPane.showInputDialog(this, "Editar a Expressão Regular: ", expRegHash.get(chave).getExpr());
 		while (expReg.trim().isEmpty()) {
-			expReg = JOptionPane.showInputDialog(null, "Campo obrigatorio.!\nEntre com a Expressão Regular: ");
+			expReg = JOptionPane.showInputDialog(this, "Campo obrigatório.!\nEntre com a Expressão Regular: ");
 		}
 		try {
 			ExprRegular er = new ExprRegular(expReg);
@@ -222,6 +226,7 @@ public class App extends JFrame {
 	 * Create the frame.
 	 */
 	public App() {
+		setResizable(false);
 		loadPersistence();
 		listagemEr = new JList<String>(modeloER);
 
@@ -282,9 +287,9 @@ public class App extends JFrame {
 		});
 		listagemGr.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		JLabel lblGramar = new JLabel("Gramaticas:");
+		JLabel lblGramar = new JLabel("Gramáticas:");
 
-		JLabel lblEr = new JLabel("ER:");
+		JLabel lblEr = new JLabel("Expressão Regular:");
 
 		JButton btnEditarGramtica = new JButton("Editar Gramática");
 		btnEditarGramtica.addActionListener(new ActionListener() {
@@ -325,62 +330,61 @@ public class App extends JFrame {
 		});
 
 		GroupLayout groupLayout = new GroupLayout(getContentPane());
-		groupLayout.setHorizontalGroup(groupLayout
-				.createParallelGroup(Alignment.TRAILING)
-				.addGroup(
-						groupLayout.createSequentialGroup().addGap(49).addComponent(listagemGr, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(ComponentPlacement.RELATED, 47, Short.MAX_VALUE)
-						.addComponent(listagemEr, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE).addGap(62))
-						.addGroup(
-								groupLayout
-								.createSequentialGroup()
-								.addGroup(
-										groupLayout
-										.createParallelGroup(Alignment.LEADING)
-										.addGroup(
-												groupLayout.createSequentialGroup().addGap(110)
-												.addComponent(lblGramar, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)
-												.addPreferredGap(ComponentPlacement.RELATED, 148, Short.MAX_VALUE)
-												.addComponent(lblEr, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE))
-												.addGroup(
-														groupLayout
-														.createSequentialGroup()
-														.addGap(98)
-														.addGroup(
-																groupLayout
-																.createParallelGroup(Alignment.LEADING)
-																.addGroup(
-																		groupLayout
-																		.createParallelGroup(Alignment.TRAILING, false)
-																		.addComponent(btAddGramatica, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
-																				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-																				.addComponent(btnEditarGramtica, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
-																						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-																						.addComponent(btnExcluirGramtica))
-																						.addPreferredGap(ComponentPlacement.RELATED, 75, Short.MAX_VALUE)
-																						.addGroup(
-																								groupLayout
-																								.createParallelGroup(Alignment.TRAILING, false)
-																								.addComponent(btAddEr, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-																										Short.MAX_VALUE)
-																										.addComponent(btnEditarEr, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-																										.addComponent(btnExcluirEr, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-																										.addPreferredGap(ComponentPlacement.RELATED))).addGap(168)));
-		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
-				groupLayout
-				.createSequentialGroup()
-				.addGap(24)
-				.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(btAddGramatica).addComponent(btAddEr))
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addGroup(groupLayout.createParallelGroup(Alignment.LEADING).addComponent(btnEditarGramtica).addComponent(btnEditarEr))
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addGroup(groupLayout.createParallelGroup(Alignment.LEADING).addComponent(btnExcluirEr).addComponent(btnExcluirGramtica))
-				.addGap(23)
-				.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblGramar).addComponent(lblEr))
-				.addPreferredGap(ComponentPlacement.UNRELATED)
-				.addGroup(
-						groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(listagemEr, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE)
-						.addComponent(listagemGr, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE)).addContainerGap(30, Short.MAX_VALUE)));
+		groupLayout.setHorizontalGroup(
+			groupLayout.createParallelGroup(Alignment.TRAILING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(49)
+					.addComponent(listagemGr, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED, 47, Short.MAX_VALUE)
+					.addComponent(listagemEr, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE)
+					.addGap(62))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGap(110)
+							.addComponent(lblGramar, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED, 148, Short.MAX_VALUE)
+							.addComponent(lblEr)
+							.addPreferredGap(ComponentPlacement.RELATED))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGap(98)
+							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+								.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+									.addComponent(btAddGramatica, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+									.addComponent(btnEditarGramtica, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+								.addComponent(btnExcluirGramtica))
+							.addPreferredGap(ComponentPlacement.RELATED, 99, Short.MAX_VALUE)
+							.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+								.addComponent(btAddEr, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(btnEditarEr, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(btnExcluirEr, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+					.addGap(121))
+		);
+		groupLayout.setVerticalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(24)
+					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btAddGramatica)
+						.addComponent(btAddEr))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(btnEditarGramtica)
+						.addComponent(btnEditarEr))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(btnExcluirEr)
+						.addComponent(btnExcluirGramtica))
+					.addGap(23)
+					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblGramar)
+						.addComponent(lblEr))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+						.addComponent(listagemEr, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE)
+						.addComponent(listagemGr, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap(30, Short.MAX_VALUE))
+		);
 		getContentPane().setLayout(groupLayout);
 
 		JMenuBar menuBar = new JMenuBar();

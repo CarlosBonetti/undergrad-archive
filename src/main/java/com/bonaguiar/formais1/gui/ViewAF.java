@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
@@ -41,7 +42,7 @@ public class ViewAF extends JFrame {
 		setTitle("Autômato Finito");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(80, 80, 640, 480);
-
+		setLocation(frame.getLocation());
 		table = new JTable();
 		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
 		centerRenderer.setHorizontalAlignment(JLabel.CENTER);
@@ -66,6 +67,7 @@ public class ViewAF extends JFrame {
 			public void mouseClicked(MouseEvent event) {
 				try {
 					abrirOutro(ViewAF.this.af.determinizar(), "Determinização de " + ViewAF.this.getTitle());
+					dispose();
 				} catch (Exception e) {
 					tratarException(e);
 				}
@@ -80,8 +82,10 @@ public class ViewAF extends JFrame {
 				try {
 					if (ViewAF.this.af instanceof AFD) {
 						abrirOutro(((AFD) ViewAF.this.af).getAFMin(), "Minimização de " + ViewAF.this.getTitle());
+						dispose();
 					} else {
 						abrirOutro(ViewAF.this.af.determinizar().getAFMin(), "Minimização de " + ViewAF.this.getTitle());
+						dispose();
 					}
 				} catch (Exception e) {
 					tratarException(e);
@@ -97,8 +101,10 @@ public class ViewAF extends JFrame {
 				try {
 					if (ViewAF.this.af instanceof AFD) {
 						abrirOutro(((AFD) ViewAF.this.af).getComplemento(), "Complementação de " + ViewAF.this.getTitle());
+						dispose();
 					} else {
 						abrirOutro(ViewAF.this.af.determinizar().getComplemento(), "Complementação de " + ViewAF.this.getTitle());
+						dispose();
 					}
 				} catch (Exception e) {
 					tratarException(e);
@@ -120,9 +126,15 @@ public class ViewAF extends JFrame {
 							AFMin afMin2 = af2.determinizar().getAFMin();
 
 							if (afMin1.equals(afMin2)) {
-								JOptionPane.showMessageDialog(null, "As linguagens geradas pelos autômatos são as mesmas");
+								JOptionPane pane = new JOptionPane("As linguagens geradas pelos autômatos são as mesmas");
+								JDialog d =	pane.createDialog((JFrame)null, "Comparação")	;
+								d.setLocation(getLocation());
+								d.setVisible(true);
 							} else {
-								JOptionPane.showMessageDialog(null, "As linguagens geradas pelos autômatos NÃO são as mesmas");
+								JOptionPane pane = new JOptionPane("As linguagens geradas pelos autômatos NÃO são as mesmas");
+								JDialog d =	pane.createDialog((JFrame)null, "Comparação")	;
+								d.setLocation(getLocation());
+								d.setVisible(true);
 							}
 
 						} catch (Exception e) {
@@ -167,14 +179,14 @@ public class ViewAF extends JFrame {
 
 	protected void tratarException(Exception e) {
 		e.printStackTrace();
-		JOptionPane.showMessageDialog(null, e.getMessage());
+		JOptionPane.showMessageDialog(this, e.getMessage() != null? e.getMessage(): "\nTente novamente.");
 	}
 
 	protected void abrirOutro(AF af, String title) {
 		ViewAF view = new ViewAF(af, frame);
 		view.setVisible(true);
 		Rectangle bounds = this.getBounds();
-		bounds.setLocation(bounds.x + 30, bounds.y + 15);
+		bounds.setLocation(frame.getLocation());
 		view.setBounds(bounds);
 		view.setTitle(title);
 	}
@@ -242,7 +254,7 @@ public class ViewAF extends JFrame {
 		for (String chaveGr : frame.getGramHash().keySet()) {
 			comboBox.addItem("GR - " + chaveGr);
 		}
-		int botaoOk = JOptionPane.showConfirmDialog(null, comboBox, "Selecione uma opção:", JOptionPane.OK_CANCEL_OPTION);
+		int botaoOk = JOptionPane.showConfirmDialog(this, comboBox, "Selecione uma opção:", JOptionPane.OK_CANCEL_OPTION);
 
 		if (botaoOk == JOptionPane.OK_OPTION) {
 			itemSelecionado = comboBox.getSelectedItem().toString();
