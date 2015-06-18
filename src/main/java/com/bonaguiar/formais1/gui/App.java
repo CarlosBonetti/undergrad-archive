@@ -13,6 +13,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -22,6 +23,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
 
@@ -458,6 +461,21 @@ public class App extends JFrame {
 			}
 		});
 		menuArquivo.add(mntmSair);
+		
+	//	JMenuItem mntmTeste = new JMenuItem("teste");
+//		mntmTeste.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				JOptionPane pane = new JOptionPane("Busca por padrões:");
+//				pane.add(new JEditorPane());
+//				
+//				pane.add(new JTextField());
+//				JDialog d =	pane.createDialog(null, "Comparação")	;
+//				d.setLocation(getLocation());
+//				d.setBounds(getBounds());
+//				d.setVisible(true);
+//			}
+//		});
+//		menuBar.add(mntmTeste);
 	}
 
 	private void loadPersistence() {

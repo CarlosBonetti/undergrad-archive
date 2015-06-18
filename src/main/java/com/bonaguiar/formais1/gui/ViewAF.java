@@ -136,7 +136,6 @@ public class ViewAF extends JFrame {
 								d.setLocation(getLocation());
 								d.setVisible(true);
 							}
-
 						} catch (Exception e) {
 							tratarException(e);
 						}
@@ -157,6 +156,7 @@ public class ViewAF extends JFrame {
 						try {
 							ViewAF view = new ViewAF(af1.intersectar(af2), ViewAF.this.frame);
 							view.setVisible(true);
+							dispose();
 						} catch (Exception e) {
 							tratarException(e);
 						}
