@@ -7,6 +7,7 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -15,6 +16,7 @@ import org.junit.Test;
 import com.bonaguiar.formais1.core.Alfabeto;
 import com.bonaguiar.formais1.core.automata.AF.MesclaDeEstados;
 import com.bonaguiar.formais1.core.exception.FormaisException;
+import com.bonaguiar.formais1.core.expr.ExprRegular;
 
 public class AFTest {
 
@@ -519,4 +521,20 @@ public class AFTest {
 		assertFalse(af.run(null));
 	}
 
+	@Test
+	public void testarTextMatch() throws FormaisException {
+		AFD af = (new ExprRegular("(abc)*")).getAFD();
+		HashMap<Integer, Integer> hash = af.textSearch("aabc abcabc_abc");
+		// assertEquals("", hash);
+
+		hash = af.textSearch("O albabeto abcabc começa com os 3 caracteres abc... e depois do abc é seguido por def...");
+		assertTrue(hash.containsKey(11));
+		assertTrue(hash.containsValue(6));
+
+		assertTrue(hash.containsKey(45));
+		assertTrue(hash.containsValue(3));
+
+		assertTrue(hash.containsKey(64));
+		assertTrue(hash.containsValue(3));
+	}
 }

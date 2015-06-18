@@ -3,6 +3,7 @@ package com.bonaguiar.formais1.core.automata;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -497,5 +498,49 @@ public class AF {
 
 		// Se o estado final for de aceitação, a palavra é aceita pelo AF
 		return this.ehFinal(estadoAtual);
+	}
+
+	/**
+	 * Procura por subexpressões do texto aceitas por este AF
+	 * Retorna um hash com os índices de início de subexpressões que deram match como chave e o tamanho do match como valor
+	 *
+	 * @param text
+	 * @return
+	 * @throws FormaisException
+	 */
+	public HashMap<Integer, Integer> textSearch(String text) throws FormaisException {
+		HashMap<Integer, Integer> hash = new HashMap<Integer, Integer>();
+
+		String estadoAtual = this.getEstadoInicial();
+		int lastPos = 0; // Posição de início do último possível match
+		int tamanho = 0; // Tamanho atual do possível match
+
+		for (int i = 0; i < text.length(); i++) {
+			List<String> destinos = null;
+			try {
+				destinos = this.transicao(estadoAtual, text.charAt(i));
+			} catch (FormaisException e) {
+				lastPos = i + 1;
+				tamanho = 0;
+				estadoAtual = this.getEstadoInicial();
+				continue;
+			}
+
+			if (destinos.isEmpty()) {
+				lastPos = i + 1;
+				tamanho = 0;
+				estadoAtual = this.getEstadoInicial();
+				continue;
+			} else {
+				estadoAtual = destinos.get(0);
+				tamanho++;
+
+				if (this.ehFinal(estadoAtual)) {
+					hash.put(lastPos, tamanho);
+				}
+			}
+		}
+
+		return hash;
 	}
 }
