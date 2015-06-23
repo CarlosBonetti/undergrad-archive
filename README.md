@@ -1,5 +1,7 @@
 # Linguagens Formais e Compiladores - Trabalho II
 
+[![Build Status](https://magnum.travis-ci.com/CarlosBonetti/formais2.svg?token=TncWKXR1N9y1CQNXWyip)](https://magnum.travis-ci.com/CarlosBonetti/formais2)
+
 ## I – Definição:
 
 Elaborar uma aplicação, com interface gráfica para manipular GLC, envolvendo as seguintes
