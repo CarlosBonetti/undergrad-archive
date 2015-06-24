@@ -1,9 +1,11 @@
 package com.bonaguiar.formais2.core;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.Getter;
 
@@ -17,16 +19,70 @@ public class GLC implements Serializable {
 	 * Produções da gramática
 	 */
 	@Getter
-	protected HashMap<String, List<Producao>> producoes = new HashMap<String, List<Producao>>();
+	protected Map<String, List<FormaSentencial>> producoes = new LinkedHashMap<String, List<FormaSentencial>>();
 
 	/**
-	 * Adiciona uma nova produção à gramática
-	 *
-	 * @param produtor Lado esquerdo da produção. 'S' do exemplo: S -> ab A B
-	 * @param producao Produção. Lado direito da produção. 'ab A B' do exemplo anterior
+	 * Símbolo inicial da gramática
 	 */
-	public void addProducao(String produtor, String producao) {
-		this.addProducao(produtor, new Producao(producao));
+	@Getter
+	protected String simboloInicial;
+
+	/**
+	 * A String com o conjunto de produções original que deu origem a esta gramática
+	 */
+	@Getter
+	protected String raw;
+
+	/**
+	 * Cria uma nova Gramática Livre de Contexto baseada no conjunto de produções
+	 * A primeira produção fornecida é considerada símbolo inicial
+	 *
+	 * @param producoes Conjunto de produções. Cada produção deve estar em uma linha. Exemplo:
+	 *            E -> T E1
+	 *            E1 -> + T E1 | &
+	 *            T -> F T1
+	 *            T1 -> * F T1 | &
+	 *            F -> ( E ) | id
+	 * @throws Exception
+	 */
+	public GLC(String producoes) throws Exception {
+		this.raw = producoes;
+
+		String[] lines = producoes.split("\n|\r\n");
+		for (String line : lines) {
+			this.addProducoes(line);
+		}
+
+		this.simboloInicial = this.producoes.keySet().iterator().next();
+	}
+
+	/**
+	 * Construtor vazio. Usado pelos testes unitários para "ir criando a gramática aos poucos".
+	 * Protegido para não ser usado externamente
+	 */
+	protected GLC() {
+	}
+
+	/**
+	 * Adiciona um novo conjunto de produções à gramática.
+	 *
+	 * @param line Uma linha do conjunto de produções da gramática. Exemplo: 'E -> E + T | E - T | T' irá adicionar três novas
+	 *            produções associadas ao não terminal 'E'
+	 * @throws Exception
+	 */
+	protected void addProducoes(String line) throws Exception {
+		String[] parts = line.split("->");
+
+		if (parts.length != 2) {
+			throw new ParseException("Produção mal formada: " + line + ". Produções devem seguir o padrao 'E -> E + T | .. | id'", 0);
+		}
+
+		String produtor = parts[0].trim();
+		String[] producoes = parts[1].trim().split("\\|");
+
+		for (String producao : producoes) {
+			this.addProducao(produtor, producao);
+		}
 	}
 
 	/**
@@ -35,34 +91,48 @@ public class GLC implements Serializable {
 	 * @param produtor Lado esquerdo da produção. 'S' do exemplo: S -> ab A B
 	 * @param producao Produção. Lado direito da produção. 'ab A B' do exemplo anterior
 	 */
-	public void addProducao(String produtor, Producao producao) {
-		List<Producao> lista;
+	protected void addProducao(String produtor, String producao) {
+		this.addProducao(produtor, new FormaSentencial(producao.trim()));
+	}
+
+	/**
+	 * Adiciona uma nova produção à gramática
+	 *
+	 * @param produtor Lado esquerdo da produção. 'S' do exemplo: S -> ab A B
+	 * @param formaSentencial Produção. Lado direito da produção. 'ab A B' do exemplo anterior
+	 */
+	protected void addProducao(String produtor, FormaSentencial formaSentencial) {
+		List<FormaSentencial> lista;
 
 		if (producoes.containsKey(produtor)) {
 			lista = producoes.get(produtor);
 		} else {
-			lista = new ArrayList<Producao>();
+			lista = new ArrayList<FormaSentencial>();
 			producoes.put(produtor, lista);
 		}
 
-		lista.add(producao);
+		lista.add(formaSentencial);
 	}
 
 	/**
-	 * Produção livre de contexto
+	 * Forma sentencial de uma gramática livre de contexto
 	 * Representa o lado direito de uma produção.
-	 * Exemplo: em 'S -> a B C | abc Ce Fe', existem dois objetos Producao, 'a B C' e 'abc Ce Fe' com três partes
+	 * Exemplo: em 'S -> a B C | abc Ce Fe', existem dois objetos FormaSentencial, 'a B C' e 'abc Ce Fe' com três partes
 	 * cada um (um terminal e dois não terminais)
 	 */
-	public static class Producao extends ArrayList<String> {
+	public static class FormaSentencial extends ArrayList<String> {
 		private static final long serialVersionUID = -2032770137692974596L;
 
 		/**
-		 * Cria uma nova produção para gramáticas livres de contexto
+		 * Cria uma nova forma sentencial para gramáticas livres de contexto
 		 *
 		 * @param producao Lado direito de uma produção, com as partes separadas por espaço. Exemplo: 'a T1 T2'
 		 */
-		public Producao(String producao) {
+		public FormaSentencial(String producao) {
+			if (producao.isEmpty()) {
+				throw new IllegalArgumentException("Produção não pode ser vazia");
+			}
+
 			String[] parts = producao.split(" ");
 			for (String part : parts) {
 				this.add(part);
