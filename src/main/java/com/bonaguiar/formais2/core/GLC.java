@@ -3,9 +3,11 @@ package com.bonaguiar.formais2.core;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.Getter;
 
@@ -32,6 +34,17 @@ public class GLC implements Serializable {
 	 */
 	@Getter
 	protected String raw;
+
+	/**
+	 * Guarda o conjunto first dos símbolos não terminais desta gramática
+	 * em um hash do tipo 'símbolo não terminal => conjunto first'
+	 */
+	protected Map<String, Set<String>> firstSet = new LinkedHashMap<String, Set<String>>();
+
+	/**
+	 * Guarda o conjunto follow dos símbolos não terminais desta gramática
+	 */
+	protected Map<String, Set<String>> followSet = new LinkedHashMap<String, Set<String>>();
 
 	/**
 	 * Cria uma nova Gramática Livre de Contexto baseada no conjunto de produções
@@ -112,6 +125,86 @@ public class GLC implements Serializable {
 		}
 
 		lista.add(formaSentencial);
+	}
+
+	// ===================================================================================================
+	// First
+
+	/**
+	 * Retorna um hash com todos os conjuntos 'first' da gramática
+	 * O hash retornado possui os símbolos não terminais da gramática como chave e um conjunto de símbolos
+	 * first associados a este não terminal
+	 *
+	 * @return
+	 */
+	public Map<String, Set<String>> getFirstSet() {
+		for (String naoTerminal : this.producoes.keySet()) {
+			if (!this.firstSet.containsKey(naoTerminal)) {
+				this.firstSet.put(naoTerminal, first(naoTerminal));
+			}
+		}
+
+		return this.firstSet;
+	}
+
+	/**
+	 * Retorna o firstSet da forma sentencial parâmetro
+	 *
+	 * @param formaSentencial
+	 * @return
+	 */
+	protected Set<String> first(FormaSentencial formaSentencial) {
+		Set<String> set = new HashSet<String>();
+
+		for (String simbolo : formaSentencial) {
+			set.remove(GrammarUtils.EPSILON.toString());
+			Set<String> f = first(simbolo);
+			set.addAll(f);
+
+			if (!f.contains(GrammarUtils.EPSILON.toString())) {
+				break;
+			}
+		}
+
+		return set;
+	}
+
+	/**
+	 * Retorna o firstSet do símbolo
+	 *
+	 * @param simbolo
+	 * @return
+	 */
+	protected Set<String> first(String simbolo) {
+		Set<String> set = new HashSet<String>();
+
+		if (GrammarUtils.ehTerminal(simbolo)) {
+			// First de um terminal é o próprio terminal
+			set.add(simbolo);
+		} else {
+			if (this.firstSet.containsKey(simbolo)) {
+				// Se for um símbolo não terminal já calculado, simplesmente retorna o conjunto previamente criado
+				set.addAll(this.firstSet.get(simbolo));
+			} else {
+				// Calcula o first de cada produção
+				for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
+					set.addAll(first(formaSentencial));
+				}
+
+				// Salva o firstSet recém calculado do terminal para evitar retrabalho
+				this.firstSet.put(simbolo, set);
+			}
+		}
+
+		return set;
+	}
+
+	// ===================================================================================================
+	// Follow
+
+	public Map<String, Set<String>> getFollowSet() {
+		// TODO
+		return this.followSet;
 	}
 
 	/**

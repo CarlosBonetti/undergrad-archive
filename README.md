@@ -12,7 +12,7 @@ verificações/operações:
 
 	2.1. Possui Recursão a Esquerda? Em caso positivo identificar o tipo de recursão e os
 	não-terminais recursivos;	
-	2.2. Esta Fatorada? Em caso negativo identificar o tipo da não-fatoração e os nãoterminais
+	2.2. Esta Fatorada? Em caso negativo identificar o tipo da não-fatoração e os não terminais
 	não-fatorados;
 	2.3. Para todo A ∈ Vn | A ⇒* ε, First(A) ∩ Follow(A) = ϕ?
 	
