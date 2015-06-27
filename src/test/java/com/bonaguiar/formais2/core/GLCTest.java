@@ -108,6 +108,12 @@ public class GLCTest {
 	}
 
 	@Test
+	public void getListaProducoes() throws Exception {
+		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
+		assertEquals("[T E', + T E', &, F T', * F T', &, ( E ), id]", glc.getListaProducoes().toString());
+	}
+
+	@Test
 	public void getFirstSet() throws Exception {
 		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
 		assertEquals("{F=[id, (], T=[id, (], E=[id, (], E'=[&, +], T'=[&, *]}", glc.getFirstSet().toString());
@@ -120,17 +126,28 @@ public class GLCTest {
 	}
 
 	@Test
+	public void getFollowSet() throws Exception {
+		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
+		assertEquals("{E=[$, )], E'=[$, )], T=[$, +, )], T'=[$, +, )], F=[$, *, +, )]}", glc.getFollowSet().toString());
+
+		GLC glc2 = new GLC("S -> A b | A B c \n" + "B -> b B | A d | & \n" + "A -> a A | &");
+		assertEquals("{S=[$], B=[c], A=[d, b, c, a]}", glc2.getFollowSet().toString());
+
+		GLC glc3 = new GLC("S -> A B C \n" + "A -> a A | & \n" + "B -> b B | A C d \n" + "C -> c C | &");
+		assertEquals("{S=[$], A=[d, b, c, a], B=[c, $], C=[d, $]}", glc3.getFollowSet().toString());
+	}
+
+	@Test
 	public void testarReqEsquerdaDireta() throws Exception {
 		String text = "E -> E + T | E - T | T\n" + "T -> T * F | T / F | F\n" + "F -> ( E ) | id";
 		GLC glc = new GLC(text);
 		assertTrue(glc.getRecursaoEsquerdaDireta().contains("E"));
 		assertTrue(glc.getRecursaoEsquerdaDireta().contains("T"));
 		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("F"));
-		
+
 		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
 		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("E"));
 		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("T"));
 		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("F"));
 	}
-	
 }

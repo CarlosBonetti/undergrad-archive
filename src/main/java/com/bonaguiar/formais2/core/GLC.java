@@ -48,6 +48,11 @@ public class GLC implements Serializable {
 	protected Map<String, Set<String>> followSet = new LinkedHashMap<String, Set<String>>();
 
 	/**
+	 * Guarda uma lista com cópias das produções da gramática com índices correspondentes
+	 */
+	protected ArrayList<FormaSentencial> lista = new ArrayList<FormaSentencial>();
+
+	/**
 	 * Cria uma nova Gramática Livre de Contexto baseada no conjunto de
 	 * produções A primeira produção fornecida é considerada símbolo inicial
 	 *
@@ -135,12 +140,27 @@ public class GLC implements Serializable {
 		lista.add(formaSentencial);
 	}
 
+	/**
+	 * Retorna um lista ordenada com as produções da gramática, de forma que cada produção possui um índice correspondente
+	 *
+	 * @return
+	 */
+	public List<FormaSentencial> getListaProducoes() {
+		if (this.lista.isEmpty()) {
+			for (String produtor : this.producoes.keySet()) {
+				lista.addAll(this.producoes.get(produtor));
+			}
+		}
+
+		return lista;
+	}
+
 	// ===================================================================================================
 	// First
 
 	/**
-	 * Retorna um hash com todos os conjuntos 'first' da gramática O hash
-	 * retornado possui os símbolos não terminais da gramática como chave e um
+	 * Retorna um hash com todos os conjuntos 'first' da gramática
+	 * O hash retornado possui os símbolos não terminais da gramática como chave e um
 	 * conjunto de símbolos first associados a este não terminal
 	 *
 	 * @return
@@ -212,17 +232,87 @@ public class GLC implements Serializable {
 	// ===================================================================================================
 	// Follow
 
+	/**
+	 * Retorna um hash com os conjuntos follow de cada não terminal da gramática
+	 *
+	 * @return
+	 */
 	public Map<String, Set<String>> getFollowSet() {
-		// TODO
+		// Só calculamos o follow na primeira chamada
+		if (this.followSet.isEmpty()) {
+
+			// 1 – Se A é o símbolo inicial da gramática
+			// $ ∈ Follow(A)
+			for (String naoTerminal : this.producoes.keySet()) {
+				this.followSet.put(naoTerminal, new HashSet<String>());
+
+				if (this.getSimboloInicial().equals(naoTerminal)) {
+					this.followSet.get(naoTerminal).add(GrammarUtils.END_OF_SENTENCE.toString());
+				}
+			}
+
+			// 2 – Se A -> αBβ ∈ P ∧ β ≠ ε
+			// adicione first(β) em Follow(B)
+			for (FormaSentencial producao : this.getListaProducoes()) {
+				for (int i = producao.size() - 2; i >= 0; i--) {
+					String B = producao.get(i);
+					if (!GrammarUtils.ehNaoTerminal(B)) {
+						continue;
+					}
+
+					FormaSentencial Beta = new FormaSentencial();
+					Beta.addAll(producao.subList(i + 1, producao.size()));
+					Set<String> firstBeta = first(Beta);
+					firstBeta.remove(GrammarUtils.EPSILON.toString());
+					this.followSet.get(B).addAll(firstBeta);
+				}
+			}
+
+			// 3 – Se A -> αB (ou A -> αBβ, onde ε ∈ First(β)) ∈ P
+			// -> adicione Follow(A) em Follow(B)
+			boolean modificado = true;
+			while (modificado) {
+				modificado = false;
+				for (String produtor : this.producoes.keySet()) {
+					for (FormaSentencial producao : this.producoes.get(produtor)) {
+						for (int i = producao.size() - 1; i >= 0; i--) {
+							String B = producao.get(i);
+							if (!GrammarUtils.ehNaoTerminal(B)) {
+								continue;
+							}
+							FormaSentencial Beta = new FormaSentencial();
+							Beta.addAll(producao.subList(i + 1, producao.size()));
+							Set<String> firstBeta = first(Beta);
+
+							if (firstBeta.contains(GrammarUtils.EPSILON.toString()) || firstBeta.isEmpty()) {
+								modificado = this.followSet.get(B).addAll(this.followSet.get(produtor)) || modificado;
+							}
+						}
+					}
+				}
+			}
+		}
+
 		return this.followSet;
 	}
 
-	// ===================================================================================================
 	/**
-	 * Forma sentencial de uma gramática livre de contexto Representa o lado
-	 * direito de uma produção. Exemplo: em 'S -> a B C | abc Ce Fe', existem
-	 * dois objetos FormaSentencial, 'a B C' e 'abc Ce Fe' com três partes cada
-	 * um (um terminal e dois não terminais)
+	 * Retorna o conjunto follow do não terminal parâmetro
+	 *
+	 * @param simbolo
+	 * @return
+	 */
+	protected Set<String> follow(String simbolo) {
+		return this.followSet.get(simbolo);
+	}
+
+	// ===================================================================================================
+
+	/**
+	 * Forma sentencial de uma gramática livre de contexto
+	 * Representa o lado direito de uma produção.
+	 * Exemplo: em 'S -> a B C | abc Ce Fe', existem dois objetos FormaSentencial, 'a B C' e 'abc Ce Fe' com três partes
+	 * cada um (um terminal e dois não terminais)
 	 */
 	public static class FormaSentencial extends ArrayList<String> {
 		private static final long serialVersionUID = -2032770137692974596L;
@@ -243,6 +333,9 @@ public class GLC implements Serializable {
 			for (String part : parts) {
 				this.add(part);
 			}
+		}
+
+		public FormaSentencial() {
 		}
 
 		@Override
@@ -282,7 +375,7 @@ public class GLC implements Serializable {
 
 	/**
 	 * Verifica se a producao possui recursao esquerda direta
-	 * 
+	 *
 	 * @param producao
 	 * @return
 	 */
