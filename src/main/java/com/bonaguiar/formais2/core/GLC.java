@@ -89,11 +89,7 @@ public class GLC implements Serializable {
 		String[] parts = line.split("->");
 
 		if (parts.length != 2) {
-			throw new ParseException(
-					"Produção mal formada: "
-							+ line
-							+ ". Produções devem seguir o padrao 'E -> E + T | .. | id'",
-					0);
+			throw new ParseException("Produção mal formada: " + line + ". Produções devem seguir o padrao 'E -> E + T | .. | id'", 0);
 		}
 
 		String produtor = parts[0].trim();
@@ -137,21 +133,6 @@ public class GLC implements Serializable {
 		}
 
 		lista.add(formaSentencial);
-	}
-
-	public String getTodaGramatica() {
-		String gramatica = "";
-		for (String chave : producoes.keySet()) {
-			gramatica += chave + " -> ";
-			for (FormaSentencial forma : producoes.get(chave)) {
-				for (String producao : forma) {
-					gramatica += producao + " ";
-				}
-				gramatica += "| ";
-			}
-			gramatica = gramatica.substring(0, gramatica.length() - 2) + "\n";
-		}
-		return gramatica;
 	}
 
 	// ===================================================================================================
@@ -215,8 +196,7 @@ public class GLC implements Serializable {
 				set.addAll(this.firstSet.get(simbolo));
 			} else {
 				// Calcula o first de cada produção
-				for (FormaSentencial formaSentencial : this.producoes
-						.get(simbolo)) {
+				for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
 					set.addAll(first(formaSentencial));
 				}
 
@@ -256,8 +236,7 @@ public class GLC implements Serializable {
 		 */
 		public FormaSentencial(String producao) {
 			if (producao.isEmpty()) {
-				throw new IllegalArgumentException(
-						"Produção não pode ser vazia");
+				throw new IllegalArgumentException("Produção não pode ser vazia");
 			}
 
 			String[] parts = producao.split(" ");
@@ -288,7 +267,7 @@ public class GLC implements Serializable {
 	/**
 	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
 	 * direta
-	 * 
+	 *
 	 * @return ArrayList<String>
 	 */
 	public ArrayList<String> getRecursaoEsquerdaDireta() {
@@ -303,6 +282,7 @@ public class GLC implements Serializable {
 
 	/**
 	 * Verifica se a producao possui recursao esquerda direta
+	 * 
 	 * @param producao
 	 * @return
 	 */
@@ -318,7 +298,7 @@ public class GLC implements Serializable {
 	/**
 	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
 	 * indireta
-	 * 
+	 *
 	 * @return
 	 * @throws Exception
 	 */
