@@ -114,6 +114,20 @@ public class GLCTest {
 	}
 
 	@Test
+	public void getNaoTerminais() throws Exception {
+		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
+		assertTrue(glc.getNaoTerminais().containsAll(Arrays.asList("E", "E'", "T", "T'", "F")));
+		assertEquals(5, glc.getNaoTerminais().size());
+	}
+
+	@Test
+	public void getTerminais() throws Exception {
+		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
+		assertTrue(glc.getTerminais().containsAll(Arrays.asList("+", "*", "(", ")", "id")));
+		assertEquals(5, glc.getTerminais().size());
+	}
+
+	@Test
 	public void getFirstSet() throws Exception {
 		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
 		assertEquals("{F=[id, (], T=[id, (], E=[id, (], E'=[&, +], T'=[&, *]}", glc.getFirstSet().toString());

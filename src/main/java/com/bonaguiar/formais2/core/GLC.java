@@ -30,6 +30,16 @@ public class GLC implements Serializable {
 	protected String simboloInicial;
 
 	/**
+	 * Salva os símbolos não terminais da gramática
+	 */
+	protected Set<String> naoTerminais = new HashSet<String>();
+
+	/**
+	 * Salva os símbolos terminais da gramática
+	 */
+	protected Set<String> terminais = new HashSet<String>();
+
+	/**
 	 * A String com o conjunto de produções original que deu origem a esta
 	 * gramática
 	 */
@@ -153,6 +163,40 @@ public class GLC implements Serializable {
 		}
 
 		return lista;
+	}
+
+	/**
+	 * Retorna o conjunto de símbolos não terminais da gramática
+	 *
+	 * @return
+	 */
+	public Set<String> getNaoTerminais() {
+		if (this.naoTerminais.isEmpty()) {
+			this.naoTerminais.addAll(this.producoes.keySet());
+		}
+
+		return this.naoTerminais;
+	}
+
+	/**
+	 * Retorna o conjunto de símbolos terminais da gramática
+	 * 
+	 * @return
+	 */
+	public Set<String> getTerminais() {
+		if (this.terminais.isEmpty()) {
+			for (FormaSentencial producao : this.getListaProducoes()) {
+				for (String simbolo : producao) {
+					if (GrammarUtils.ehTerminal(simbolo)) {
+						this.terminais.add(simbolo);
+					}
+				}
+			}
+			// Remove o epsilon
+			this.terminais.remove(GrammarUtils.EPSILON.toString());
+		}
+
+		return this.terminais;
 	}
 
 	// ===================================================================================================
