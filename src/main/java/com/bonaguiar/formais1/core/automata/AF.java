@@ -515,22 +515,28 @@ public class AF {
 		int lastPos = 0; // Posição de início do último possível match
 		int tamanho = 0; // Tamanho atual do possível match
 
-		for (int i = 0; i < text.length(); i++) {
+		for (int i = 0; i < text.length(); ) {
 			
 			List<String> destinos = null;
 			try {
 				char a = text.charAt(i);
 				destinos = this.transicao(estadoAtual, text.charAt(i));
 			} catch (FormaisException e) {
-				lastPos = i + 1;
+				lastPos = i;
 				tamanho = 0;
+				if (estadoAtual == this.getEstadoInicial()) {
+					lastPos = ++i;
+				}
 				estadoAtual = this.getEstadoInicial();
 				continue;
 			}
 
 			if (destinos.isEmpty()) {
-				lastPos = i + 1;
+				lastPos = i;
 				tamanho = 0;
+				if (estadoAtual == this.getEstadoInicial()) {
+					lastPos = ++i;
+				}
 				estadoAtual = this.getEstadoInicial();
 				continue;
 			} else {
@@ -544,8 +550,15 @@ public class AF {
 			for (String string : destinos) {
 				System.out.println(string);
 			}
+			i++;
 		}
 
 		return hash;
+	}
+	
+	public void testeBusca(String texto){
+		for (Character character : alfabeto) {
+			
+		}
 	}
 }

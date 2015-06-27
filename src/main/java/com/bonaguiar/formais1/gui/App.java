@@ -165,14 +165,14 @@ public class App extends JFrame {
 			adicionaNaListaER(nomeExpReg, er);
 
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(null, e.getMessage() != null? e.getMessage(): "\nTente novamente.");
+			JOptionPane.showMessageDialog(frame, e.getMessage() != null? e.getMessage(): "\nTente novamente.");
 		}
 	}
 
 	private void editarGramatica(String chave) {
 		String gramatica;
 		JTextArea area = new JTextArea(gramHash.get(chave).getGramaticaPura(), 20, 15);
-		int botaoOk = JOptionPane.showConfirmDialog(null, new JScrollPane(area), "Gramática", JOptionPane.OK_CANCEL_OPTION);
+		int botaoOk = JOptionPane.showConfirmDialog(frame, new JScrollPane(area), "Gramática", JOptionPane.OK_CANCEL_OPTION);
 
 		if (botaoOk == JOptionPane.OK_OPTION) {
 			gramatica = area.getText();
@@ -308,7 +308,7 @@ public class App extends JFrame {
 		btnExcluirGramtica.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (!modeloGR.isEmpty() && !grSelecionado.isEmpty()) {
-					int opcao = JOptionPane.showConfirmDialog(null, "Confirmar exclusão de " + grSelecionado, null, JOptionPane.YES_NO_OPTION);
+					int opcao = JOptionPane.showConfirmDialog(frame, "Confirmar exclusão de " + grSelecionado, null, JOptionPane.YES_NO_OPTION);
 					if (JOptionPane.YES_OPTION == opcao) {
 						removeDaListaGR(grSelecionado);
 					}
@@ -330,7 +330,7 @@ public class App extends JFrame {
 		btnExcluirEr.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (!modeloER.isEmpty() && !erSelecionado.isEmpty()) {
-					int opcao = JOptionPane.showConfirmDialog(null, "Confirmar exclusão de " + erSelecionado, null, JOptionPane.YES_NO_OPTION);
+					int opcao = JOptionPane.showConfirmDialog(frame, "Confirmar exclusão de " + erSelecionado, null, JOptionPane.YES_NO_OPTION);
 					if (JOptionPane.YES_OPTION == opcao) {
 						removeDaListaER(erSelecionado);
 					}
@@ -417,7 +417,7 @@ public class App extends JFrame {
 		JMenuItem mntmAbrirGramticas = new JMenuItem("Abrir Gramáticas");
 		mntmAbrirGramticas.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int opcao = JOptionPane.showConfirmDialog(null, "Esta ação irá apagar dados não salvos.\nDeseja continuar?", null, JOptionPane.YES_NO_OPTION);
+				int opcao = JOptionPane.showConfirmDialog(frame, "Esta ação irá apagar dados não salvos.\nDeseja continuar?", null, JOptionPane.YES_NO_OPTION);
 				if (JOptionPane.YES_OPTION == opcao) {
 					GRBase rgbBase = new GRBase();
 					gramHash = rgbBase.get();
@@ -433,7 +433,7 @@ public class App extends JFrame {
 		JMenuItem mntmAbrirExpresses = new JMenuItem("Abrir Expressões");
 		mntmAbrirExpresses.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int opcao = JOptionPane.showConfirmDialog(null, "Esta ação irá apagar dados não salvos.\nDeseja continuar?", null, JOptionPane.YES_NO_OPTION);
+				int opcao = JOptionPane.showConfirmDialog(frame, "Esta ação irá apagar dados não salvos.\nDeseja continuar?", null, JOptionPane.YES_NO_OPTION);
 				if (JOptionPane.YES_OPTION == opcao) {
 					ERBase erBase = new ERBase();
 					expRegHash = erBase.get();

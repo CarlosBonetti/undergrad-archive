@@ -525,7 +525,15 @@ public class AFTest {
 	public void testarTextMatch() throws FormaisException {
 		AFD af = (new ExprRegular("(abc)*")).getAFD();
 		HashMap<Integer, Integer> hash = af.textSearch("aabc abcabc_abc");
-		// assertEquals("", hash);
+		 
+		assertTrue(hash.containsKey(1));
+		assertTrue(hash.containsValue(3));
+		
+		assertTrue(hash.containsKey(5));
+		assertTrue(hash.containsValue(6));
+
+		assertTrue(hash.containsKey(12));
+		assertTrue(hash.containsValue(3));
 
 		hash = af.textSearch("O albabeto abcabc começa com os 3 caracteres abc... e depois do abc é seguido por def...");
 		assertTrue(hash.containsKey(11));

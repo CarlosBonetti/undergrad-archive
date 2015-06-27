@@ -176,7 +176,7 @@ public class ViewAF extends JFrame {
 			public void mouseClicked(MouseEvent event) {
 				System.out.println("Busca");
 				JTextArea area = new JTextArea("", 20, 15);
-				int botaoOk = JOptionPane.showConfirmDialog(null, new JScrollPane(area), "Busca por padrões", JOptionPane.OK_CANCEL_OPTION);
+				int botaoOk = JOptionPane.showConfirmDialog(frame, new JScrollPane(area), "Busca por padrões", JOptionPane.OK_CANCEL_OPTION);
 				if (botaoOk == JOptionPane.OK_OPTION) {
 					try {
 						HashMap<Integer, Integer> a = ViewAF.this.af.textSearch(area.getText());
@@ -186,9 +186,9 @@ public class ViewAF extends JFrame {
 							padroes += area.getText().substring(chave, chave+a.get(chave)) + "\n";
 						}
 						if (padroes.trim().isEmpty()) {
-							JOptionPane.showConfirmDialog(null, "Nenhum padrao encontrado", "Busca", JOptionPane.CLOSED_OPTION);							
+							JOptionPane.showConfirmDialog(frame, "Nenhum padrao encontrado", "Busca", JOptionPane.CLOSED_OPTION);							
 						} else {
-							JOptionPane.showConfirmDialog(null, a.size() + " matches\n"+ padroes, "Busca", JOptionPane.CLOSED_OPTION);
+							JOptionPane.showConfirmDialog(frame, a.size() + " matches\n"+ padroes, "Busca", JOptionPane.CLOSED_OPTION);
 						}
 								
 					} catch (FormaisException e) {
