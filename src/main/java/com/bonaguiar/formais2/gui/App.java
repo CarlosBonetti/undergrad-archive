@@ -119,7 +119,7 @@ public class App extends JFrame {
 
 	private void editarGramatica(String chave) {
 		String gramatica;
-		JTextArea area = new JTextArea(gramHash.get(chave).getTodaGramatica(),
+		JTextArea area = new JTextArea(gramHash.get(chave).getRaw(),
 				20, 15);
 		int botaoOk = JOptionPane.showConfirmDialog(null,
 				new JScrollPane(area), "Gramática",

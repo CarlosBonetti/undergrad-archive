@@ -3,6 +3,8 @@ package com.bonaguiar.formais2.core;
 public class GrammarUtils {
 	public static final Character EPSILON = '&';
 
+	public static final Character END_OF_SENTENCE = '$';
+
 	/**
 	 * Checa se o símbolo é um terminal, segundo a convenção adotada para este projeto
 	 *

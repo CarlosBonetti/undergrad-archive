@@ -30,6 +30,16 @@ public class GLC implements Serializable {
 	protected String simboloInicial;
 
 	/**
+	 * Salva os símbolos não terminais da gramática
+	 */
+	protected Set<String> naoTerminais = new HashSet<String>();
+
+	/**
+	 * Salva os símbolos terminais da gramática
+	 */
+	protected Set<String> terminais = new HashSet<String>();
+
+	/**
 	 * A String com o conjunto de produções original que deu origem a esta
 	 * gramática
 	 */
@@ -46,6 +56,11 @@ public class GLC implements Serializable {
 	 * Guarda o conjunto follow dos símbolos não terminais desta gramática
 	 */
 	protected Map<String, Set<String>> followSet = new LinkedHashMap<String, Set<String>>();
+
+	/**
+	 * Guarda uma lista com cópias das produções da gramática com índices correspondentes
+	 */
+	protected ArrayList<FormaSentencial> lista = new ArrayList<FormaSentencial>();
 
 	/**
 	 * Cria uma nova Gramática Livre de Contexto baseada no conjunto de
@@ -89,11 +104,7 @@ public class GLC implements Serializable {
 		String[] parts = line.split("->");
 
 		if (parts.length != 2) {
-			throw new ParseException(
-					"Produção mal formada: "
-							+ line
-							+ ". Produções devem seguir o padrao 'E -> E + T | .. | id'",
-					0);
+			throw new ParseException("Produção mal formada: " + line + ". Produções devem seguir o padrao 'E -> E + T | .. | id'", 0);
 		}
 
 		String produtor = parts[0].trim();
@@ -139,27 +150,61 @@ public class GLC implements Serializable {
 		lista.add(formaSentencial);
 	}
 
-	public String getTodaGramatica() {
-		String gramatica = "";
-		for (String chave : producoes.keySet()) {
-			gramatica += chave + " -> ";
-			for (FormaSentencial forma : producoes.get(chave)) {
-				for (String producao : forma) {
-					gramatica += producao + " ";
-				}
-				gramatica += "| ";
+	/**
+	 * Retorna um lista ordenada com as produções da gramática, de forma que cada produção possui um índice correspondente
+	 *
+	 * @return
+	 */
+	public List<FormaSentencial> getListaProducoes() {
+		if (this.lista.isEmpty()) {
+			for (String produtor : this.producoes.keySet()) {
+				lista.addAll(this.producoes.get(produtor));
 			}
-			gramatica = gramatica.substring(0, gramatica.length() - 2) + "\n";
 		}
-		return gramatica;
+
+		return lista;
+	}
+
+	/**
+	 * Retorna o conjunto de símbolos não terminais da gramática
+	 *
+	 * @return
+	 */
+	public Set<String> getNaoTerminais() {
+		if (this.naoTerminais.isEmpty()) {
+			this.naoTerminais.addAll(this.producoes.keySet());
+		}
+
+		return this.naoTerminais;
+	}
+
+	/**
+	 * Retorna o conjunto de símbolos terminais da gramática
+	 * 
+	 * @return
+	 */
+	public Set<String> getTerminais() {
+		if (this.terminais.isEmpty()) {
+			for (FormaSentencial producao : this.getListaProducoes()) {
+				for (String simbolo : producao) {
+					if (GrammarUtils.ehTerminal(simbolo)) {
+						this.terminais.add(simbolo);
+					}
+				}
+			}
+			// Remove o epsilon
+			this.terminais.remove(GrammarUtils.EPSILON.toString());
+		}
+
+		return this.terminais;
 	}
 
 	// ===================================================================================================
 	// First
 
 	/**
-	 * Retorna um hash com todos os conjuntos 'first' da gramática O hash
-	 * retornado possui os símbolos não terminais da gramática como chave e um
+	 * Retorna um hash com todos os conjuntos 'first' da gramática
+	 * O hash retornado possui os símbolos não terminais da gramática como chave e um
 	 * conjunto de símbolos first associados a este não terminal
 	 *
 	 * @return
@@ -215,8 +260,7 @@ public class GLC implements Serializable {
 				set.addAll(this.firstSet.get(simbolo));
 			} else {
 				// Calcula o first de cada produção
-				for (FormaSentencial formaSentencial : this.producoes
-						.get(simbolo)) {
+				for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
 					set.addAll(first(formaSentencial));
 				}
 
@@ -232,17 +276,87 @@ public class GLC implements Serializable {
 	// ===================================================================================================
 	// Follow
 
+	/**
+	 * Retorna um hash com os conjuntos follow de cada não terminal da gramática
+	 *
+	 * @return
+	 */
 	public Map<String, Set<String>> getFollowSet() {
-		// TODO
+		// Só calculamos o follow na primeira chamada
+		if (this.followSet.isEmpty()) {
+
+			// 1 – Se A é o símbolo inicial da gramática
+			// $ ∈ Follow(A)
+			for (String naoTerminal : this.producoes.keySet()) {
+				this.followSet.put(naoTerminal, new HashSet<String>());
+
+				if (this.getSimboloInicial().equals(naoTerminal)) {
+					this.followSet.get(naoTerminal).add(GrammarUtils.END_OF_SENTENCE.toString());
+				}
+			}
+
+			// 2 – Se A -> αBβ ∈ P ∧ β ≠ ε
+			// adicione first(β) em Follow(B)
+			for (FormaSentencial producao : this.getListaProducoes()) {
+				for (int i = producao.size() - 2; i >= 0; i--) {
+					String B = producao.get(i);
+					if (!GrammarUtils.ehNaoTerminal(B)) {
+						continue;
+					}
+
+					FormaSentencial Beta = new FormaSentencial();
+					Beta.addAll(producao.subList(i + 1, producao.size()));
+					Set<String> firstBeta = first(Beta);
+					firstBeta.remove(GrammarUtils.EPSILON.toString());
+					this.followSet.get(B).addAll(firstBeta);
+				}
+			}
+
+			// 3 – Se A -> αB (ou A -> αBβ, onde ε ∈ First(β)) ∈ P
+			// -> adicione Follow(A) em Follow(B)
+			boolean modificado = true;
+			while (modificado) {
+				modificado = false;
+				for (String produtor : this.producoes.keySet()) {
+					for (FormaSentencial producao : this.producoes.get(produtor)) {
+						for (int i = producao.size() - 1; i >= 0; i--) {
+							String B = producao.get(i);
+							if (!GrammarUtils.ehNaoTerminal(B)) {
+								continue;
+							}
+							FormaSentencial Beta = new FormaSentencial();
+							Beta.addAll(producao.subList(i + 1, producao.size()));
+							Set<String> firstBeta = first(Beta);
+
+							if (firstBeta.contains(GrammarUtils.EPSILON.toString()) || firstBeta.isEmpty()) {
+								modificado = this.followSet.get(B).addAll(this.followSet.get(produtor)) || modificado;
+							}
+						}
+					}
+				}
+			}
+		}
+
 		return this.followSet;
 	}
 
-	// ===================================================================================================
 	/**
-	 * Forma sentencial de uma gramática livre de contexto Representa o lado
-	 * direito de uma produção. Exemplo: em 'S -> a B C | abc Ce Fe', existem
-	 * dois objetos FormaSentencial, 'a B C' e 'abc Ce Fe' com três partes cada
-	 * um (um terminal e dois não terminais)
+	 * Retorna o conjunto follow do não terminal parâmetro
+	 *
+	 * @param simbolo
+	 * @return
+	 */
+	protected Set<String> follow(String simbolo) {
+		return this.followSet.get(simbolo);
+	}
+
+	// ===================================================================================================
+
+	/**
+	 * Forma sentencial de uma gramática livre de contexto
+	 * Representa o lado direito de uma produção.
+	 * Exemplo: em 'S -> a B C | abc Ce Fe', existem dois objetos FormaSentencial, 'a B C' e 'abc Ce Fe' com três partes
+	 * cada um (um terminal e dois não terminais)
 	 */
 	public static class FormaSentencial extends ArrayList<String> {
 		private static final long serialVersionUID = -2032770137692974596L;
@@ -256,14 +370,16 @@ public class GLC implements Serializable {
 		 */
 		public FormaSentencial(String producao) {
 			if (producao.isEmpty()) {
-				throw new IllegalArgumentException(
-						"Produção não pode ser vazia");
+				throw new IllegalArgumentException("Produção não pode ser vazia");
 			}
 
 			String[] parts = producao.split(" ");
 			for (String part : parts) {
 				this.add(part);
 			}
+		}
+
+		public FormaSentencial() {
 		}
 
 		@Override
@@ -288,7 +404,7 @@ public class GLC implements Serializable {
 	/**
 	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
 	 * direta
-	 * 
+	 *
 	 * @return ArrayList<String>
 	 */
 	public ArrayList<String> getRecursaoEsquerdaDireta() {
@@ -303,6 +419,7 @@ public class GLC implements Serializable {
 
 	/**
 	 * Verifica se a producao possui recursao esquerda direta
+	 *
 	 * @param producao
 	 * @return
 	 */
@@ -318,7 +435,7 @@ public class GLC implements Serializable {
 	/**
 	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
 	 * indireta
-	 * 
+	 *
 	 * @return
 	 * @throws Exception
 	 */
