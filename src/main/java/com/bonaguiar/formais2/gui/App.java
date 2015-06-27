@@ -29,6 +29,11 @@ import lombok.Getter;
 
 import com.bonaguiar.formais2.core.GLC;
 import com.bonaguiar.formais2.persistence.GLCBase;
+import java.awt.CardLayout;
+import javax.swing.JPanel;
+import javax.swing.event.AncestorListener;
+import javax.swing.event.AncestorEvent;
+import java.awt.BorderLayout;
 
 public class App extends JFrame {
 	@Getter
@@ -37,6 +42,8 @@ public class App extends JFrame {
 	private JList<String> listagemGlc;
 	private String glcSelecionado = "";
 	private GLCBase GLCBase = new GLCBase();
+	private JPanel painelSecundario = new JPanel();
+	private JPanel principal = new JPanel();
 
 	private void setGlcSelecionado(String selecao) {
 		glcSelecionado = selecao;
@@ -48,7 +55,9 @@ public class App extends JFrame {
 
 	private void tratarException(Exception e) {
 		e.printStackTrace();
-		JOptionPane.showMessageDialog(this, e.getMessage() != null | e.getMessage().isEmpty() ? e.getMessage(): "\nTente novamente.");
+		JOptionPane.showMessageDialog(this, e.getMessage() != null
+				| e.getMessage().isEmpty() ? e.getMessage()
+				: "\nTente novamente.");
 	}
 
 	private void persistGlc() {
@@ -80,26 +89,33 @@ public class App extends JFrame {
 	private void adicionarGramatica() {
 		String gramatica;
 		JTextArea area = new JTextArea("", 20, 15);
-		int botaoOk = JOptionPane.showConfirmDialog(this, new JScrollPane(area), "Gramática", JOptionPane.OK_CANCEL_OPTION);
+		int botaoOk = JOptionPane.showConfirmDialog(this,
+				new JScrollPane(area), "Gramática",
+				JOptionPane.OK_CANCEL_OPTION);
 
 		if (botaoOk == JOptionPane.OK_OPTION) {
 			gramatica = area.getText();
 			System.out.println(gramatica);
 
 			if (gramatica.trim().isEmpty()) {
-				JOptionPane.showMessageDialog(this, "Campo texto não pode estar vazio.\nTente novamente.");
+				JOptionPane.showMessageDialog(this,
+						"Campo texto não pode estar vazio.\nTente novamente.");
 			} else {
 				try {
 					GLC glc = new GLC(gramatica);
 
-					String nomeGram = JOptionPane.showInputDialog("Digite um nome para a gramática:");
+					String nomeGram = JOptionPane
+							.showInputDialog(this, "Digite um nome para a gramática:");
 					while (nomeGram.trim().isEmpty() | ehChaveGlcNova(nomeGram)) {
-						nomeGram = JOptionPane.showInputDialog("Campo obrigatório e único.!\nDigite um nome para a gramática:");
+						nomeGram = JOptionPane
+								.showInputDialog("Campo obrigatório e único.!\nDigite um nome para a gramática:");
 					}
 					adicionaNaListaGR(nomeGram, glc);
 
 				} catch (Exception e) {
-					JOptionPane.showMessageDialog(this, e.getMessage() != null? e.getMessage(): "\nTente novamente.");
+					JOptionPane.showMessageDialog(this,
+							e.getMessage() != null ? e.getMessage()
+									: "\nTente novamente.");
 				}
 			}
 		}
@@ -107,15 +123,19 @@ public class App extends JFrame {
 
 	private void editarGramatica(String chave) {
 		String gramatica;
-		JTextArea area = new JTextArea(gramHash.get(chave).getTodaGramatica(), 20, 15);
-		int botaoOk = JOptionPane.showConfirmDialog(null, new JScrollPane(area), "Gramática", JOptionPane.OK_CANCEL_OPTION);
+		JTextArea area = new JTextArea(gramHash.get(chave).getTodaGramatica(),
+				20, 15);
+		int botaoOk = JOptionPane.showConfirmDialog(null,
+				new JScrollPane(area), "Gramática",
+				JOptionPane.OK_CANCEL_OPTION);
 
 		if (botaoOk == JOptionPane.OK_OPTION) {
 			gramatica = area.getText();
 
 			if (gramatica.trim().isEmpty()) {
-				JOptionPane pane = new JOptionPane("Campo texto não pode estar vazio.\nTente novamente.");
-				JDialog d =	pane.createDialog((JFrame)null, "Comparação")	;
+				JOptionPane pane = new JOptionPane(
+						"Campo texto não pode estar vazio.\nTente novamente.");
+				JDialog d = pane.createDialog((JFrame) null, "Comparação");
 				d.setLocation(getLocation());
 				d.setVisible(true);
 			} else {
@@ -156,14 +176,10 @@ public class App extends JFrame {
 
 		setTitle("Programa Tela Inicial");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 326, 512);
+		setBounds(100, 100, 326, 546);
+		getContentPane().setLayout(new CardLayout(0, 0));
 
-		JButton btAddGramatica = new JButton("Nova Gramática");
-		btAddGramatica.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				adicionarGramatica();
-			}
-		});
+		getContentPane().add(principal, "name_24394437385808");
 
 		listagemGlc = new JList<String>(modeloGLC);
 		listagemGlc.addMouseListener(new MouseAdapter() {
@@ -173,13 +189,8 @@ public class App extends JFrame {
 				String valorSelecao = list.getSelectedValue().toString();
 				setGlcSelecionado(valorSelecao);
 				if (e.getClickCount() == 2) {
-//					try {
-//						ViewAF view = new ViewAF(gramHash.get(valorSelecao).getAutomatoFinito(), frame);
-//						view.setVisible(true);
-//						view.setTitle(valorSelecao);
-//					} catch (FormaisException e1) {
-//						e1.printStackTrace();
-//					}
+					setContentPane(painelSecundario);
+					painelSecundario.setVisible(true);
 				}
 			}
 		});
@@ -187,68 +198,154 @@ public class App extends JFrame {
 
 		JLabel lblGramar = new JLabel("Gramáticas:");
 
+		JButton btAddGramatica = new JButton("Nova Gramática");
+
 		JButton btnEditarGramtica = new JButton("Editar Gramática");
+
+		JButton btnExcluirGramtica = new JButton("Excluir Gramática");
+
+		GroupLayout gl_principal = new GroupLayout(principal);
+		gl_principal
+				.setHorizontalGroup(gl_principal
+						.createParallelGroup(Alignment.LEADING)
+						.addGroup(
+								gl_principal
+										.createSequentialGroup()
+										.addGap(66)
+										.addGroup(
+												gl_principal
+														.createParallelGroup(
+																Alignment.LEADING)
+														.addGroup(
+																gl_principal
+																		.createSequentialGroup()
+																		.addGap(20)
+																		.addGroup(
+																				gl_principal
+																						.createParallelGroup(
+																								Alignment.LEADING,
+																								false)
+																						.addComponent(
+																								btAddGramatica,
+																								Alignment.TRAILING,
+																								GroupLayout.DEFAULT_SIZE,
+																								GroupLayout.DEFAULT_SIZE,
+																								Short.MAX_VALUE)
+																						.addComponent(
+																								btnEditarGramtica,
+																								GroupLayout.DEFAULT_SIZE,
+																								GroupLayout.DEFAULT_SIZE,
+																								Short.MAX_VALUE)
+																						.addGroup(
+																								gl_principal
+																										.createSequentialGroup()
+																										.addGap(12)
+																										.addComponent(
+																												lblGramar))
+																						.addComponent(
+																								btnExcluirGramtica,
+																								Alignment.TRAILING)))
+														.addComponent(
+																listagemGlc,
+																GroupLayout.PREFERRED_SIZE,
+																190,
+																GroupLayout.PREFERRED_SIZE))
+										.addContainerGap(70, Short.MAX_VALUE)));
+		gl_principal.setVerticalGroup(gl_principal.createParallelGroup(
+				Alignment.LEADING).addGroup(
+				gl_principal
+						.createSequentialGroup()
+						.addGap(40)
+						.addComponent(btAddGramatica)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(btnEditarGramtica)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(btnExcluirGramtica)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(lblGramar)
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addComponent(listagemGlc, GroupLayout.PREFERRED_SIZE,
+								255, GroupLayout.PREFERRED_SIZE)
+						.addContainerGap(98, Short.MAX_VALUE)));
+		principal.setLayout(gl_principal);
+
+		getContentPane().add(painelSecundario, "name_24616259299173");
+
+		JButton btnRecEsq = new JButton("Possui R.E. ?");
+		btnRecEsq.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (!gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta().isEmpty()) {
+					String simbolos = "";
+					for (String s : gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta()) {
+						simbolos += s + "\n";
+					}
+					JOptionPane.showMessageDialog( frame, "Grammar possui R.E. direta\n" + simbolos);
+				}
+				else {
+					JOptionPane.showMessageDialog( frame, "Grammar NÂO possui R.E direta");
+				}
+			}
+		});
+		JButton btnVoltar = new JButton("Voltar");
+		btnVoltar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				setContentPane(principal);
+			}
+		});
+		GroupLayout gl_painelSecundario = new GroupLayout(painelSecundario);
+		gl_painelSecundario.setHorizontalGroup(gl_painelSecundario
+				.createParallelGroup(Alignment.LEADING)
+				.addGroup(
+						gl_painelSecundario
+								.createSequentialGroup()
+								.addGap(45)
+								.addComponent(btnVoltar,
+										GroupLayout.DEFAULT_SIZE,
+										GroupLayout.DEFAULT_SIZE,
+										Short.MAX_VALUE).addGap(53))
+				.addGroup(
+						gl_painelSecundario.createSequentialGroup().addGap(91)
+								.addComponent(btnRecEsq)
+								.addContainerGap(112, Short.MAX_VALUE)));
+		gl_painelSecundario.setVerticalGroup(gl_painelSecundario
+				.createParallelGroup(Alignment.LEADING).addGroup(
+						Alignment.TRAILING,
+						gl_painelSecundario
+								.createSequentialGroup()
+								.addGap(33)
+								.addComponent(btnRecEsq)
+								.addPreferredGap(ComponentPlacement.RELATED,
+										393, Short.MAX_VALUE)
+								.addComponent(btnVoltar).addGap(21)));
+		painelSecundario.setLayout(gl_painelSecundario);
+
+		btnExcluirGramtica.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (!modeloGLC.isEmpty() && !glcSelecionado.isEmpty()) {
+					int opcao = JOptionPane.showConfirmDialog(frame,
+							"Confirmar exclusão de " + glcSelecionado, null,
+							JOptionPane.YES_NO_OPTION);
+					if (JOptionPane.YES_OPTION == opcao) {
+						removeDaLista(glcSelecionado);
+					}
+				}
+
+			}
+		});
 		btnEditarGramtica.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					editarGramatica(glcSelecionado);
 				} catch (Exception e2) {
 				}
-				
+
 			}
 		});
-
-		JButton btnExcluirGramtica = new JButton("Excluir Gramática");
-		btnExcluirGramtica.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (!modeloGLC.isEmpty() && !glcSelecionado.isEmpty()) {
-					int opcao = JOptionPane.showConfirmDialog(null, "Confirmar exclusão de " + glcSelecionado, null, JOptionPane.YES_NO_OPTION);
-					if (JOptionPane.YES_OPTION == opcao) {
-						removeDaLista(glcSelecionado);
-					}
-				}
+		btAddGramatica.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				adicionarGramatica();
 			}
 		});
-
-
-		GroupLayout groupLayout = new GroupLayout(getContentPane());
-		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.TRAILING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addGroup(groupLayout.createSequentialGroup()
-							.addGap(49)
-							.addComponent(listagemGlc, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE))
-						.addGroup(groupLayout.createSequentialGroup()
-							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-								.addGroup(groupLayout.createSequentialGroup()
-									.addGap(110)
-									.addComponent(lblGramar, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE))
-								.addGroup(groupLayout.createSequentialGroup()
-									.addGap(98)
-									.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-										.addComponent(btAddGramatica, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-										.addComponent(btnEditarGramtica, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-										.addComponent(btnExcluirGramtica))))
-							.addPreferredGap(ComponentPlacement.RELATED)))
-					.addContainerGap(333, Short.MAX_VALUE))
-		);
-		groupLayout.setVerticalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(24)
-					.addComponent(btAddGramatica)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnEditarGramtica)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnExcluirGramtica)
-					.addGap(23)
-					.addComponent(lblGramar)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(listagemGlc, GroupLayout.PREFERRED_SIZE, 272, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(30, Short.MAX_VALUE))
-		);
-		getContentPane().setLayout(groupLayout);
 
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -271,7 +368,11 @@ public class App extends JFrame {
 		JMenuItem mntmAbrirGramticas = new JMenuItem("Abrir Gramáticas");
 		mntmAbrirGramticas.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int opcao = JOptionPane.showConfirmDialog(null, "Esta ação irá apagar dados não salvos.\nDeseja continuar?", null, JOptionPane.YES_NO_OPTION);
+				int opcao = JOptionPane
+						.showConfirmDialog(
+								null,
+								"Esta ação irá apagar dados não salvos.\nDeseja continuar?",
+								null, JOptionPane.YES_NO_OPTION);
 				if (JOptionPane.YES_OPTION == opcao) {
 					GLCBase glcBase = new GLCBase();
 					gramHash = glcBase.get();
@@ -292,21 +393,21 @@ public class App extends JFrame {
 			}
 		});
 		menuArquivo.add(mntmSair);
-		
-	//	JMenuItem mntmTeste = new JMenuItem("teste");
-//		mntmTeste.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent e) {
-//				JOptionPane pane = new JOptionPane("Busca por padrões:");
-//				pane.add(new JEditorPane());
-//				
-//				pane.add(new JTextField());
-//				JDialog d =	pane.createDialog(null, "Comparação")	;
-//				d.setLocation(getLocation());
-//				d.setBounds(getBounds());
-//				d.setVisible(true);
-//			}
-//		});
-//		menuBar.add(mntmTeste);
+
+		// JMenuItem mntmTeste = new JMenuItem("teste");
+		// mntmTeste.addActionListener(new ActionListener() {
+		// public void actionPerformed(ActionEvent e) {
+		// JOptionPane pane = new JOptionPane("Busca por padrões:");
+		// pane.add(new JEditorPane());
+		//
+		// pane.add(new JTextField());
+		// JDialog d = pane.createDialog(null, "Comparação") ;
+		// d.setLocation(getLocation());
+		// d.setBounds(getBounds());
+		// d.setVisible(true);
+		// }
+		// });
+		// menuBar.add(mntmTeste);
 	}
 
 	private void loadPersistence() {

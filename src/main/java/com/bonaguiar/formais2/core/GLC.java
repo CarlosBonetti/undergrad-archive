@@ -30,14 +30,15 @@ public class GLC implements Serializable {
 	protected String simboloInicial;
 
 	/**
-	 * A String com o conjunto de produções original que deu origem a esta gramática
+	 * A String com o conjunto de produções original que deu origem a esta
+	 * gramática
 	 */
 	@Getter
 	protected String raw;
 
 	/**
-	 * Guarda o conjunto first dos símbolos não terminais desta gramática
-	 * em um hash do tipo 'símbolo não terminal => conjunto first'
+	 * Guarda o conjunto first dos símbolos não terminais desta gramática em um
+	 * hash do tipo 'símbolo não terminal => conjunto first'
 	 */
 	protected Map<String, Set<String>> firstSet = new LinkedHashMap<String, Set<String>>();
 
@@ -47,14 +48,12 @@ public class GLC implements Serializable {
 	protected Map<String, Set<String>> followSet = new LinkedHashMap<String, Set<String>>();
 
 	/**
-	 * Cria uma nova Gramática Livre de Contexto baseada no conjunto de produções
-	 * A primeira produção fornecida é considerada símbolo inicial
+	 * Cria uma nova Gramática Livre de Contexto baseada no conjunto de
+	 * produções A primeira produção fornecida é considerada símbolo inicial
 	 *
-	 * @param producoes Conjunto de produções. Cada produção deve estar em uma linha. Exemplo:
-	 *            E -> T E1
-	 *            E1 -> + T E1 | &
-	 *            T -> F T1
-	 *            T1 -> * F T1 | &
+	 * @param producoes
+	 *            Conjunto de produções. Cada produção deve estar em uma linha.
+	 *            Exemplo: E -> T E1 E1 -> + T E1 | & T -> F T1 T1 -> * F T1 | &
 	 *            F -> ( E ) | id
 	 * @throws Exception
 	 */
@@ -70,8 +69,9 @@ public class GLC implements Serializable {
 	}
 
 	/**
-	 * Construtor vazio. Usado pelos testes unitários para "ir criando a gramática aos poucos".
-	 * Protegido para não ser usado externamente
+	 * Construtor vazio. Usado pelos testes unitários para
+	 * "ir criando a gramática aos poucos". Protegido para não ser usado
+	 * externamente
 	 */
 	protected GLC() {
 	}
@@ -79,15 +79,21 @@ public class GLC implements Serializable {
 	/**
 	 * Adiciona um novo conjunto de produções à gramática.
 	 *
-	 * @param line Uma linha do conjunto de produções da gramática. Exemplo: 'E -> E + T | E - T | T' irá adicionar três novas
-	 *            produções associadas ao não terminal 'E'
+	 * @param line
+	 *            Uma linha do conjunto de produções da gramática. Exemplo: 'E
+	 *            -> E + T | E - T | T' irá adicionar três novas produções
+	 *            associadas ao não terminal 'E'
 	 * @throws Exception
 	 */
 	protected void addProducoes(String line) throws Exception {
 		String[] parts = line.split("->");
 
 		if (parts.length != 2) {
-			throw new ParseException("Produção mal formada: " + line + ". Produções devem seguir o padrao 'E -> E + T | .. | id'", 0);
+			throw new ParseException(
+					"Produção mal formada: "
+							+ line
+							+ ". Produções devem seguir o padrao 'E -> E + T | .. | id'",
+					0);
 		}
 
 		String produtor = parts[0].trim();
@@ -101,8 +107,11 @@ public class GLC implements Serializable {
 	/**
 	 * Adiciona uma nova produção à gramática
 	 *
-	 * @param produtor Lado esquerdo da produção. 'S' do exemplo: S -> ab A B
-	 * @param producao Produção. Lado direito da produção. 'ab A B' do exemplo anterior
+	 * @param produtor
+	 *            Lado esquerdo da produção. 'S' do exemplo: S -> ab A B
+	 * @param producao
+	 *            Produção. Lado direito da produção. 'ab A B' do exemplo
+	 *            anterior
 	 */
 	protected void addProducao(String produtor, String producao) {
 		this.addProducao(produtor, new FormaSentencial(producao.trim()));
@@ -111,8 +120,11 @@ public class GLC implements Serializable {
 	/**
 	 * Adiciona uma nova produção à gramática
 	 *
-	 * @param produtor Lado esquerdo da produção. 'S' do exemplo: S -> ab A B
-	 * @param formaSentencial Produção. Lado direito da produção. 'ab A B' do exemplo anterior
+	 * @param produtor
+	 *            Lado esquerdo da produção. 'S' do exemplo: S -> ab A B
+	 * @param formaSentencial
+	 *            Produção. Lado direito da produção. 'ab A B' do exemplo
+	 *            anterior
 	 */
 	protected void addProducao(String produtor, FormaSentencial formaSentencial) {
 		List<FormaSentencial> lista;
@@ -127,7 +139,7 @@ public class GLC implements Serializable {
 		lista.add(formaSentencial);
 	}
 
-	public String getTodaGramatica(){
+	public String getTodaGramatica() {
 		String gramatica = "";
 		for (String chave : producoes.keySet()) {
 			gramatica += chave + " -> ";
@@ -137,18 +149,18 @@ public class GLC implements Serializable {
 				}
 				gramatica += "| ";
 			}
-			gramatica = gramatica.substring(0, gramatica.length()-2) + "\n";
+			gramatica = gramatica.substring(0, gramatica.length() - 2) + "\n";
 		}
 		return gramatica;
 	}
-	
+
 	// ===================================================================================================
 	// First
 
 	/**
-	 * Retorna um hash com todos os conjuntos 'first' da gramática
-	 * O hash retornado possui os símbolos não terminais da gramática como chave e um conjunto de símbolos
-	 * first associados a este não terminal
+	 * Retorna um hash com todos os conjuntos 'first' da gramática O hash
+	 * retornado possui os símbolos não terminais da gramática como chave e um
+	 * conjunto de símbolos first associados a este não terminal
 	 *
 	 * @return
 	 */
@@ -198,15 +210,18 @@ public class GLC implements Serializable {
 			set.add(simbolo);
 		} else {
 			if (this.firstSet.containsKey(simbolo)) {
-				// Se for um símbolo não terminal já calculado, simplesmente retorna o conjunto previamente criado
+				// Se for um símbolo não terminal já calculado, simplesmente
+				// retorna o conjunto previamente criado
 				set.addAll(this.firstSet.get(simbolo));
 			} else {
 				// Calcula o first de cada produção
-				for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
+				for (FormaSentencial formaSentencial : this.producoes
+						.get(simbolo)) {
 					set.addAll(first(formaSentencial));
 				}
 
-				// Salva o firstSet recém calculado do terminal para evitar retrabalho
+				// Salva o firstSet recém calculado do terminal para evitar
+				// retrabalho
 				this.firstSet.put(simbolo, set);
 			}
 		}
@@ -222,11 +237,12 @@ public class GLC implements Serializable {
 		return this.followSet;
 	}
 
+	// ===================================================================================================
 	/**
-	 * Forma sentencial de uma gramática livre de contexto
-	 * Representa o lado direito de uma produção.
-	 * Exemplo: em 'S -> a B C | abc Ce Fe', existem dois objetos FormaSentencial, 'a B C' e 'abc Ce Fe' com três partes
-	 * cada um (um terminal e dois não terminais)
+	 * Forma sentencial de uma gramática livre de contexto Representa o lado
+	 * direito de uma produção. Exemplo: em 'S -> a B C | abc Ce Fe', existem
+	 * dois objetos FormaSentencial, 'a B C' e 'abc Ce Fe' com três partes cada
+	 * um (um terminal e dois não terminais)
 	 */
 	public static class FormaSentencial extends ArrayList<String> {
 		private static final long serialVersionUID = -2032770137692974596L;
@@ -234,11 +250,14 @@ public class GLC implements Serializable {
 		/**
 		 * Cria uma nova forma sentencial para gramáticas livres de contexto
 		 *
-		 * @param producao Lado direito de uma produção, com as partes separadas por espaço. Exemplo: 'a T1 T2'
+		 * @param producao
+		 *            Lado direito de uma produção, com as partes separadas por
+		 *            espaço. Exemplo: 'a T1 T2'
 		 */
 		public FormaSentencial(String producao) {
 			if (producao.isEmpty()) {
-				throw new IllegalArgumentException("Produção não pode ser vazia");
+				throw new IllegalArgumentException(
+						"Produção não pode ser vazia");
 			}
 
 			String[] parts = producao.split(" ");
@@ -257,4 +276,54 @@ public class GLC implements Serializable {
 			return builder.toString().trim();
 		}
 	}
+
+	// ===================================================================================================
+
+	/**
+	 * Identificar se a GLC possui recursão a esquerda, qual seu tipo e quais
+	 * ñ-terminais são estes
+	 *
+	 */
+
+	/**
+	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
+	 * direta
+	 * 
+	 * @return ArrayList<String>
+	 */
+	public ArrayList<String> getRecursaoEsquerdaDireta() {
+		ArrayList<String> recEsqDireta = new ArrayList<String>();
+		for (String chave : producoes.keySet()) {
+			if (temRecursaoEsquerdaDireta(chave)) {
+				recEsqDireta.add(chave);
+			}
+		}
+		return recEsqDireta;
+	}
+
+	/**
+	 * Verifica se a producao possui recursao esquerda direta
+	 * @param producao
+	 * @return
+	 */
+	public boolean temRecursaoEsquerdaDireta(String producao) {
+		for (FormaSentencial forma : producoes.get(producao)) {
+			if (producao.equals(forma.get(0))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
+	 * indireta
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public void getRecursaoEsquerdaIndireta() throws Exception {
+		// TODO
+	}
+
 }
