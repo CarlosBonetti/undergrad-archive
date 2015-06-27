@@ -127,6 +127,21 @@ public class GLC implements Serializable {
 		lista.add(formaSentencial);
 	}
 
+	public String getTodaGramatica(){
+		String gramatica = "";
+		for (String chave : producoes.keySet()) {
+			gramatica += chave + " -> ";
+			for (FormaSentencial forma : producoes.get(chave)) {
+				for (String producao : forma) {
+					gramatica += producao + " ";
+				}
+				gramatica += "| ";
+			}
+			gramatica = gramatica.substring(0, gramatica.length()-2) + "\n";
+		}
+		return gramatica;
+	}
+	
 	// ===================================================================================================
 	// First
 
