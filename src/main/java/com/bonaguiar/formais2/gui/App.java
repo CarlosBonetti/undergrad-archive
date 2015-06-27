@@ -1,5 +1,6 @@
 package com.bonaguiar.formais2.gui;
 
+import java.awt.CardLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,26 +21,21 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
 
-import lombok.Getter;
-
 import com.bonaguiar.formais2.core.GLC;
 import com.bonaguiar.formais2.persistence.GLCBase;
-import java.awt.CardLayout;
-import javax.swing.JPanel;
-import javax.swing.event.AncestorListener;
-import javax.swing.event.AncestorEvent;
-import java.awt.BorderLayout;
 
 public class App extends JFrame {
-	@Getter
+
+	private static final long serialVersionUID = 1L;
 	private HashMap<String, GLC> gramHash = new HashMap<String, GLC>();
 	private DefaultListModel<String> modeloGLC = new DefaultListModel<String>();
-	private JList<String> listagemGlc;
+	private JList<String> listagemGlc = new JList<String>(modeloGLC);;
 	private String glcSelecionado = "";
 	private GLCBase GLCBase = new GLCBase();
 	private JPanel painelSecundario = new JPanel();
@@ -271,6 +267,10 @@ public class App extends JFrame {
 
 		getContentPane().add(painelSecundario, "name_24616259299173");
 
+		JButton btnIntersec = new JButton("Intersec é vazio ?");
+		JButton btnFatorada = new JButton("Esta fatorada ?");
+		JButton btnFollow = new JButton("Follow ?");
+		JButton btnParser = new JButton("Parser ?");
 		JButton btnFirst = new JButton("First ?");
 		btnFirst.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -320,33 +320,56 @@ public class App extends JFrame {
 			}
 		});
 		GroupLayout gl_painelSecundario = new GroupLayout(painelSecundario);
-		gl_painelSecundario.setHorizontalGroup(gl_painelSecundario
-				.createParallelGroup(Alignment.LEADING)
-				.addGroup(
-						gl_painelSecundario
-								.createSequentialGroup()
-								.addGap(45)
-								.addComponent(btnVoltar,
-										GroupLayout.DEFAULT_SIZE,
-										GroupLayout.DEFAULT_SIZE,
-										Short.MAX_VALUE).addGap(53))
-				.addGroup(
-						gl_painelSecundario.createSequentialGroup().addGap(91)
-								.addComponent(btnRecEsq)
-								.addComponent(btnFirst)
-								.addContainerGap(112, Short.MAX_VALUE)));
-		gl_painelSecundario.setVerticalGroup(gl_painelSecundario
-				.createParallelGroup(Alignment.LEADING).addGroup(
-						Alignment.LEADING,
-						gl_painelSecundario
-								.createSequentialGroup()
-								.addGap(33)
-								.addComponent(btnRecEsq).addPreferredGap(ComponentPlacement.UNRELATED,
-										293, Short.MAX_VALUE)
-								.addComponent(btnFirst)
-								.addPreferredGap(ComponentPlacement.UNRELATED,
-										393, Short.MAX_VALUE)
-								.addComponent(btnVoltar).addGap(21)));
+		gl_painelSecundario.setHorizontalGroup(
+			gl_painelSecundario.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(45)
+					.addComponent(btnVoltar, GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
+					.addGap(53))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(91)
+					.addComponent(btnRecEsq)
+					.addContainerGap(112, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+						.addGap(91)
+						.addComponent(btnFatorada)
+						.addContainerGap(112, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+						.addGap(91)
+						.addComponent(btnIntersec)
+						.addContainerGap(144, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+						.addGap(91)
+						.addComponent(btnFirst)
+						.addContainerGap(160, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+						.addGap(91)
+						.addComponent(btnFollow)
+						.addContainerGap(176, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+						.addGap(91)
+						.addComponent(btnParser)
+						.addContainerGap(192, Short.MAX_VALUE))
+		);
+		gl_painelSecundario.setVerticalGroup(
+			gl_painelSecundario.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(33)
+					.addComponent(btnRecEsq)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnFatorada)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnIntersec)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnFirst)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnFollow)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnParser)
+					.addPreferredGap(ComponentPlacement.UNRELATED, 362, Short.MAX_VALUE)
+					.addComponent(btnVoltar)
+					.addGap(21))
+		);
 		painelSecundario.setLayout(gl_painelSecundario);
 
 		btnExcluirGramtica.addActionListener(new ActionListener() {
@@ -423,21 +446,6 @@ public class App extends JFrame {
 			}
 		});
 		menuArquivo.add(mntmSair);
-
-		// JMenuItem mntmTeste = new JMenuItem("teste");
-		// mntmTeste.addActionListener(new ActionListener() {
-		// public void actionPerformed(ActionEvent e) {
-		// JOptionPane pane = new JOptionPane("Busca por padrões:");
-		// pane.add(new JEditorPane());
-		//
-		// pane.add(new JTextField());
-		// JDialog d = pane.createDialog(null, "Comparação") ;
-		// d.setLocation(getLocation());
-		// d.setBounds(getBounds());
-		// d.setVisible(true);
-		// }
-		// });
-		// menuBar.add(mntmTeste);
 	}
 
 	private void loadPersistence() {
