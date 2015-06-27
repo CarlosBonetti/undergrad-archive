@@ -1,6 +1,7 @@
 package com.bonaguiar.formais2.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
 import java.util.Arrays;
@@ -117,4 +118,19 @@ public class GLCTest {
 		GLC glc3 = new GLC("S -> A B C \n" + "A -> a A | & \n" + "B -> b B | A C d \n" + "C -> c C | &");
 		assertEquals("{A=[&, a], C=[&, c], B=[d, b, c, a], S=[d, b, c, a]}", glc3.getFirstSet().toString());
 	}
+
+	@Test
+	public void testarReqEsquerdaDireta() throws Exception {
+		String text = "E -> E + T | E - T | T\n" + "T -> T * F | T / F | F\n" + "F -> ( E ) | id";
+		GLC glc = new GLC(text);
+		assertTrue(glc.getRecursaoEsquerdaDireta().contains("E"));
+		assertTrue(glc.getRecursaoEsquerdaDireta().contains("T"));
+		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("F"));
+		
+		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
+		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("E"));
+		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("T"));
+		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("F"));
+	}
+	
 }

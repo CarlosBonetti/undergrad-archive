@@ -104,8 +104,8 @@ public class App extends JFrame {
 				try {
 					GLC glc = new GLC(gramatica);
 
-					String nomeGram = JOptionPane
-							.showInputDialog(this, "Digite um nome para a gramática:");
+					String nomeGram = JOptionPane.showInputDialog(this,
+							"Digite um nome para a gramática:");
 					while (nomeGram.trim().isEmpty() | ehChaveGlcNova(nomeGram)) {
 						nomeGram = JOptionPane
 								.showInputDialog("Campo obrigatório e único.!\nDigite um nome para a gramática:");
@@ -271,18 +271,45 @@ public class App extends JFrame {
 
 		getContentPane().add(painelSecundario, "name_24616259299173");
 
+		JButton btnFirst = new JButton("First ?");
+		btnFirst.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (!gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta()
+						.isEmpty()) {
+					String simbolos = "";
+					for (String chave : gramHash.get(glcSelecionado)
+							.getFirstSet().keySet()) {
+						simbolos += chave + " - ";
+						for (String elemento : gramHash.get(glcSelecionado)
+								.getFirstSet().get(chave)) {
+							simbolos += elemento + " | ";
+						}
+						simbolos = simbolos.substring(0, simbolos.length()-2) + "\n";
+					}
+					JOptionPane.showMessageDialog(frame,
+							"Grammar FIRST\n" + simbolos);
+				} else {
+					JOptionPane.showMessageDialog(frame,
+							"Try again!");
+				}
+			}
+		});
+
 		JButton btnRecEsq = new JButton("Possui R.E. ?");
 		btnRecEsq.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (!gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta().isEmpty()) {
+				if (!gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta()
+						.isEmpty()) {
 					String simbolos = "";
-					for (String s : gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta()) {
+					for (String s : gramHash.get(glcSelecionado)
+							.getRecursaoEsquerdaDireta()) {
 						simbolos += s + "\n";
 					}
-					JOptionPane.showMessageDialog( frame, "Grammar possui R.E. direta\n" + simbolos);
-				}
-				else {
-					JOptionPane.showMessageDialog( frame, "Grammar NÂO possui R.E direta");
+					JOptionPane.showMessageDialog(frame,
+							"Grammar possui R.E. direta\n" + simbolos);
+				} else {
+					JOptionPane.showMessageDialog(frame,
+							"Grammar NÂO possui R.E direta");
 				}
 			}
 		});
@@ -306,15 +333,18 @@ public class App extends JFrame {
 				.addGroup(
 						gl_painelSecundario.createSequentialGroup().addGap(91)
 								.addComponent(btnRecEsq)
+								.addComponent(btnFirst)
 								.addContainerGap(112, Short.MAX_VALUE)));
 		gl_painelSecundario.setVerticalGroup(gl_painelSecundario
 				.createParallelGroup(Alignment.LEADING).addGroup(
-						Alignment.TRAILING,
+						Alignment.LEADING,
 						gl_painelSecundario
 								.createSequentialGroup()
 								.addGap(33)
-								.addComponent(btnRecEsq)
-								.addPreferredGap(ComponentPlacement.RELATED,
+								.addComponent(btnRecEsq).addPreferredGap(ComponentPlacement.UNRELATED,
+										293, Short.MAX_VALUE)
+								.addComponent(btnFirst)
+								.addPreferredGap(ComponentPlacement.UNRELATED,
 										393, Short.MAX_VALUE)
 								.addComponent(btnVoltar).addGap(21)));
 		painelSecundario.setLayout(gl_painelSecundario);
