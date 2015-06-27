@@ -20,8 +20,9 @@ public class ParserLL1 {
 	 * A gramática deve ser LL(1) para gerar um analisador determinístico
 	 *
 	 * @param glc
+	 * @throws IllegalArgumentException
 	 */
-	public ParserLL1(GLC glc) {
+	public ParserLL1(GLC glc) throws IllegalArgumentException {
 		this.glc = glc;
 		this.tp = new ParseTable(this.glc);
 	}

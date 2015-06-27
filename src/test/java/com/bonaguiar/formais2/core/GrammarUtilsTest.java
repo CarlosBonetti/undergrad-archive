@@ -31,6 +31,7 @@ public class GrammarUtilsTest {
 		assertTrue(GrammarUtils.ehNaoTerminal("Xa"));
 		assertTrue(GrammarUtils.ehNaoTerminal("Abacaxi"));
 		assertTrue(GrammarUtils.ehNaoTerminal("A23"));
+		assertTrue(GrammarUtils.ehNaoTerminal("E'"));
 
 		assertFalse(GrammarUtils.ehNaoTerminal("a"));
 		assertFalse(GrammarUtils.ehNaoTerminal("abc"));

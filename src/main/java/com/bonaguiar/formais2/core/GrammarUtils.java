@@ -22,6 +22,6 @@ public class GrammarUtils {
 	 * @return
 	 */
 	public static Boolean ehNaoTerminal(String simbolo) {
-		return Character.isUpperCase(simbolo.charAt(0));
+		return Character.isLetter(simbolo.charAt(0)) && Character.isUpperCase(simbolo.charAt(0));
 	}
 }
