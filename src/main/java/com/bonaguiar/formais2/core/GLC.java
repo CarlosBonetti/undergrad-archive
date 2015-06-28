@@ -280,7 +280,7 @@ public class GLC implements Serializable {
 				set.addAll(this.firstSet.get(simbolo));
 			} else {
 				// Calcula o first de cada produção
-				for (FormaSentencial formaSentencial : this.getProducoes(simbolo)) {
+				for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
 					set.addAll(first(formaSentencial));
 				}
 

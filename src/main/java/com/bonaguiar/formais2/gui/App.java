@@ -269,29 +269,43 @@ public class App extends JFrame {
 		getContentPane().add(painelSecundario, "name_24616259299173");
 
 		JButton btnIntersec = new JButton("Intersec é vazio ?");
+		btnIntersec.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+			}
+		});
 		JButton btnFatorada = new JButton("Esta fatorada ?");
+		btnFatorada.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+			}
+		});
 		JButton btnFollow = new JButton("Follow ?");
+		btnFollow.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+			}
+		});
 		JButton btnParser = new JButton("Parser ?");
+		btnParser.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println(glcSelecionado + " glcSelect");
+//				for (String iterable_element : gramHash.keySet()) {
+					System.out.println(gramHash.get(glcSelecionado).getFirstSet() + " - hash");
+//				}
+			}
+		});
 		JButton btnFirst = new JButton("First ?");
 		btnFirst.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (!gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta()
-						.isEmpty()) {
-					String simbolos = "";
-					for (String chave : gramHash.get(glcSelecionado)
-							.getFirstSet().keySet()) {
-						simbolos += chave + " - ";
-						for (String elemento : gramHash.get(glcSelecionado)
-								.getFirstSet().get(chave)) {
-							simbolos += elemento + " | ";
-						}
-						simbolos = simbolos.substring(0, simbolos.length()-2) + "\n";
+				try {
+					if (!gramHash.get(glcSelecionado).getFirstSet().toString()
+							.isEmpty()) {
+						JOptionPane.showMessageDialog(frame,
+								"Grammar FIRST\n" + gramHash.get(glcSelecionado).getFirstSet().toString());
+					} else {
+						JOptionPane.showMessageDialog(frame,
+								"Try again!");
 					}
-					JOptionPane.showMessageDialog(frame,
-							"Grammar FIRST\n" + simbolos);
-				} else {
-					JOptionPane.showMessageDialog(frame,
-							"Try again!");
+				} catch (Exception e) {
+					tratarException(e);
 				}
 			}
 		});
