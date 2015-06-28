@@ -281,6 +281,28 @@ public class App extends JFrame {
 		JButton btnFollow = new JButton("Follow ?");
 		btnFollow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				try {
+					if (!gramHash.get(glcSelecionado).getFollowSet().toString()
+							.isEmpty()) {
+						String simbolos = "";
+						for (String chave : gramHash.get(glcSelecionado)
+								.getFollowSet().keySet()) {
+							simbolos += chave + " - ";
+							for (String elemento : gramHash.get(glcSelecionado)
+									.getFollowSet().get(chave)) {
+								simbolos += elemento + " , ";
+							}
+							simbolos = simbolos.substring(0, simbolos.length()-2) + "\n";
+						}
+						JOptionPane.showMessageDialog(frame,
+								"Grammar FOLLOW\n" + simbolos);
+					} else {
+						JOptionPane.showMessageDialog(frame,
+								"Try again!");
+					}
+				} catch (Exception e) {
+					tratarException(e);				
+				}
 			}
 		});
 		JButton btnParser = new JButton("Parser ?");
@@ -288,7 +310,7 @@ public class App extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println(glcSelecionado + " glcSelect");
 //				for (String iterable_element : gramHash.keySet()) {
-					System.out.println(gramHash.get(glcSelecionado).getFirstSet() + " - hash");
+//					System.out.println(gramHash.get(glcSelecionado).getFirstSet() + " - hash");
 //				}
 			}
 		});
@@ -298,14 +320,24 @@ public class App extends JFrame {
 				try {
 					if (!gramHash.get(glcSelecionado).getFirstSet().toString()
 							.isEmpty()) {
+						String simbolos = "";
+						for (String chave : gramHash.get(glcSelecionado)
+								.getFirstSet().keySet()) {
+							simbolos += chave + " - ";
+							for (String elemento : gramHash.get(glcSelecionado)
+									.getFirstSet().get(chave)) {
+								simbolos += elemento + " , ";
+							}
+							simbolos = simbolos.substring(0, simbolos.length()-2) + "\n";
+						}
 						JOptionPane.showMessageDialog(frame,
-								"Grammar FIRST\n" + gramHash.get(glcSelecionado).getFirstSet().toString());
+								"Grammar FIRST\n" + simbolos);
 					} else {
 						JOptionPane.showMessageDialog(frame,
 								"Try again!");
 					}
 				} catch (Exception e) {
-					tratarException(e);
+					tratarException(e);				
 				}
 			}
 		});
