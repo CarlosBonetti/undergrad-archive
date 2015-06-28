@@ -445,7 +445,7 @@ public class GLC implements Serializable {
 	}
 
 	/**
-	 * Verifica se a producao possui recursao esquerda direta
+	 * Verifica se a produção possui recursão esquerda direta
 	 *
 	 * @param producao
 	 * @return
@@ -534,10 +534,69 @@ public class GLC implements Serializable {
 	protected boolean temNaoDeterminismoDireto(String producao) {
 		Set<String> terminaisDerivados = new HashSet<String>();
 		for (FormaSentencial forma : producoes.get(producao)) {
+//			Eh necessario ser nao terminal ??????
 			if (GrammarUtils.ehTerminal(forma.get(0))) {
-				//ao add em Set caso o terminal jah exista retorna false
+				
+			//ao add em Set caso o terminal jah exista retorna false
 				if (!terminaisDerivados.add(forma.get(0))) {
 					return true;
+				}
+			}
+		}
+		return false;
+	}
+	/**
+	 * Retorna uma lista com os ñ-terminais que possuem ñ_determinismo indireto
+	 * @return
+	 */
+	public Set<String> getFatoracaoIndireta(){
+		Set<String> naoFatoradaDireta = new HashSet<String>();
+		for (String chave : producoes.keySet()) {
+			if (temNaoDeterminismoIndireta(chave, getProducoesDerivadas(chave, new HashSet<String>()))) {
+				naoFatoradaDireta.add(chave);
+			}
+		}
+		return naoFatoradaDireta;
+	}
+	
+	/**
+	 * Retorna uma lista com os ñ-terminais derivados de uma produção
+	 * @param producao
+	 * @param naoTerminaisDerivados
+	 * @return
+	 */
+	protected Set<String> getProducoesDerivadas(String producao, Set<String> naoTerminaisDerivados) {
+		Set<String> aux = new HashSet<String>();
+		for (FormaSentencial forma : producoes.get(producao)) {
+			if (GrammarUtils.ehNaoTerminal(forma.get(0))) {
+				aux.add(forma.get(0));
+			}
+		}
+		for (String string : aux) {
+			if (naoTerminaisDerivados.isEmpty()) {
+				naoTerminaisDerivados.addAll(getProducoesDerivadas(string, aux));
+			}else
+			if (!naoTerminaisDerivados.contains(string)) {
+				naoTerminaisDerivados.addAll(getProducoesDerivadas(string, naoTerminaisDerivados));
+			}
+		}
+		return naoTerminaisDerivados;
+	}
+	
+	/**
+	 * Verificação se uma produção e suas derivadas derivam o mesmo terminal
+	 * @param producao
+	 * @param producoesDerivadas
+	 * @return
+	 */
+	protected boolean temNaoDeterminismoIndireta(String producao, Set<String> producoesDerivadas) {
+		
+		for (FormaSentencial forma : this.producoes.get(producao)) {
+			for (String producaoDerivada : producoesDerivadas) {
+				for (String firstProdDerivada : this.getFirstSet().get(producaoDerivada)) {
+					if (forma.get(0).contains(firstProdDerivada)) {
+						return true;
+					}
 				}
 			}
 		}

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import org.junit.Test;
 
@@ -210,6 +211,45 @@ public class GLCTest {
 		assertTrue(!glc.getFatoracaoDireta().contains("C"));
 		assertTrue(!glc.getFatoracaoDireta().contains("D"));
 		assertTrue(glc.getFatoracaoDireta().contains("E"));
+
+	}
+	
+	@Test
+	public void testarTemNaoDeterminismoIndireto() throws Exception {
+//		String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
+		String text = "S -> A B | b C\n" + "A -> a A | B C | ε\n" + "B -> b B | d\n" + "C -> c C | ε";
+		GLC glc = new GLC(text);
+//		for (String iterable_element : glc.getProducoes().keySet()) {
+			for (String s : glc.getProducoesDerivadas("S", new HashSet<String>())) {
+				System.out.println(s);
+			};
+//		}
+			System.out.println(glc.getFirstSet().get("S").toString() + " ---- Firsts S");
+			System.out.println(glc.getFirstSet().get("A").toString() + " ---- Firsts A");
+			System.out.println(glc.getFirstSet().get("B").toString() + " ---- Firsts B");
+			System.out.println(glc.getFirstSet().get("C").toString() + " ---- Firsts C");
+		assertTrue(glc.getFatoracaoIndireta().size()+"", glc.getFatoracaoIndireta().size()==1);
+		assertTrue(glc.getFatoracaoIndireta().contains("S"));
+		assertTrue(!glc.getFatoracaoIndireta().contains("A"));
+		assertTrue(!glc.getFatoracaoIndireta().contains("B"));
+		assertTrue(!glc.getFatoracaoIndireta().contains("C"));
+		
+		glc = new GLC("S -> a | A C\n" + "A -> a A b | B\n" + "B -> d | a | C\n"+ "C -> d | b\n");
+		
+		assertTrue(glc.getFatoracaoIndireta().size()+"",glc.getFatoracaoIndireta().size()==3);
+		assertTrue(glc.getFatoracaoIndireta().contains("S"));
+		assertTrue(glc.getFatoracaoIndireta().contains("A"));
+		assertTrue(glc.getFatoracaoIndireta().contains("B"));
+		assertTrue(!glc.getFatoracaoIndireta().contains("C"));
+				
+//
+//		glc = new GLC("S -> a S b | A C\n" + "A -> a A b | a D | b E\n" + "C -> c C | ε\n" + "D -> a D | c\n" + "E -> b E | b");
+//		assertTrue(!glc.getFatoracaoDireta().isEmpty());
+//		assertTrue(!glc.getFatoracaoDireta().contains("S"));
+//		assertTrue(glc.getFatoracaoDireta().contains("A"));
+//		assertTrue(!glc.getFatoracaoDireta().contains("C"));
+//		assertTrue(!glc.getFatoracaoDireta().contains("D"));
+//		assertTrue(glc.getFatoracaoDireta().contains("E"));
 
 	}
 }

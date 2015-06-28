@@ -41,6 +41,8 @@ public class App extends JFrame {
 	private GLCBase GLCBase = new GLCBase();
 	private JPanel painelSecundario = new JPanel();
 	private JPanel principal = new JPanel();
+	private JTextArea textAreaGrammar = new JTextArea();
+
 
 	private void setGlcSelecionado(String selecao) {
 		glcSelecionado = selecao;
@@ -81,6 +83,10 @@ public class App extends JFrame {
 		modeloGLC.removeElement(nome);
 		glcSelecionado = "";
 		persistGlc();
+	}
+	
+	private void atualizaTextAreaGrammar(){
+		textAreaGrammar.setText(gramHash.get(glcSelecionado).getRaw());
 	}
 
 	private void adicionarGramatica() {
@@ -185,8 +191,10 @@ public class App extends JFrame {
 				String valorSelecao = list.getSelectedValue().toString();
 				setGlcSelecionado(valorSelecao);
 				if (e.getClickCount() == 2) {
+					atualizaTextAreaGrammar();
 					setContentPane(painelSecundario);
 					painelSecundario.setVisible(true);
+					
 				}
 			}
 		});
@@ -276,27 +284,35 @@ public class App extends JFrame {
 		btnFatorada.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					if (!gramHash.get(glcSelecionado)
-							.getFatoracaoDireta().isEmpty()) {
-						String simbolos = "";
-						for (String s : gramHash.get(glcSelecionado)
-								.getFatoracaoDireta()) {
-							simbolos += s + "\n";
+					if (!possuiRE()) {
+
+						if (!gramHash.get(glcSelecionado).getFatoracaoDireta()
+								.isEmpty()) {
+							String simbolos = "";
+							for (String s : gramHash.get(glcSelecionado)
+									.getFatoracaoDireta()) {
+								simbolos += s + "\n";
+							}
+							JOptionPane.showMessageDialog(frame,
+									"Grammar não esta Fatorada\npossui Não-Determinismo direto\n"
+											+ simbolos);
+						} else if (!gramHash.get(glcSelecionado)
+								.getFatoracaoIndireta().isEmpty()) {
+							String simbolos = "";
+							for (String s : gramHash.get(glcSelecionado)
+									.getFatoracaoIndireta()) {
+								simbolos += s + "\n";
+							}
+							JOptionPane.showMessageDialog(frame,
+									"Grammar não esta Fatorada\npossui Não-Determinismo indireta\n"
+											+ simbolos);
+						} else {
+							JOptionPane.showMessageDialog(frame,
+									"Grammar esta Fatorada");
 						}
-						JOptionPane.showMessageDialog(frame,
-								"Grammar não esta Fatorada\npossui Não-Determinismo direto\n" + simbolos);
-//					} else if (!gramHash.get(glcSelecionado)
-//							.getRecursaoEsquerdaIndireta().isEmpty()) {
-//						String simbolos = "";
-//						for (String s : gramHash.get(glcSelecionado)
-//								.getRecursaoEsquerdaIndireta()) {
-//							simbolos += s + "\n";
-//						}
-//						JOptionPane.showMessageDialog(frame,
-//								"Grammar possui R.E. indireta\n" + simbolos);
 					} else {
 						JOptionPane.showMessageDialog(frame,
-								"Grammar esta Fatorada");
+								"Aterta!\nGramática possui R.E.!");
 					}
 				} catch (HeadlessException e) {
 					e.printStackTrace();
@@ -424,72 +440,83 @@ public class App extends JFrame {
 				setContentPane(principal);
 			}
 		});
+		
+		textAreaGrammar = new JTextArea();
+		JScrollPane js = new JScrollPane(textAreaGrammar);
+		js.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		textAreaGrammar.setEditable(false);
+//		textAreaGrammar.add(js);
 		GroupLayout gl_painelSecundario = new GroupLayout(painelSecundario);
-		gl_painelSecundario.setHorizontalGroup(gl_painelSecundario
-				.createParallelGroup(Alignment.LEADING)
-				.addGroup(
-						gl_painelSecundario
-								.createSequentialGroup()
-								.addGap(45)
-								.addComponent(btnVoltar,
-										GroupLayout.DEFAULT_SIZE, 228,
-										Short.MAX_VALUE).addGap(53))
-				.addGroup(
-						gl_painelSecundario.createSequentialGroup().addGap(91)
-								.addComponent(btnRecEsq)
-								.addContainerGap(112, Short.MAX_VALUE))
-				.addGroup(
-						gl_painelSecundario.createSequentialGroup().addGap(91)
-								.addComponent(btnFatorada)
-								.addContainerGap(112, Short.MAX_VALUE))
-				.addGroup(
-						gl_painelSecundario.createSequentialGroup().addGap(91)
-								.addComponent(btnIntersec)
-								.addContainerGap(144, Short.MAX_VALUE))
-				.addGroup(
-						gl_painelSecundario.createSequentialGroup().addGap(91)
-								.addComponent(btnFirst)
-								.addContainerGap(160, Short.MAX_VALUE))
-				.addGroup(
-						gl_painelSecundario.createSequentialGroup().addGap(91)
-								.addComponent(btnFollow)
-								.addContainerGap(176, Short.MAX_VALUE))
-				.addGroup(
-						gl_painelSecundario.createSequentialGroup().addGap(91)
-								.addComponent(btnParser)
-								.addContainerGap(192, Short.MAX_VALUE)));
-		gl_painelSecundario.setVerticalGroup(gl_painelSecundario
-				.createParallelGroup(Alignment.LEADING).addGroup(
-						gl_painelSecundario
-								.createSequentialGroup()
-								.addGap(33)
-								.addComponent(btnRecEsq)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnFatorada)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnIntersec)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnFirst)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnFollow)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnParser)
-								.addPreferredGap(ComponentPlacement.UNRELATED,
-										362, Short.MAX_VALUE)
-								.addComponent(btnVoltar).addGap(21)));
+		gl_painelSecundario.setHorizontalGroup(
+			gl_painelSecundario.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(45)
+					.addComponent(btnVoltar, GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
+					.addGap(53))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(91)
+					.addComponent(btnRecEsq)
+					.addContainerGap(112, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(91)
+					.addComponent(btnFatorada)
+					.addContainerGap(93, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(91)
+					.addComponent(btnIntersec)
+					.addContainerGap(78, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(91)
+					.addComponent(btnFirst)
+					.addContainerGap(158, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(91)
+					.addComponent(btnFollow)
+					.addContainerGap(144, Short.MAX_VALUE))
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(91)
+					.addComponent(btnParser)
+					.addContainerGap(143, Short.MAX_VALUE))
+				.addGroup(Alignment.TRAILING, gl_painelSecundario.createSequentialGroup()
+					.addContainerGap(64, Short.MAX_VALUE)
+					.addComponent(js, GroupLayout.PREFERRED_SIZE, 222, GroupLayout.PREFERRED_SIZE)
+					.addGap(40))
+		);
+		gl_painelSecundario.setVerticalGroup(
+			gl_painelSecundario.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGap(33)
+					.addComponent(btnRecEsq)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnFatorada)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnIntersec)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnFirst)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnFollow)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnParser)
+					.addGap(26)
+					.addComponent(js, GroupLayout.PREFERRED_SIZE, 144, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED, 38, Short.MAX_VALUE)
+					.addComponent(btnVoltar)
+					.addGap(21))
+		);
 		painelSecundario.setLayout(gl_painelSecundario);
 
 		btnExcluirGramtica.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-					if (!modeloGLC.isEmpty() && !glcSelecionado.isEmpty()) {
-						int opcao = JOptionPane.showConfirmDialog(frame,
-								"Confirmar exclusão de " + glcSelecionado, null,
-								JOptionPane.YES_NO_OPTION);
-						if (JOptionPane.YES_OPTION == opcao) {
-							removeDaLista(glcSelecionado);
-						}
-					} else 
-						JOptionPane.showMessageDialog(frame, "É necessário selecionar uma gramática");
+				if (!modeloGLC.isEmpty() && !glcSelecionado.isEmpty()) {
+					int opcao = JOptionPane.showConfirmDialog(frame,
+							"Confirmar exclusão de " + glcSelecionado, null,
+							JOptionPane.YES_NO_OPTION);
+					if (JOptionPane.YES_OPTION == opcao) {
+						removeDaLista(glcSelecionado);
+					}
+				} else
+					JOptionPane.showMessageDialog(frame,
+							"É necessário selecionar uma gramática");
 
 			}
 		});
@@ -498,7 +525,8 @@ public class App extends JFrame {
 				try {
 					editarGramatica(glcSelecionado);
 				} catch (Exception e2) {
-					JOptionPane.showMessageDialog(frame, "É necessário selecionar uma gramática");
+					JOptionPane.showMessageDialog(frame,
+							"É necessário selecionar uma gramática");
 				}
 
 			}
