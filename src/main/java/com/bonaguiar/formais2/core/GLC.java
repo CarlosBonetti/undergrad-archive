@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import lombok.Getter;
 
@@ -76,7 +77,7 @@ public class GLC implements Serializable {
 	public GLC(String producoes) throws ParseException {
 		this.raw = producoes;
 
-		String[] lines = producoes.split("\n|\r\n");
+		String[] lines = producoes.trim().split("\n|\r\n");
 		for (String line : lines) {
 			this.addProducoes(line);
 		}
@@ -506,4 +507,41 @@ public class GLC implements Serializable {
 		}
 		return recEsqIndireta;
 	}
+	// ===================================================================================================
+
+	/**
+	 * Identificar se a GLC esta fatorada , qual seu tipo e quais
+	 * ñ-terminais são estes
+	 *
+	 */
+
+	/**
+	 * Retorna uma lista com os ñ-terminais que possuem ñ-determinismo direto(os ñ fatorados)
+	 */
+	public Set<String> getFatoracaoDireta(){
+		Set<String> naoFatoradaDireta = new HashSet<String>();
+		for (String chave : producoes.keySet()) {
+			if (temNaoDeterminismoDireto(chave)) {
+				naoFatoradaDireta.add(chave);
+			}
+		}
+		return naoFatoradaDireta;
+	}
+	
+	/**
+	 * verifica se a produção não esta fatorado diretamente
+	 */
+	protected boolean temNaoDeterminismoDireto(String producao) {
+		Set<String> terminaisDerivados = new HashSet<String>();
+		for (FormaSentencial forma : producoes.get(producao)) {
+			if (GrammarUtils.ehTerminal(forma.get(0))) {
+				//ao add em Set caso o terminal jah exista retorna false
+				if (!terminaisDerivados.add(forma.get(0))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 }

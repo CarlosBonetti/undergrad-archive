@@ -193,4 +193,23 @@ public class GLCTest {
 		assertTrue(glc.getRecursaoEsquerdaIndireta().isEmpty());
 
 	}
+	
+	@Test
+	public void testarTemNaoDeterminismoDireto() throws Exception {
+		String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
+		GLC glc = new GLC(text);
+		assertTrue(glc.getFatoracaoDireta().isEmpty());
+		assertTrue(!glc.getFatoracaoDireta().contains("S"));
+		assertTrue(!glc.getFatoracaoDireta().contains("A"));
+		assertTrue(!glc.getFatoracaoDireta().contains("B"));
+
+		glc = new GLC("S -> a S b | A C\n" + "A -> a A b | a D | b E\n" + "C -> c C | ε\n" + "D -> a D | c\n" + "E -> b E | b");
+		assertTrue(!glc.getFatoracaoDireta().isEmpty());
+		assertTrue(!glc.getFatoracaoDireta().contains("S"));
+		assertTrue(glc.getFatoracaoDireta().contains("A"));
+		assertTrue(!glc.getFatoracaoDireta().contains("C"));
+		assertTrue(!glc.getFatoracaoDireta().contains("D"));
+		assertTrue(glc.getFatoracaoDireta().contains("E"));
+
+	}
 }
