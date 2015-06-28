@@ -128,6 +128,18 @@ public class GLCTest {
 	}
 
 	@Test
+	public void getProducoesDoSimbolo() throws Exception {
+		GLC glc = new GLC("E -> A \n A -> a | &");
+		assertEquals("[A]", glc.getProducoes("E").toString());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getProducoesDoSimboloInexistente() throws ParseException {
+		GLC glc = new GLC("E -> T E \n");
+		glc.getProducoes("T").toString();
+	}
+
+	@Test
 	public void getFirstSet() throws Exception {
 		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
 		assertEquals("{F=[id, (], T=[id, (], E=[id, (], E'=[&, +], T'=[&, *]}", glc.getFirstSet().toString());

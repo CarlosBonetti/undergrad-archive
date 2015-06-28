@@ -71,9 +71,9 @@ public class GLC implements Serializable {
 	 *            Conjunto de produções. Cada produção deve estar em uma linha.
 	 *            Exemplo: E -> T E1 E1 -> + T E1 | & T -> F T1 T1 -> * F T1 | &
 	 *            F -> ( E ) | id
-	 * @throws Exception
+	 * @throws ParseException
 	 */
-	public GLC(String producoes) throws Exception {
+	public GLC(String producoes) throws ParseException {
 		this.raw = producoes;
 
 		String[] lines = producoes.split("\n|\r\n");
@@ -99,9 +99,9 @@ public class GLC implements Serializable {
 	 *            Uma linha do conjunto de produções da gramática. Exemplo: 'E
 	 *            -> E + T | E - T | T' irá adicionar três novas produções
 	 *            associadas ao não terminal 'E'
-	 * @throws Exception
+	 * @throws ParseException
 	 */
-	protected void addProducoes(String line) throws Exception {
+	protected void addProducoes(String line) throws ParseException {
 		String[] parts = line.split("->");
 
 		if (parts.length != 2) {
@@ -186,7 +186,7 @@ public class GLC implements Serializable {
 
 	/**
 	 * Retorna o conjunto de símbolos terminais da gramática
-	 * 
+	 *
 	 * @return
 	 */
 	public Set<String> getTerminais() {
@@ -203,6 +203,20 @@ public class GLC implements Serializable {
 		}
 
 		return this.terminais;
+	}
+
+	/**
+	 * Retorna as produções do símbolo não terminal
+	 *
+	 * @param simbolo
+	 * @return
+	 */
+	public List<FormaSentencial> getProducoes(String simbolo) {
+		if (!this.getNaoTerminais().contains(simbolo)) {
+			throw new IllegalArgumentException("Símbolo '" + simbolo + "' não pertence ao conjunto de não terminais da gramática");
+		}
+
+		return this.producoes.get(simbolo);
 	}
 
 	// ===================================================================================================
@@ -266,8 +280,7 @@ public class GLC implements Serializable {
 				set.addAll(this.firstSet.get(simbolo));
 			} else {
 				// Calcula o first de cada produção
-				for (FormaSentencial formaSentencial : this.producoes
-						.get(simbolo)) {
+				for (FormaSentencial formaSentencial : this.getProducoes(simbolo)) {
 					set.addAll(first(formaSentencial));
 				}
 
@@ -359,7 +372,7 @@ public class GLC implements Serializable {
 	 * @return
 	 */
 	protected Set<String> follow(String simbolo) {
-		return this.followSet.get(simbolo);
+		return this.getFollowSet().get(simbolo);
 	}
 
 	// ===================================================================================================
