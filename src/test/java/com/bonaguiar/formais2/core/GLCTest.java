@@ -153,7 +153,7 @@ public class GLCTest {
 
 	@Test
 	public void testarReqEsquerdaDireta() throws Exception {
-		String text = "E -> E + T | E - T | T\n" + "T -> T * F | T / F | F\n" + "F -> ( E ) | id";
+		String text = "E -> T | E + T | E - T \n" + "T -> F | T * F | T / F \n" + "F -> ( E ) | id";
 		GLC glc = new GLC(text);
 		assertTrue(glc.getRecursaoEsquerdaDireta().contains("E"));
 		assertTrue(glc.getRecursaoEsquerdaDireta().contains("T"));
@@ -163,5 +163,22 @@ public class GLCTest {
 		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("E"));
 		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("T"));
 		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("F"));
+	}
+	
+	@Test
+	public void testarReqEsquerdaInDireta() throws Exception {
+		String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
+		GLC glc = new GLC(text);
+		assertTrue(!glc.getRecursaoEsquerdaIndireta().isEmpty());
+		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("S"));
+		assertTrue(glc.getRecursaoEsquerdaIndireta().contains("A"));
+		assertTrue(glc.getRecursaoEsquerdaIndireta().contains("B"));
+
+		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
+		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("E"));
+		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("T"));
+		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("F"));
+		assertTrue(glc.getRecursaoEsquerdaIndireta().isEmpty());
+
 	}
 }

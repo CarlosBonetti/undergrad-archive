@@ -2,6 +2,7 @@ package com.bonaguiar.formais2.gui;
 
 import java.awt.CardLayout;
 import java.awt.EventQueue;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -121,7 +122,7 @@ public class App extends JFrame {
 		String gramatica;
 		JTextArea area = new JTextArea(gramHash.get(chave).getRaw(),
 				20, 15);
-		int botaoOk = JOptionPane.showConfirmDialog(null,
+		int botaoOk = JOptionPane.showConfirmDialog(frame,
 				new JScrollPane(area), "Gramática",
 				JOptionPane.OK_CANCEL_OPTION);
 
@@ -298,19 +299,33 @@ public class App extends JFrame {
 		JButton btnRecEsq = new JButton("Possui R.E. ?");
 		btnRecEsq.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (!gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta()
-						.isEmpty()) {
-					String simbolos = "";
-					for (String s : gramHash.get(glcSelecionado)
-							.getRecursaoEsquerdaDireta()) {
-						simbolos += s + "\n";
+				try {
+					if (!gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta()
+							.isEmpty()) {
+						String simbolos = "";
+						for (String s : gramHash.get(glcSelecionado)
+								.getRecursaoEsquerdaDireta()) {
+							simbolos += s + "\n";
+						}
+						JOptionPane.showMessageDialog(frame,
+								"Grammar possui R.E. direta\n" + simbolos);
+					} else if (!gramHash.get(glcSelecionado).getRecursaoEsquerdaIndireta().isEmpty()) {
+							String simbolos = "";
+							for (String s : gramHash.get(glcSelecionado)
+									.getRecursaoEsquerdaIndireta()) {
+								simbolos += s + "\n";
+							}
+							JOptionPane.showMessageDialog(frame,
+									"Grammar possui R.E. indireta\n" + simbolos);
+					} else{
+							JOptionPane.showMessageDialog(frame,
+									"Grammar NÂO possui R.E direta ou indireta");
+						}
+					} catch (HeadlessException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-					JOptionPane.showMessageDialog(frame,
-							"Grammar possui R.E. direta\n" + simbolos);
-				} else {
-					JOptionPane.showMessageDialog(frame,
-							"Grammar NÂO possui R.E direta");
-				}
 			}
 		});
 		JButton btnVoltar = new JButton("Voltar");

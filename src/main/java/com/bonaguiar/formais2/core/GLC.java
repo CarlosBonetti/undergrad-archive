@@ -58,7 +58,8 @@ public class GLC implements Serializable {
 	protected Map<String, Set<String>> followSet = new LinkedHashMap<String, Set<String>>();
 
 	/**
-	 * Guarda uma lista com cópias das produções da gramática com índices correspondentes
+	 * Guarda uma lista com cópias das produções da gramática com índices
+	 * correspondentes
 	 */
 	protected ArrayList<FormaSentencial> lista = new ArrayList<FormaSentencial>();
 
@@ -104,7 +105,11 @@ public class GLC implements Serializable {
 		String[] parts = line.split("->");
 
 		if (parts.length != 2) {
-			throw new ParseException("Produção mal formada: " + line + ". Produções devem seguir o padrao 'E -> E + T | .. | id'", 0);
+			throw new ParseException(
+					"Produção mal formada: "
+							+ line
+							+ ". Produções devem seguir o padrao 'E -> E + T | .. | id'",
+					0);
 		}
 
 		String produtor = parts[0].trim();
@@ -151,7 +156,8 @@ public class GLC implements Serializable {
 	}
 
 	/**
-	 * Retorna um lista ordenada com as produções da gramática, de forma que cada produção possui um índice correspondente
+	 * Retorna um lista ordenada com as produções da gramática, de forma que
+	 * cada produção possui um índice correspondente
 	 *
 	 * @return
 	 */
@@ -203,8 +209,8 @@ public class GLC implements Serializable {
 	// First
 
 	/**
-	 * Retorna um hash com todos os conjuntos 'first' da gramática
-	 * O hash retornado possui os símbolos não terminais da gramática como chave e um
+	 * Retorna um hash com todos os conjuntos 'first' da gramática O hash
+	 * retornado possui os símbolos não terminais da gramática como chave e um
 	 * conjunto de símbolos first associados a este não terminal
 	 *
 	 * @return
@@ -260,7 +266,8 @@ public class GLC implements Serializable {
 				set.addAll(this.firstSet.get(simbolo));
 			} else {
 				// Calcula o first de cada produção
-				for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
+				for (FormaSentencial formaSentencial : this.producoes
+						.get(simbolo)) {
 					set.addAll(first(formaSentencial));
 				}
 
@@ -291,7 +298,8 @@ public class GLC implements Serializable {
 				this.followSet.put(naoTerminal, new HashSet<String>());
 
 				if (this.getSimboloInicial().equals(naoTerminal)) {
-					this.followSet.get(naoTerminal).add(GrammarUtils.END_OF_SENTENCE.toString());
+					this.followSet.get(naoTerminal).add(
+							GrammarUtils.END_OF_SENTENCE.toString());
 				}
 			}
 
@@ -318,7 +326,8 @@ public class GLC implements Serializable {
 			while (modificado) {
 				modificado = false;
 				for (String produtor : this.producoes.keySet()) {
-					for (FormaSentencial producao : this.producoes.get(produtor)) {
+					for (FormaSentencial producao : this.producoes
+							.get(produtor)) {
 						for (int i = producao.size() - 1; i >= 0; i--) {
 							String B = producao.get(i);
 							if (!GrammarUtils.ehNaoTerminal(B)) {
@@ -328,8 +337,11 @@ public class GLC implements Serializable {
 							Beta.addAll(producao.subList(i + 1, producao.size()));
 							Set<String> firstBeta = first(Beta);
 
-							if (firstBeta.contains(GrammarUtils.EPSILON.toString()) || firstBeta.isEmpty()) {
-								modificado = this.followSet.get(B).addAll(this.followSet.get(produtor)) || modificado;
+							if (firstBeta.contains(GrammarUtils.EPSILON
+									.toString()) || firstBeta.isEmpty()) {
+								modificado = this.followSet.get(B).addAll(
+										this.followSet.get(produtor))
+										|| modificado;
 							}
 						}
 					}
@@ -353,10 +365,10 @@ public class GLC implements Serializable {
 	// ===================================================================================================
 
 	/**
-	 * Forma sentencial de uma gramática livre de contexto
-	 * Representa o lado direito de uma produção.
-	 * Exemplo: em 'S -> a B C | abc Ce Fe', existem dois objetos FormaSentencial, 'a B C' e 'abc Ce Fe' com três partes
-	 * cada um (um terminal e dois não terminais)
+	 * Forma sentencial de uma gramática livre de contexto Representa o lado
+	 * direito de uma produção. Exemplo: em 'S -> a B C | abc Ce Fe', existem
+	 * dois objetos FormaSentencial, 'a B C' e 'abc Ce Fe' com três partes cada
+	 * um (um terminal e dois não terminais)
 	 */
 	public static class FormaSentencial extends ArrayList<String> {
 		private static final long serialVersionUID = -2032770137692974596L;
@@ -370,7 +382,8 @@ public class GLC implements Serializable {
 		 */
 		public FormaSentencial(String producao) {
 			if (producao.isEmpty()) {
-				throw new IllegalArgumentException("Produção não pode ser vazia");
+				throw new IllegalArgumentException(
+						"Produção não pode ser vazia");
 			}
 
 			String[] parts = producao.split(" ");
@@ -439,8 +452,45 @@ public class GLC implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public void getRecursaoEsquerdaIndireta() throws Exception {
-		// TODO
+	public ArrayList<String> getRecursaoEsquerdaIndireta() throws Exception {
+		ArrayList<String> chavesAnteriores = new ArrayList<String>();
+		GLC glc = new GLC(raw);
+		List<FormaSentencial> refatorado;
+		
+		//realiza trocas nas producoes para posterior verificao de recursao
+		for (String chave : glc.getProducoes().keySet()) {
+			refatorado = new ArrayList<FormaSentencial>();
+			if (!chavesAnteriores.isEmpty()) {
+				for (String chaveAnterior : chavesAnteriores) {
+					refatorado = new ArrayList<FormaSentencial>();
+					for (FormaSentencial forma : glc.getProducoes().get(chave)) {
+						if (chaveAnterior.contains(forma.get(0))) {
+							for (FormaSentencial formaAnterior : glc
+									.getProducoes().get(forma.get(0))) {
+								refatorado.add(formaAnterior);
+							}
+						} else {
+							refatorado.add(forma);
+						}
+					}
+					glc.getProducoes().put(chave, refatorado);
+				}
+			} else {
+				for (FormaSentencial forma : glc.getProducoes().get(chave)) {
+					refatorado.add(forma);
+				}
+			}
+			glc.getProducoes().put(chave, refatorado);
+			chavesAnteriores.add(chave);
+		}
+		
+		//adiciona a uma lista os ñ terminais com recursao direta
+		ArrayList<String> recEsqIndireta = new ArrayList<String>();
+		for (String chave : glc.getProducoes().keySet()) {
+			if (glc.temRecursaoEsquerdaDireta(chave)) {
+				recEsqIndireta.add(chave);
+			}
+		}
+		return recEsqIndireta;
 	}
-
 }
