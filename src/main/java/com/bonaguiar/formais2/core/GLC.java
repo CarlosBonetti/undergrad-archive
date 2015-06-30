@@ -598,6 +598,13 @@ public class GLC implements Serializable {
 						return true;
 					}
 				}
+				Set<String> f = new HashSet<String>();
+				f.addAll(producoesDerivadas);
+				f.remove(producaoDerivada);
+				if (!f.isEmpty()) {
+					return temNaoDeterminismoIndireta(producaoDerivada, f);
+				}
+					
 			}
 		}
 		return false;

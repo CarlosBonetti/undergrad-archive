@@ -284,8 +284,8 @@ public class App extends JFrame {
 		btnFatorada.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
+					String msgSaida = "";
 					if (!possuiRE()) {
-
 						if (!gramHash.get(glcSelecionado).getFatoracaoDireta()
 								.isEmpty()) {
 							String simbolos = "";
@@ -293,27 +293,30 @@ public class App extends JFrame {
 									.getFatoracaoDireta()) {
 								simbolos += s + "\n";
 							}
-							JOptionPane.showMessageDialog(frame,
-									"Grammar não esta Fatorada\npossui Não-Determinismo direto\n"
-											+ simbolos);
-						} else if (!gramHash.get(glcSelecionado)
+							msgSaida += "\nGrammar não esta Fatorada\npossui Não-Determinismo direto\n"
+											+ simbolos;
+						} 
+						if (!gramHash.get(glcSelecionado)
 								.getFatoracaoIndireta().isEmpty()) {
 							String simbolos = "";
 							for (String s : gramHash.get(glcSelecionado)
 									.getFatoracaoIndireta()) {
 								simbolos += s + "\n";
 							}
-							JOptionPane.showMessageDialog(frame,
-									"Grammar não esta Fatorada\npossui Não-Determinismo indireta\n"
-											+ simbolos);
-						} else {
-							JOptionPane.showMessageDialog(frame,
-									"Grammar esta Fatorada");
+							msgSaida += "\nGrammar não esta Fatorada\npossui Não-Determinismo indireta\n"
+											+ simbolos;
+						} 					
+						if (gramHash.get(glcSelecionado).getFatoracaoDireta()
+								.isEmpty() && gramHash.get(glcSelecionado)
+								.getFatoracaoIndireta().isEmpty()) {
+									msgSaida = "Grammar esta Fatorada";
 						}
 					} else {
-						JOptionPane.showMessageDialog(frame,
-								"Aterta!\nGramática possui R.E.!");
+						msgSaida = "Aterta!\nGramática possui R.E.!";
 					}
+
+					JOptionPane.showMessageDialog(frame,
+							msgSaida);
 				} catch (HeadlessException e) {
 					e.printStackTrace();
 				} catch (Exception e) {
@@ -405,6 +408,8 @@ public class App extends JFrame {
 		btnRecEsq.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
+					String msgSaida = "";
+					
 					if (!gramHash.get(glcSelecionado)
 							.getRecursaoEsquerdaDireta().isEmpty()) {
 						String simbolos = "";
@@ -412,21 +417,22 @@ public class App extends JFrame {
 								.getRecursaoEsquerdaDireta()) {
 							simbolos += s + "\n";
 						}
-						JOptionPane.showMessageDialog(frame,
-								"Grammar possui R.E. direta\n" + simbolos);
-					} else if (!gramHash.get(glcSelecionado)
+						msgSaida  +=  "\nGrammar possui R.E. direta\n" + simbolos;
+					} 
+					if (!gramHash.get(glcSelecionado)
 							.getRecursaoEsquerdaIndireta().isEmpty()) {
 						String simbolos = "";
 						for (String s : gramHash.get(glcSelecionado)
 								.getRecursaoEsquerdaIndireta()) {
 							simbolos += s + "\n";
 						}
-						JOptionPane.showMessageDialog(frame,
-								"Grammar possui R.E. indireta\n" + simbolos);
-					} else {
-						JOptionPane.showMessageDialog(frame,
-								"Grammar NÂO possui R.E direta ou indireta");
+						msgSaida += "\nGrammar possui R.E. indireta\n" + simbolos;
+					} 
+					if (!possuiRE()) {
+						msgSaida = "Grammar NÂO possui R.E direta ou indireta";
 					}
+					JOptionPane.showMessageDialog(frame,
+							msgSaida);
 				} catch (HeadlessException e) {
 					e.printStackTrace();
 				} catch (Exception e) {
