@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <GL/glut.h>
-#include "body.h"
+
+#include "person.h"
 
 #define ESCAPE 27
 
@@ -10,7 +11,6 @@ int WIDTH;
 int HEIGHT;
 
 float rtri;
-float rquad;
 
 void initGL() {
 	glShadeModel(GL_SMOOTH); // Habilita sombreamento suavizado
@@ -45,10 +45,13 @@ void redraw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpe a tela e o buffer
 	//glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); // Indique que os dois lados de qualquer superfície devem ser representados.
 	glLoadIdentity(); // Resete a corrente Modelview Matrix
-	rtri+=0.4f;
-	glTranslatef(1.5f,0.0f,-6.0f);
-	glRotatef(rtri,0.0f,1.0f,1.0f);
-	Forearm().draw();
+
+	rtri+=0.7f;
+	glTranslatef(0.0f, 3.0f, -23.0f);
+	glRotatef(rtri,0.0f,1.0f,0);
+
+	Person().draw();
+
 	glutSwapBuffers();
 }
 
