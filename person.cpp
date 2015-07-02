@@ -1,74 +1,78 @@
 #include "person.h"
+#include "movement.h"
 #include "utils.h"
 
-void Person::draw() {
+
+
+void Person::draw(int t) {
 	glColor3f(0.435294f, 0.258824f, 0.258824f);
 
-	trunk.draw();
+	trunk.draw(t);
 
 	glPushMatrix();
 		glTranslated(0, head.height * 2, 0);
-		head.draw();
+		head.draw(t);
 	glPopMatrix();
 
 	// Left side (upper part)
 	glPushMatrix();
 		glTranslatef(trunk.width / 2 + larm.joint_radius / 2, trunk.height / 2 - larm.joint_radius / 2, 0);
-		larm.draw();
+		larm.draw(t);
 
 		glTranslatef(0, 0, larm.length + lforearm.joint_radius / 2);
-		lforearm.draw();
+		lforearm.draw(t);
 
 		glTranslatef(0, 0, larm.length + lhand.joint_radius / 2);
-		lhand.draw();
+		lhand.draw(t);
 	glPopMatrix();
 
 	// Right side  (upper part)
 	glPushMatrix();
 		glTranslatef(-trunk.width / 2 - rarm.joint_radius / 2, trunk.height / 2 - rarm.joint_radius / 2, 0);
-		larm.draw();
+        apply_state(movement::moonwalk.rightArmMovement(t));
+		larm.draw(t);
 
 		glTranslatef(0, 0, rarm.length + rforearm.joint_radius / 2);
-		lforearm.draw();
+		lforearm.draw(t);
 
 		glTranslatef(0, 0, rarm.length + rhand.joint_radius / 2);
-		lhand.draw();
+		lhand.draw(t);
 	glPopMatrix();
 
 	// Left lower part
 	glPushMatrix();
 		glTranslatef(trunk.width * 0.3 + lthigh.joint_radius / 2, -trunk.height / 2 - lthigh.joint_radius / 2, lthigh.width / 2);
-		lthigh.draw();
+		lthigh.draw(t);
 
 		glTranslatef(0, -lthigh.length / 2 - lleg.radius / 2, lleg.radius);
-		lleg.draw();
+		lleg.draw(t);
 
 		glTranslatef(0, -lleg.length - lfoot.joint_radius / 2, 0);
-		lfoot.draw();
+		lfoot.draw(t);
 	glPopMatrix();
 
 	// Right lower part
 	glPushMatrix();
 		glTranslatef(-trunk.width * 0.3 + rthigh.joint_radius / 2, -trunk.height / 2 - rthigh.joint_radius / 2, rthigh.width / 2);
-		lthigh.draw();
+		lthigh.draw(t);
 
 		glTranslatef(0, -rthigh.length / 2 - rleg.radius / 2, rleg.radius);
-		lleg.draw();
+		lleg.draw(t);
 
 		glTranslatef(0, -rleg.length - rfoot.joint_radius / 2, 0);
-		lfoot.draw();
+		lfoot.draw(t);
 	glPopMatrix();
 }
 
-void Trunk::draw() {
+void Trunk::draw(int t) {
 	draw_box(width, height, depth);
 }
 
-void Head::draw() {
+void Head::draw(int t) {
 	draw_box(width, height, depth);
 }
 
-void Hand::draw(){
+void Hand::draw(int t){
 	// Draw wrist joint
 	glutSolidSphere(joint_radius, 30, 30);
 	glTranslatef(0, 0, joint_radius / 2);
@@ -77,7 +81,7 @@ void Hand::draw(){
 	draw_box(2,1,3);
 }
 
-void Forearm::draw() {
+void Forearm::draw(int t) {
 	// Draw elbow joint
 	glutSolidSphere(joint_radius, 30, 30);
 	glTranslatef(0.0f, 0.0f, joint_radius / 2);
@@ -88,7 +92,7 @@ void Forearm::draw() {
 	gluDeleteQuadric(quad);
 }
 
-void Arm::draw() {
+void Arm::draw(int t) {
 	// Draw shoulder joint
 	glutSolidSphere(joint_radius, 30, 30);
 	glTranslatef(0.0f, 0.0f, joint_radius / 2);
@@ -99,7 +103,7 @@ void Arm::draw() {
 	gluDeleteQuadric(quad);
 }
 
-void Thigh::draw() {
+void Thigh::draw(int t) {
 	// Draw joint
 	glutSolidSphere(joint_radius, 30, 30);
 	glTranslatef(0.0f, -length / 2, -width / 2);
@@ -108,7 +112,7 @@ void Thigh::draw() {
 	draw_box(width, length, width);
 }
 
-void Leg::draw() {
+void Leg::draw(int t) {
 	// Draw knee
 	glutSolidSphere(joint_radius, 30, 30);
 	glTranslatef(0.0f, -joint_radius / 2, 0);
@@ -122,7 +126,7 @@ void Leg::draw() {
 	gluDeleteQuadric(quad);
 }
 
-void Foot::draw() {
+void Foot::draw(int t) {
 	// Draw ankle
 	glutSolidSphere(joint_radius, 30, 30);
 	glTranslatef(0, 0, joint_radius / 2);

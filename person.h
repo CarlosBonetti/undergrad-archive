@@ -5,7 +5,7 @@
 
 class Trunk {
 public:
-	void draw();
+	void draw(int t);
 
 	double width = 7;
 	double height = 12;
@@ -14,7 +14,7 @@ public:
 
 class Head {
 public:
-	void draw();
+	void draw(int t);
 
 	double width = 4;
 	double height = 4;
@@ -26,7 +26,7 @@ public:
  */
 class Hand {
 public:
-	void draw();
+	void draw(int t);
 
 	double joint_radius = 0.8;
 };
@@ -36,7 +36,7 @@ public:
  */
 class Forearm {
 public:
-	void draw();
+	void draw(int t);
 
 	double length = 4;
 	double joint_radius = 1;
@@ -48,7 +48,7 @@ public:
  */
 class Arm {
 public:
-	void draw();
+	void draw(int t);
 
 	double length = 4;
 	double joint_radius = 1.2;
@@ -60,7 +60,7 @@ public:
  */
 class Thigh {
 public:
-	void draw();
+	void draw(int t);
 
 	double length = 5;
 	double width = 2.1;
@@ -72,7 +72,7 @@ public:
  */
 class Leg {
 public:
-	void draw();
+	void draw(int t);
 
 	double length = 4;
 	double radius = 1.25;
@@ -84,14 +84,14 @@ public:
  */
 class Foot {
 public:
-	void draw();
+	void draw(int t);
 
 	double joint_radius = 1;
 };
 
 class Person {
 public:
-	void draw();
+	void draw(int t);
 
 private:
 	Trunk trunk;

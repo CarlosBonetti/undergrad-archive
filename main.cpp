@@ -41,6 +41,8 @@ void windowResize(int width, int height) {
 	glLoadIdentity();
 }
 
+
+int time = 0;
 void redraw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpe a tela e o buffer
 	//glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); // Indique que os dois lados de qualquer superfície devem ser representados.
@@ -50,7 +52,7 @@ void redraw() {
 	glTranslatef(0.0f, 3.0f, -23.0f);
 	glRotatef(rtri,0.0f,1.0f,0);
 
-	Person().draw();
+	Person().draw(time);
 
 	glutSwapBuffers();
 }
@@ -78,6 +80,9 @@ void key_special(int key, int x, int y) {
 		case GLUT_KEY_DOWN:
 			glutReshapeWindow(640, 480);
 			break;
+        case GLUT_KEY_RIGHT:
+            time++;
+            break;
 		default:
 			printf("Key special: %c\n", key);
 			break;
