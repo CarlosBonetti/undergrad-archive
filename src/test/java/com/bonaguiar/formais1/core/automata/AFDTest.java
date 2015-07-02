@@ -174,4 +174,15 @@ public class AFDTest {
 		assertEquals(afd.getTransicoes(), min.getTransicoes()); // Autômato já é mínimo, mesmas transições
 	}
 
+	@Test
+	public void testartGetAFMinDeLinguagemVazia() throws FormaisException {
+		AFD afd = new AFD(new Alfabeto("ab"));
+		afd.addEstado("q0", false);
+		afd.addTransicao("q0", 'a', "q0");
+		afd.addTransicao("q0", 'b', "q0");
+		afd.setEstadoInicial("q0");
+
+		AFMin min = afd.getAFMin();
+		assertEquals("q0", min.getEstadoInicial());
+	}
 }

@@ -104,6 +104,10 @@ public class AFD extends AF {
 		}
 
 		// Seta o estado inicial
+		// Checa se o estado inicial pertence ao autômato mínimo, caso não pertença neste ponto, a linguagem é vazia
+		if (!min.contemEstado(this.getEstadoInicial())) {
+			min.addEstado(this.getEstadoInicial(), this.ehFinal(this.getEstadoInicial()));
+		}
 		min.setEstadoInicial(this.getEstadoInicial());
 
 		// Para cada classe de equivalência, elege um estado representante e modifica as ocorrências
