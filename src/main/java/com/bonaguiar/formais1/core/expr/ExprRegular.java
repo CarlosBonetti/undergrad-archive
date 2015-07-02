@@ -86,7 +86,7 @@ public class ExprRegular implements Serializable {
 			Composicao comp = novasComposicoes.remove(0);
 			String estadoOrigem = hash.get(comp.toString());
 
-			for (Character c : afd.getAlfabeto()) {
+			for (Character c : afd.getAlfabeto().sorted()) {
 				// Obtém a composição referente à transição com o caracter c
 				Composicao transComp = comp.transicao(c);
 
