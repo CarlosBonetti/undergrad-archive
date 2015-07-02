@@ -366,6 +366,16 @@ public class AFTest {
 		list.add("A");
 		mescla = af.new MesclaDeEstados(list);
 		assertEquals("[A, q1, q4]", mescla.toString());
+
+		list = new ArrayList<String>();
+		list.add("[[q0]]");
+		mescla = af.new MesclaDeEstados(list);
+		assertEquals("[q0]", mescla.toString());
+
+		list = new ArrayList<String>();
+		list.add("[[[[q0]]]]");
+		mescla = af.new MesclaDeEstados(list);
+		assertEquals("[q0]", mescla.toString());
 	}
 
 	@Test
@@ -525,10 +535,10 @@ public class AFTest {
 	public void testarTextMatch() throws FormaisException {
 		AFD af = (new ExprRegular("(abc)*")).getAFD();
 		HashMap<Integer, Integer> hash = af.textSearch("aabc abcabc_abc");
-		 
+
 		assertTrue(hash.containsKey(1));
 		assertTrue(hash.containsValue(3));
-		
+
 		assertTrue(hash.containsKey(5));
 		assertTrue(hash.containsValue(6));
 

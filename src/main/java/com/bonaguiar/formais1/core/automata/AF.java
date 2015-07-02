@@ -400,6 +400,12 @@ public class AF {
 				nome += es + (i != estados.size() ? ", " : "");
 			}
 			nome += "]";
+
+			// Remove colchetes duplos. Ex.: "[[q0]]"
+			while (nome.startsWith("[[") && nome.endsWith("]]")) {
+				nome = nome.substring(1, nome.length() - 1);
+			}
+
 			return nome;
 		}
 
@@ -515,8 +521,8 @@ public class AF {
 		int lastPos = 0; // Posição de início do último possível match
 		int tamanho = 0; // Tamanho atual do possível match
 
-		for (int i = 0; i < text.length(); ) {
-			
+		for (int i = 0; i < text.length();) {
+
 			List<String> destinos = null;
 			try {
 				char a = text.charAt(i);
@@ -555,10 +561,10 @@ public class AF {
 
 		return hash;
 	}
-	
-	public void testeBusca(String texto){
+
+	public void testeBusca(String texto) {
 		for (Character character : alfabeto) {
-			
+
 		}
 	}
 }
