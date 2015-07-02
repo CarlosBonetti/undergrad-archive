@@ -1,7 +1,6 @@
 package com.bonaguiar.formais1.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -130,12 +129,12 @@ public class ViewAF extends JFrame {
 
 							if (afMin1.equals(afMin2)) {
 								JOptionPane pane = new JOptionPane("As linguagens geradas pelos autômatos são as mesmas");
-								JDialog d =	pane.createDialog((JFrame)null, "Comparação")	;
+								JDialog d = pane.createDialog((JFrame) null, "Comparação");
 								d.setLocation(getLocation());
 								d.setVisible(true);
 							} else {
 								JOptionPane pane = new JOptionPane("As linguagens geradas pelos autômatos NÃO são as mesmas");
-								JDialog d =	pane.createDialog((JFrame)null, "Comparação")	;
+								JDialog d = pane.createDialog((JFrame) null, "Comparação");
 								d.setLocation(getLocation());
 								d.setVisible(true);
 							}
@@ -157,7 +156,7 @@ public class ViewAF extends JFrame {
 					@Override
 					public void run(AF af1, AF af2) {
 						try {
-							ViewAF view = new ViewAF(af1.intersectar(af2), ViewAF.this.frame);
+							ViewAF view = new ViewAF(af1.intersectar(af2).determinizar().getAFMin(), ViewAF.this.frame);
 							view.setVisible(true);
 							dispose();
 						} catch (Exception e) {
@@ -180,23 +179,23 @@ public class ViewAF extends JFrame {
 				if (botaoOk == JOptionPane.OK_OPTION) {
 					try {
 						HashMap<Integer, Integer> a = ViewAF.this.af.textSearch(area.getText());
-//						HashMap<Integer, Integer> a = ViewAF.this.af.textSearchNova(area.getText());
+						// HashMap<Integer, Integer> a = ViewAF.this.af.textSearchNova(area.getText());
 						String padroes = "";
 						for (int chave : a.keySet()) {
-							padroes += area.getText().substring(chave, chave+a.get(chave)) + "\n";
+							padroes += area.getText().substring(chave, chave + a.get(chave)) + "\n";
 						}
 						if (padroes.trim().isEmpty()) {
-							JOptionPane.showConfirmDialog(frame, "Nenhum padrao encontrado", "Busca", JOptionPane.CLOSED_OPTION);							
+							JOptionPane.showConfirmDialog(frame, "Nenhum padrao encontrado", "Busca", JOptionPane.CLOSED_OPTION);
 						} else {
-							JOptionPane.showConfirmDialog(frame, a.size() + " matches\n"+ padroes, "Busca", JOptionPane.CLOSED_OPTION);
+							JOptionPane.showConfirmDialog(frame, a.size() + " matches\n" + padroes, "Busca", JOptionPane.CLOSED_OPTION);
 						}
-								
+
 					} catch (FormaisException e) {
 						tratarException(e);
 					}
 
 				}
-				
+
 			}
 		});
 		menuBar.add(busca);
@@ -204,7 +203,7 @@ public class ViewAF extends JFrame {
 
 	protected void tratarException(Exception e) {
 		e.printStackTrace();
-		JOptionPane.showMessageDialog(this, e.getMessage() != null || e.getMessage().isEmpty()? e.getMessage(): "\nTente novamente.");
+		JOptionPane.showMessageDialog(this, e.getMessage() != null || e.getMessage().isEmpty() ? e.getMessage() : "\nTente novamente.");
 	}
 
 	protected void abrirOutro(AF af, String title) {
