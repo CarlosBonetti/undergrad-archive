@@ -41,8 +41,26 @@ public class ERParser {
 		expr = traduzirSimbolosEspeciais(expr);
 
 		// Se expressão for da forma "(...)", retorna o parse da expressão interna
+		// Cuida com expressões do tipo "(...)(...)" !!
 		if (expr.startsWith("(") && expr.endsWith(")")) {
-			return parse(expr.substring(1, expr.length() - 1));
+			// Verificamos em qual posição termina o parênteses inicial
+			// Se terminar na última posição, a expressão tem a forma "(...)"
+			// Senão, ela tem a forma "(...)(...)..."
+			int depth = 0;
+			for (int i = 0; i < expr.length(); i++) {
+				Character c = expr.charAt(i);
+				if (c.equals(')')) {
+					depth++;
+				} else if (c.equals('(')) {
+					depth--;
+				}
+				if (depth == 0) {
+					if (i == expr.length() - 1) {
+						return parse(expr.substring(1, expr.length() - 1));
+					}
+					break;
+				}
+			}
 		}
 
 		// Procuramos pela operação de mais alto nível, seguindo a precedência dos operadores

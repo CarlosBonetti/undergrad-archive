@@ -127,6 +127,11 @@ public class ERParserTest {
 		assertEquals(new Character('.'), nodo.getEsq().getConteudo());
 		assertEquals(new Character('*'), nodo.getDir().getConteudo());
 		assertEquals(new Character('.'), nodo.getDir().getEsq().getConteudo());
+
+		nodo = ERParser.parse("(a)(b)");
+		assertEquals(new Character('.'), nodo.getConteudo());
+		assertEquals(new Character('a'), nodo.getEsq().getConteudo());
+		assertEquals(new Character('b'), nodo.getDir().getConteudo());
 	}
 
 	@Test(expected = FormaisException.class)
