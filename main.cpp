@@ -8,6 +8,8 @@
 
 int window;
 float rtri = 90;
+int time = 0;
+int KEY_STATES[256];
 
 void initGL() {
 	glShadeModel(GL_SMOOTH); // Habilita sombreamento suavizado
@@ -35,8 +37,6 @@ void windowResize(int width, int height) {
 	glLoadIdentity();
 }
 
-
-int time = 0;
 void redraw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpe a tela e o buffer
 	//glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); // Indique que os dois lados de qualquer superfície devem ser representados.
@@ -51,7 +51,14 @@ void redraw() {
 	glutSwapBuffers();
 }
 
+void handle_keys() {
+	if (KEY_STATES[GLUT_KEY_RIGHT]) {
+		time++;
+	}
+}
+
 void idle() {
+	handle_keys();
 	redraw();
 }
 
@@ -66,7 +73,8 @@ void key_pressed(unsigned char key, int x, int y) {
 	}
 }
 
-void key_special(int key, int x, int y) {
+void key_special_down(int key, int x, int y) {
+	KEY_STATES[key] = true;
 	switch(key) {
 		case GLUT_KEY_UP:
 			glutFullScreen();
@@ -74,13 +82,11 @@ void key_special(int key, int x, int y) {
 		case GLUT_KEY_DOWN:
 			glutReshapeWindow(640, 480);
 			break;
-        case GLUT_KEY_RIGHT:
-            time++;
-            break;
-		default:
-			printf("Key special: %c\n", key);
-			break;
 	}
+}
+
+void key_special_up(int key, int x, int y) {
+	KEY_STATES[key] = false;
 }
 
 int main(int argc, char **argv) {
@@ -94,7 +100,8 @@ int main(int argc, char **argv) {
 	glutDisplayFunc(redraw);
 	glutIdleFunc(idle);
 	glutKeyboardFunc(key_pressed);
-	glutSpecialFunc(key_special);
+	glutSpecialFunc(key_special_down);
+	glutSpecialUpFunc(key_special_up);
 	glutMainLoop();
 	return 0;
 }
