@@ -7,9 +7,6 @@
 #define ESCAPE 27
 
 int window;
-int WIDTH;
-int HEIGHT;
-
 float rtri = 90;
 
 void initGL() {
@@ -25,9 +22,6 @@ void initGL() {
 }
 
 void windowResize(int width, int height) {
-	WIDTH = width;
-	HEIGHT = height;
-
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
