@@ -59,8 +59,8 @@ namespace movement{
             constexpr int movement_duration = mw_length * 0.6;
             if(t > movement_duration) return state(0,0,0,0,0,0);
     
-           //arm movement is like a pendulum: it rotates and then goes back
-           //in this case we are simulating a parabola with points:
+           //arm movement is like a pendulum: it rotates to max_theta and then goes back to 0.
+           //in this case we are simulating a parabola with points
            //(0,0)  (len, max_theta) (2*len, 0)
            constexpr int phase_len = movement_duration/2;
            constexpr double max_theta = -30.0;
