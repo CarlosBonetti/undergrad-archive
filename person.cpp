@@ -30,7 +30,9 @@ void Person::draw(int t) {
 	glPushMatrix();
         //coloring for debug
         glColor3f(1, 1, 1);
+
 		glTranslatef(-trunk.width / 2 - rarm.joint_radius / 2, trunk.height / 2 - rarm.joint_radius / 2, 0);
+        //arms should start in the vertical position, poiting to the floor
         glRotatef(90, 1,0,0);
         apply_state(movement::moonwalk.rightArmMovement(t));
 		larm.draw(t);
@@ -40,6 +42,7 @@ void Person::draw(int t) {
 		lforearm.draw(t);
 
 		glTranslatef(0, 0, rarm.length + rhand.joint_radius / 2);
+        apply_state(movement::moonwalk.rightHandMovement(t));
 		lhand.draw(t);
 	    //decoloring for debug
         glColor3f(0.435294f, 0.258824f, 0.258824f);
