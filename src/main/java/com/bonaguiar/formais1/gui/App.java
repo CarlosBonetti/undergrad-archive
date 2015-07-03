@@ -262,7 +262,10 @@ public class App extends JFrame {
 						view.setVisible(true);
 						view.setTitle(valorSelecao);
 					} catch (FormaisException e1) {
+						tratarException(e1);
 						e1.printStackTrace();
+					} catch (StackOverflowError e1) {
+						JOptionPane.showMessageDialog(frame, "Impossível a construção.\nEdite a E.R.");
 					}
 				}
 			}
@@ -282,7 +285,10 @@ public class App extends JFrame {
 						view.setVisible(true);
 						view.setTitle(valorSelecao);
 					} catch (FormaisException e1) {
+						tratarException(e1);
 						e1.printStackTrace();
+					} catch (StackOverflowError e1) {
+						JOptionPane.showMessageDialog(frame, "Impossível a construção.\nEdite a Gramática");
 					}
 				}
 			}
@@ -299,6 +305,7 @@ public class App extends JFrame {
 				try {
 					editarGramatica(grSelecionado);
 				} catch (Exception e2) {
+					tratarException(e2);
 				}
 				
 			}
@@ -312,7 +319,8 @@ public class App extends JFrame {
 					if (JOptionPane.YES_OPTION == opcao) {
 						removeDaListaGR(grSelecionado);
 					}
-				}
+				} else 
+					JOptionPane.showMessageDialog(frame, "Selecione um item da listagem");
 			}
 		});
 
@@ -322,6 +330,7 @@ public class App extends JFrame {
 				try {
 					editarER(erSelecionado);
 				} catch (Exception e2) {
+					tratarException(e2);
 				}
 			}
 		});
@@ -334,7 +343,8 @@ public class App extends JFrame {
 					if (JOptionPane.YES_OPTION == opcao) {
 						removeDaListaER(erSelecionado);
 					}
-				}
+				}else 
+					JOptionPane.showMessageDialog(frame, "Selecione um item da listagem");
 			}
 		});
 
