@@ -10,7 +10,7 @@ int window;
 int WIDTH;
 int HEIGHT;
 
-float rtri;
+float rtri = 90;
 
 void initGL() {
 	glShadeModel(GL_SMOOTH); // Habilita sombreamento suavizado
@@ -48,7 +48,7 @@ void redraw() {
 	//glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); // Indique que os dois lados de qualquer superfície devem ser representados.
 	glLoadIdentity(); // Resete a corrente Modelview Matrix
 
-	rtri+=0.7f;
+//	rtri+=0.7f;
 	glTranslatef(0.0f, 3.0f, -23.0f);
 	glRotatef(rtri,0.0f,1.0f,0);
 

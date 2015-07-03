@@ -28,15 +28,21 @@ void Person::draw(int t) {
 
 	// Right side  (upper part)
 	glPushMatrix();
+        //coloring for debug
+        glColor3f(1, 1, 1);
 		glTranslatef(-trunk.width / 2 - rarm.joint_radius / 2, trunk.height / 2 - rarm.joint_radius / 2, 0);
+        glRotatef(90, 1,0,0);
         apply_state(movement::moonwalk.rightArmMovement(t));
 		larm.draw(t);
 
 		glTranslatef(0, 0, rarm.length + rforearm.joint_radius / 2);
+        apply_state(movement::moonwalk.rightForearmMovement(t));
 		lforearm.draw(t);
 
 		glTranslatef(0, 0, rarm.length + rhand.joint_radius / 2);
 		lhand.draw(t);
+	    //decoloring for debug
+        glColor3f(0.435294f, 0.258824f, 0.258824f);
 	glPopMatrix();
 
 	// Left lower part
