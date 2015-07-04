@@ -91,9 +91,17 @@ public:
 
 class Person {
 public:
+    enum walkingMode{MOONWALKING, RUNNING};
+
+
+    void setWalkingMode(walkingMode m) {currentMode = m;}
 	void draw(int t);
 
 private:
+    walkingMode currentMode = MOONWALKING;
+   
+    template<typename T, T& mode> void draw_aux(int t);
+
 	Trunk trunk;
 	Head head;
 	Hand lhand, rhand;

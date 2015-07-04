@@ -1,10 +1,18 @@
 #include "person.h"
-#include "movement.h"
+#include "moonwalk.h"
+#include "run.h"
 #include "utils.h"
 
 
-
 void Person::draw(int t) {
+    if(currentMode == MOONWALKING)
+        draw_aux<movement::moonwalk_t, movement::moonwalk>(t);
+    if(currentMode == RUNNING)
+        draw_aux<movement::run_t, movement::run>(t);
+}
+
+template<typename T, T& mode>
+void Person::draw_aux(int t) {
 	glColor3f(0.435294f, 0.258824f, 0.258824f);
 
 	trunk.draw(t);
@@ -34,15 +42,15 @@ void Person::draw(int t) {
 		glTranslatef(-trunk.width / 2 - rarm.joint_radius / 2, trunk.height / 2 - rarm.joint_radius / 2, 0);
         //arms should start in the vertical position, poiting to the floor
         glRotatef(90, 1,0,0);
-        apply_state(movement::moonwalk.rightArmMovement(t));
+        apply_state(mode.rightArmMovement(t));
 		larm.draw(t);
 
 		glTranslatef(0, 0, rarm.length + rforearm.joint_radius / 2);
-        apply_state(movement::moonwalk.rightForearmMovement(t));
+        apply_state(mode.rightForearmMovement(t));
 		lforearm.draw(t);
 
 		glTranslatef(0, 0, rarm.length + rhand.joint_radius / 2);
-        apply_state(movement::moonwalk.rightHandMovement(t));
+        apply_state(mode.rightHandMovement(t));
 		lhand.draw(t);
 	    //decoloring for debug
         glColor3f(0.435294f, 0.258824f, 0.258824f);
