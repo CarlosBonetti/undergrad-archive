@@ -13,72 +13,80 @@ void Person::draw(int t) {
 
 template<typename T, T& mode>
 void Person::draw_aux(int t) {
-	glColor3f(0.435294f, 0.258824f, 0.258824f);
+    glPushMatrix();
 
-	trunk.draw(t);
+    	glColor3f(0.435294f, 0.258824f, 0.258824f);
+        auto d = mode.bodyMovement(t);
+        glTranslatef(0, d.ty, 0);
+    
+    
+    	trunk.draw(t);
+    
+    	glPushMatrix();
+    		glTranslated(0, head.height * 2, 0);
+    		head.draw(t);
+    	glPopMatrix();
+    
+    	// Left side (upper part)
+    	glPushMatrix();
+    		glTranslatef(trunk.width / 2 + larm.joint_radius / 2, trunk.height / 2 - larm.joint_radius / 2, 0);
+    		larm.draw(t);
+    
+    		glTranslatef(0, 0, larm.length + lforearm.joint_radius / 2);
+    		lforearm.draw(t);
+    
+    		glTranslatef(0, 0, larm.length + lhand.joint_radius / 2);
+    		lhand.draw(t);
+    	glPopMatrix();
+    
+    	// Right side  (upper part)
+    	glPushMatrix();
+            //coloring for debug
+            glColor3f(1, 1, 1);
+    
+    		glTranslatef(-trunk.width / 2 - rarm.joint_radius / 2, trunk.height / 2 - rarm.joint_radius / 2, 0);
+            //arms should start in the vertical position, poiting to the floor
+            glRotatef(90, 1,0,0);
+            apply_state(mode.rightArmMovement(t));
+    		larm.draw(t);
+    
+    		glTranslatef(0, 0, rarm.length + rforearm.joint_radius / 2);
+            apply_state(mode.rightForearmMovement(t));
+    		lforearm.draw(t);
+    
+    		glTranslatef(0, 0, rarm.length + rhand.joint_radius / 2);
+            apply_state(mode.rightHandMovement(t));
+    		lhand.draw(t);
+    	    //decoloring for debug
+            glColor3f(0.435294f, 0.258824f, 0.258824f);
+    	glPopMatrix();
+    
+    	// Left lower part
+    	glPushMatrix();
+    		glTranslatef(trunk.width * 0.3 + lthigh.joint_radius / 2, -trunk.height / 2 - lthigh.joint_radius / 2, lthigh.width / 2);
+    		lthigh.draw(t);
+    
+    		glTranslatef(0, -lthigh.length / 2 - lleg.radius / 2, lleg.radius);
+    		lleg.draw(t);
+    
+    		glTranslatef(0, -lleg.length - lfoot.joint_radius / 2, 0);
+    		lfoot.draw(t);
+    	glPopMatrix();
+    
+    	// Right lower part
+    	glPushMatrix();
+    		glTranslatef(-trunk.width * 0.3 + rthigh.joint_radius / 2, -trunk.height / 2 - rthigh.joint_radius / 2, rthigh.width / 2);
+            apply_state(mode.rightTighMovement(t));
+    		lthigh.draw(t);
+    
+    		glTranslatef(0, -rthigh.length / 2 - rleg.radius / 2, rleg.radius);
+    		lleg.draw(t);
+    
+    		glTranslatef(0, -rleg.length - rfoot.joint_radius / 2, 0);
+    		lfoot.draw(t);
+    	glPopMatrix();
 
-	glPushMatrix();
-		glTranslated(0, head.height * 2, 0);
-		head.draw(t);
-	glPopMatrix();
-
-	// Left side (upper part)
-	glPushMatrix();
-		glTranslatef(trunk.width / 2 + larm.joint_radius / 2, trunk.height / 2 - larm.joint_radius / 2, 0);
-		larm.draw(t);
-
-		glTranslatef(0, 0, larm.length + lforearm.joint_radius / 2);
-		lforearm.draw(t);
-
-		glTranslatef(0, 0, larm.length + lhand.joint_radius / 2);
-		lhand.draw(t);
-	glPopMatrix();
-
-	// Right side  (upper part)
-	glPushMatrix();
-        //coloring for debug
-        glColor3f(1, 1, 1);
-
-		glTranslatef(-trunk.width / 2 - rarm.joint_radius / 2, trunk.height / 2 - rarm.joint_radius / 2, 0);
-        //arms should start in the vertical position, poiting to the floor
-        glRotatef(90, 1,0,0);
-        apply_state(mode.rightArmMovement(t));
-		larm.draw(t);
-
-		glTranslatef(0, 0, rarm.length + rforearm.joint_radius / 2);
-        apply_state(mode.rightForearmMovement(t));
-		lforearm.draw(t);
-
-		glTranslatef(0, 0, rarm.length + rhand.joint_radius / 2);
-        apply_state(mode.rightHandMovement(t));
-		lhand.draw(t);
-	    //decoloring for debug
-        glColor3f(0.435294f, 0.258824f, 0.258824f);
-	glPopMatrix();
-
-	// Left lower part
-	glPushMatrix();
-		glTranslatef(trunk.width * 0.3 + lthigh.joint_radius / 2, -trunk.height / 2 - lthigh.joint_radius / 2, lthigh.width / 2);
-		lthigh.draw(t);
-
-		glTranslatef(0, -lthigh.length / 2 - lleg.radius / 2, lleg.radius);
-		lleg.draw(t);
-
-		glTranslatef(0, -lleg.length - lfoot.joint_radius / 2, 0);
-		lfoot.draw(t);
-	glPopMatrix();
-
-	// Right lower part
-	glPushMatrix();
-		glTranslatef(-trunk.width * 0.3 + rthigh.joint_radius / 2, -trunk.height / 2 - rthigh.joint_radius / 2, rthigh.width / 2);
-		lthigh.draw(t);
-
-		glTranslatef(0, -rthigh.length / 2 - rleg.radius / 2, rleg.radius);
-		lleg.draw(t);
-
-		glTranslatef(0, -rleg.length - rfoot.joint_radius / 2, 0);
-		lfoot.draw(t);
-	glPopMatrix();
+    glPopMatrix();
 }
 
 void Trunk::draw(int t) {

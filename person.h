@@ -98,7 +98,7 @@ public:
 	void draw(int t);
 
 private:
-    walkingMode currentMode = MOONWALKING;
+    walkingMode currentMode = RUNNING;
    
     template<typename T, T& mode> void draw_aux(int t);
 

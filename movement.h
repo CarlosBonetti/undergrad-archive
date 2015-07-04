@@ -26,12 +26,16 @@ namespace movement{
             return state();
     });
     
-    template<movement& _rightArmMovement, movement& _rightForearmMovement, movement& _rightHandMovement>
+    template<movement& _bodyMovement, 
+        movement& _rightArmMovement, movement& _rightForearmMovement, movement& _rightHandMovement,
+        movement& _rightTighMovement>
     class BodyMovement{
         public:
+            const movement& bodyMovement = _bodyMovement;
             const movement& rightArmMovement = _rightArmMovement;
             const movement& rightForearmMovement = _rightForearmMovement;
             const movement& rightHandMovement = _rightHandMovement;
+            const movement& rightTighMovement = _rightTighMovement;
     };
     
     
