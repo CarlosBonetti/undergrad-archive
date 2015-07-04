@@ -45,6 +45,7 @@ void initGL() {
 	glClearDepth(1.0f); // Inicialização do Depth Buffer
 	glDepthFunc(GL_LEQUAL); // Define qual teste de profundidade vai ser feito
 	glDepthMask(true);
+	glEnable(GL_DEPTH_TEST);
 
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Calculos de perspectiva legaizinhos
 	init_light();
@@ -69,18 +70,15 @@ void redraw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpe a tela e o buffer
 	//glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); // Indique que os dois lados de qualquer superfície devem ser representados.
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glEnable(GL_DEPTH_TEST);
 
-	init_light();
 	glLoadIdentity(); // Resete a corrente Modelview Matrix
-
-	glTranslatef(0.0f, 3.0f, -23.0f);
 
 	//gluLookAt(	sinf(rotation), 0, cosf(rotation),
 	//			0, 0, 0,
 	//			0, 1, 0);
 
 	glPushMatrix();
+	glTranslatef(0.0f, 3.0f, -23.0f);
 		glRotatef(rotation, 0, 1, 0);
 		Person().draw(time);
 	glPopMatrix();
@@ -135,7 +133,6 @@ void key_special_up(int key, int x, int y) {
 
 int main(int argc, char **argv) {
 	glutInit(&argc, argv);
-	initGL();
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowSize(800, 800);
 	glutInitWindowPosition(0, 0);
@@ -146,6 +143,7 @@ int main(int argc, char **argv) {
 	glutKeyboardFunc(key_pressed);
 	glutSpecialFunc(key_special_down);
 	glutSpecialUpFunc(key_special_up);
+	initGL();
 	glutMainLoop();
 	return 0;
 }
