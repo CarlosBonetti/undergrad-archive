@@ -28,14 +28,22 @@ namespace movement{
     
     template<movement& _bodyMovement, 
         movement& _rightArmMovement, movement& _rightForearmMovement, movement& _rightHandMovement,
-        movement& _rightTighMovement>
+        movement& _rightThighMovement, movement& _rightLegMovement, movement& _rightFootMovement,
+        movement& _leftThighMovement, movement& _leftLegMovement, movement& _leftFootMovement>
     class BodyMovement{
         public:
             const movement& bodyMovement = _bodyMovement;
             const movement& rightArmMovement = _rightArmMovement;
             const movement& rightForearmMovement = _rightForearmMovement;
             const movement& rightHandMovement = _rightHandMovement;
-            const movement& rightTighMovement = _rightTighMovement;
+
+            const movement& rightThighMovement = _rightThighMovement;
+            const movement& rightLegMovement = _rightLegMovement;
+            const movement& rightFootMovement = _rightFootMovement;
+            
+            const movement& leftThighMovement = _leftThighMovement;
+            const movement& leftLegMovement = _leftLegMovement;
+            const movement& leftFootMovement = _leftFootMovement;
     };
     
     

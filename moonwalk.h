@@ -60,7 +60,10 @@ namespace movement{
            return state(theta, 0, 0, 0, 0, 0);
     });
 
-    typedef BodyMovement<noMovement, mw_right_arm, mw_right_forearm, mw_right_hand, noMovement> moonwalk_t;
+    typedef BodyMovement<noMovement,
+            mw_right_arm, mw_right_forearm, mw_right_hand, 
+            noMovement, noMovement, noMovement,
+            noMovement, noMovement, noMovement> moonwalk_t;
     moonwalk_t moonwalk;
 }
 #endif

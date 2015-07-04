@@ -72,6 +72,9 @@ void handle_keys() {
 	if (KEY_STATES[GLUT_KEY_RIGHT]) {
 		time++;
 	}
+    if (KEY_STATES[GLUT_KEY_LEFT]) {
+		time--;
+	}
 }
 
 void idle() {

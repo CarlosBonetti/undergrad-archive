@@ -1,18 +1,18 @@
 #ifndef RUN_H_
 #define RUN_H_
 #include "movement.h"
+#include <iostream>
 
 namespace movement
 {
-    /* Running movemement definitions
-     * See moonwalk.h for detailed comments
-     * */
     constexpr int run_length = 120;
 
     movement run_body([](int t) -> state{
-            t = t % run_length;
+            //length is divided by 2 because we want the up and down movement
+            //to happen twice in each cycle, one for each leg
+            t = t % (run_length/2);
 
-            constexpr int movement_duration = run_length * 1.0;
+            constexpr int movement_duration = run_length/2 * 1.0;
             if(t > movement_duration) return state(0,0,0,0,0,0);
     
            constexpr int phase_len = movement_duration/2;
@@ -23,22 +23,83 @@ namespace movement
            return state(0, 0, 0, 0, dy, 0);
     });
 
-    movement run_right_tigh([] (int t) -> state {
-            t = t % run_length;
 
-            constexpr int movement_duration = run_length * 0.5;
-            if(t > movement_duration) return state(0,0,0,0,0,0);
-    
-           constexpr int phase_len = movement_duration/2;
-           constexpr double max_theta = 40.0;
-           constexpr double a = - max_theta / (phase_len * phase_len);
-           constexpr double b = 2.0 * max_theta / phase_len;
-           constexpr double c = 0;
-           double theta = a * t * t + b * t + c;
+    movement run_right_thigh([] (int t) -> state {
+           t = t % run_length;
+
+           double x = static_cast<double>(t) / static_cast<double>(run_length);
+           double theta;
+           if(x <= 2.0/6){
+                theta = 30 - 180*x;
+           }
+           else if (x <= 5.0/6){
+                theta = 180*x - 90;
+           }
+           else{
+                theta = 210 - 180*x;
+           }
+           std::cout << x <<  " , " << theta << std::endl;
+           return state(-theta, 0, 0, 0, 0, 0);
+    });
+
+    movement run_right_leg([] (int t) -> state {
+           t = t % run_length;
+
+           double x = 100 * static_cast<double>(t) / static_cast<double>(run_length);
+           double theta;
+           if(x <= 35){
+                theta = -x*x * 59.0/1001 + x * 1922.0/1001 + 30;
+           }
+           else if(x <= 95){
+                theta = -x*x * 131.0/1800 + x * 422.0/45 - 15413.0/72;
+           }
+           else{
+                theta = 2*x - 170;
+           }
+           
            return state(theta, 0, 0, 0, 0, 0);
     });
 
-    typedef BodyMovement<run_body, noMovement, noMovement, noMovement, run_right_tigh> run_t;
+    //left thigh and leg are copies of the right ones but shifted 50% ahead in the cycle.
+    movement run_left_thigh([] (int t) -> state {
+           t = (t + run_length/2) % run_length;
+
+           double x = static_cast<double>(t) / static_cast<double>(run_length);
+           double theta;
+           if(x <= 2.0/6){
+                theta = 30 - 180*x;
+           }
+           else if (x <= 5.0/6){
+                theta = 180*x - 90;
+           }
+           else{
+                theta = 210 - 180*x;
+           }
+           std::cout << x <<  " , " << theta << std::endl;
+           return state(-theta, 0, 0, 0, 0, 0);
+    });
+
+    movement run_left_leg([] (int t) -> state {
+           t = (t + run_length/2) % run_length;
+
+           double x = 100 * static_cast<double>(t) / static_cast<double>(run_length);
+           double theta;
+           if(x <= 35){
+                theta = -x*x * 59.0/1001 + x * 1922.0/1001 + 30;
+           }
+           else if(x <= 95){
+                theta = -x*x * 131.0/1800 + x * 422.0/45 - 15413.0/72;
+           }
+           else{
+                theta = 2*x - 170;
+           }
+           
+           return state(theta, 0, 0, 0, 0, 0);
+    });
+    typedef BodyMovement<run_body, 
+            noMovement, noMovement, noMovement, 
+            run_right_thigh, run_right_leg, noMovement,
+            run_left_thigh, run_left_leg, noMovement> run_t;
     run_t run;
 }
 #endif

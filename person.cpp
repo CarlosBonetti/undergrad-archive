@@ -64,25 +64,30 @@ void Person::draw_aux(int t) {
     	// Left lower part
     	glPushMatrix();
     		glTranslatef(trunk.width * 0.3 + lthigh.joint_radius / 2, -trunk.height / 2 - lthigh.joint_radius / 2, lthigh.width / 2);
+            apply_state(mode.leftThighMovement(t));
     		lthigh.draw(t);
     
     		glTranslatef(0, -lthigh.length / 2 - lleg.radius / 2, lleg.radius);
+            apply_state(mode.leftLegMovement(t));
     		lleg.draw(t);
     
     		glTranslatef(0, -lleg.length - lfoot.joint_radius / 2, 0);
+            apply_state(mode.leftFootMovement(t));
     		lfoot.draw(t);
     	glPopMatrix();
     
     	// Right lower part
     	glPushMatrix();
     		glTranslatef(-trunk.width * 0.3 + rthigh.joint_radius / 2, -trunk.height / 2 - rthigh.joint_radius / 2, rthigh.width / 2);
-            apply_state(mode.rightTighMovement(t));
+            apply_state(mode.rightThighMovement(t));
     		lthigh.draw(t);
     
     		glTranslatef(0, -rthigh.length / 2 - rleg.radius / 2, rleg.radius);
+            apply_state(mode.rightLegMovement(t));
     		lleg.draw(t);
     
     		glTranslatef(0, -rleg.length - rfoot.joint_radius / 2, 0);
+            apply_state(mode.rightFootMovement(t));
     		lfoot.draw(t);
     	glPopMatrix();
 
