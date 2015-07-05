@@ -43,7 +43,6 @@ public class App extends JFrame {
 	private JPanel principal = new JPanel();
 	private JTextArea textAreaGrammar = new JTextArea();
 
-
 	private void setGlcSelecionado(String selecao) {
 		glcSelecionado = selecao;
 	}
@@ -84,8 +83,8 @@ public class App extends JFrame {
 		glcSelecionado = "";
 		persistGlc();
 	}
-	
-	private void atualizaTextAreaGrammar(){
+
+	private void atualizaTextAreaGrammar() {
 		textAreaGrammar.setText(gramHash.get(glcSelecionado).getRaw());
 	}
 
@@ -158,6 +157,7 @@ public class App extends JFrame {
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					frame = new App();
@@ -194,7 +194,7 @@ public class App extends JFrame {
 					atualizaTextAreaGrammar();
 					setContentPane(painelSecundario);
 					painelSecundario.setVisible(true);
-					
+
 				}
 			}
 		});
@@ -277,42 +277,40 @@ public class App extends JFrame {
 
 		JButton btnIntersec = new JButton("Intersec é vazio ?");
 		btnIntersec.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 			}
 		});
 		JButton btnFatorada = new JButton("Esta fatorada ?");
 		btnFatorada.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					String msgSaida = "";
-					if (!possuiRE()) {
-						if (!gramHash.get(glcSelecionado).getFatoracaoDireta()
-								.isEmpty()) {
-							String simbolos = "";
-							for (String s : gramHash.get(glcSelecionado)
-									.getFatoracaoDireta()) {
-								simbolos += s + "\n";
-							}
-							msgSaida += "\nGrammar não esta Fatorada\npossui Não-Determinismo direto\n"
-											+ simbolos;
-						} 
-						if (!gramHash.get(glcSelecionado)
-								.getFatoracaoIndireta().isEmpty()) {
-							String simbolos = "";
-							for (String s : gramHash.get(glcSelecionado)
-									.getFatoracaoIndireta()) {
-								simbolos += s + "\n";
-							}
-							msgSaida += "\nGrammar não esta Fatorada\npossui Não-Determinismo indireta\n"
-											+ simbolos;
-						} 					
-						if (gramHash.get(glcSelecionado).getFatoracaoDireta()
-								.isEmpty() && gramHash.get(glcSelecionado)
-								.getFatoracaoIndireta().isEmpty()) {
-									msgSaida = "Grammar esta Fatorada";
+					if (!gramHash.get(glcSelecionado).getFatoracaoDireta()
+							.isEmpty()) {
+						String simbolos = "";
+						for (String s : gramHash.get(glcSelecionado)
+								.getFatoracaoDireta()) {
+							simbolos += s + "\n";
 						}
-					} else {
-						msgSaida = "Aterta!\nGramática possui R.E.!";
+						msgSaida += "\nGrammar não esta Fatorada\npossui Não-Determinismo direto\n"
+								+ simbolos;
+					}
+					if (!gramHash.get(glcSelecionado)
+							.getFatoracaoIndireta().isEmpty()) {
+						String simbolos = "";
+						for (String s : gramHash.get(glcSelecionado)
+								.getFatoracaoIndireta()) {
+							simbolos += s + "\n";
+						}
+						msgSaida += "\nGrammar não esta Fatorada\npossui Não-Determinismo indireta\n"
+								+ simbolos;
+					}
+					if (gramHash.get(glcSelecionado).getFatoracaoDireta()
+							.isEmpty() && gramHash.get(glcSelecionado)
+							.getFatoracaoIndireta().isEmpty()) {
+						msgSaida = "Grammar esta Fatorada";
 					}
 
 					JOptionPane.showMessageDialog(frame,
@@ -326,33 +324,28 @@ public class App extends JFrame {
 		});
 		JButton btnFollow = new JButton("Follow ?");
 		btnFollow.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					if (!possuiRE()) {
-
-						if (!gramHash.get(glcSelecionado).getFollowSet()
-								.toString().isEmpty()) {
-							String simbolos = "";
-							for (String chave : gramHash.get(glcSelecionado)
-									.getFollowSet().keySet()) {
-								simbolos += chave + " - ";
-								for (String elemento : gramHash
-										.get(glcSelecionado).getFollowSet()
-										.get(chave)) {
-									simbolos += elemento + " , ";
-								}
-								simbolos = simbolos.substring(0,
-										simbolos.length() - 2)
-										+ "\n";
+					if (!gramHash.get(glcSelecionado).getFollowSet()
+							.toString().isEmpty()) {
+						String simbolos = "";
+						for (String chave : gramHash.get(glcSelecionado)
+								.getFollowSet().keySet()) {
+							simbolos += chave + " - ";
+							for (String elemento : gramHash
+									.get(glcSelecionado).getFollowSet()
+									.get(chave)) {
+								simbolos += elemento + " , ";
 							}
-							JOptionPane.showMessageDialog(frame,
-									"Grammar FOLLOW\n" + simbolos);
-						} else {
-							JOptionPane.showMessageDialog(frame, "Try again!");
+							simbolos = simbolos.substring(0,
+									simbolos.length() - 2)
+									+ "\n";
 						}
-					} else {
 						JOptionPane.showMessageDialog(frame,
-								"Aterta!\nGramática possui R.E.!");
+								"Grammar FOLLOW\n" + simbolos);
+					} else {
+						JOptionPane.showMessageDialog(frame, "Try again!");
 					}
 
 				} catch (Exception e) {
@@ -362,6 +355,7 @@ public class App extends JFrame {
 		});
 		JButton btnParser = new JButton("Parser ?");
 		btnParser.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println(glcSelecionado + " glcSelect");
 				// for (String iterable_element : gramHash.keySet()) {
@@ -372,32 +366,29 @@ public class App extends JFrame {
 		});
 		JButton btnFirst = new JButton("First ?");
 		btnFirst.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					if (!possuiRE()) {
-						if (!gramHash.get(glcSelecionado).getFirstSet()
-								.toString().isEmpty()) {
-							String simbolos = "";
-							for (String chave : gramHash.get(glcSelecionado)
-									.getFirstSet().keySet()) {
-								simbolos += chave + " - ";
-								for (String elemento : gramHash
-										.get(glcSelecionado).getFirstSet()
-										.get(chave)) {
-									simbolos += elemento + " , ";
-								}
-								simbolos = simbolos.substring(0,
-										simbolos.length() - 2)
-										+ "\n";
+					if (!gramHash.get(glcSelecionado).getFirstSet()
+							.toString().isEmpty()) {
+						String simbolos = "";
+						for (String chave : gramHash.get(glcSelecionado)
+								.getFirstSet().keySet()) {
+							simbolos += chave + " - ";
+							for (String elemento : gramHash
+									.get(glcSelecionado).getFirstSet()
+									.get(chave)) {
+								simbolos += elemento + " , ";
 							}
-							JOptionPane.showMessageDialog(frame,
-									"Grammar FIRST\n" + simbolos);
-						} else {
-							JOptionPane.showMessageDialog(frame, "Try again!");
+							simbolos = simbolos.substring(0,
+									simbolos.length() - 2)
+									+ "\n";
 						}
-					} else
 						JOptionPane.showMessageDialog(frame,
-								"Aterta!\nGramática possui R.E.!");
+								"Grammar FIRST\n" + simbolos);
+					} else {
+						JOptionPane.showMessageDialog(frame, "Try again!");
+					}
 				} catch (Exception e) {
 					tratarException(e);
 				}
@@ -406,10 +397,11 @@ public class App extends JFrame {
 
 		JButton btnRecEsq = new JButton("Possui R.E. ?");
 		btnRecEsq.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					String msgSaida = "";
-					
+
 					if (!gramHash.get(glcSelecionado)
 							.getRecursaoEsquerdaDireta().isEmpty()) {
 						String simbolos = "";
@@ -417,8 +409,8 @@ public class App extends JFrame {
 								.getRecursaoEsquerdaDireta()) {
 							simbolos += s + "\n";
 						}
-						msgSaida  +=  "\nGrammar possui R.E. direta\n" + simbolos;
-					} 
+						msgSaida += "\nGrammar possui R.E. direta\n" + simbolos;
+					}
 					if (!gramHash.get(glcSelecionado)
 							.getRecursaoEsquerdaIndireta().isEmpty()) {
 						String simbolos = "";
@@ -427,7 +419,7 @@ public class App extends JFrame {
 							simbolos += s + "\n";
 						}
 						msgSaida += "\nGrammar possui R.E. indireta\n" + simbolos;
-					} 
+					}
 					if (!possuiRE()) {
 						msgSaida = "Grammar NÂO possui R.E direta ou indireta";
 					}
@@ -442,76 +434,78 @@ public class App extends JFrame {
 		});
 		JButton btnVoltar = new JButton("Voltar");
 		btnVoltar.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				setContentPane(principal);
 			}
 		});
-		
+
 		textAreaGrammar = new JTextArea();
 		JScrollPane js = new JScrollPane(textAreaGrammar);
 		js.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		textAreaGrammar.setEditable(false);
-//		textAreaGrammar.add(js);
+		// textAreaGrammar.add(js);
 		GroupLayout gl_painelSecundario = new GroupLayout(painelSecundario);
 		gl_painelSecundario.setHorizontalGroup(
-			gl_painelSecundario.createParallelGroup(Alignment.LEADING)
+				gl_painelSecundario.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_painelSecundario.createSequentialGroup()
-					.addGap(45)
-					.addComponent(btnVoltar, GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
-					.addGap(53))
-				.addGroup(gl_painelSecundario.createSequentialGroup()
-					.addGap(91)
-					.addComponent(btnRecEsq)
-					.addContainerGap(112, Short.MAX_VALUE))
-				.addGroup(gl_painelSecundario.createSequentialGroup()
-					.addGap(91)
-					.addComponent(btnFatorada)
-					.addContainerGap(93, Short.MAX_VALUE))
-				.addGroup(gl_painelSecundario.createSequentialGroup()
-					.addGap(91)
-					.addComponent(btnIntersec)
-					.addContainerGap(78, Short.MAX_VALUE))
-				.addGroup(gl_painelSecundario.createSequentialGroup()
-					.addGap(91)
-					.addComponent(btnFirst)
-					.addContainerGap(158, Short.MAX_VALUE))
-				.addGroup(gl_painelSecundario.createSequentialGroup()
-					.addGap(91)
-					.addComponent(btnFollow)
-					.addContainerGap(144, Short.MAX_VALUE))
-				.addGroup(gl_painelSecundario.createSequentialGroup()
-					.addGap(91)
-					.addComponent(btnParser)
-					.addContainerGap(143, Short.MAX_VALUE))
-				.addGroup(Alignment.TRAILING, gl_painelSecundario.createSequentialGroup()
-					.addContainerGap(64, Short.MAX_VALUE)
-					.addComponent(js, GroupLayout.PREFERRED_SIZE, 222, GroupLayout.PREFERRED_SIZE)
-					.addGap(40))
-		);
+						.addGap(45)
+						.addComponent(btnVoltar, GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
+						.addGap(53))
+						.addGroup(gl_painelSecundario.createSequentialGroup()
+								.addGap(91)
+								.addComponent(btnRecEsq)
+								.addContainerGap(112, Short.MAX_VALUE))
+								.addGroup(gl_painelSecundario.createSequentialGroup()
+										.addGap(91)
+										.addComponent(btnFatorada)
+										.addContainerGap(93, Short.MAX_VALUE))
+										.addGroup(gl_painelSecundario.createSequentialGroup()
+												.addGap(91)
+												.addComponent(btnIntersec)
+												.addContainerGap(78, Short.MAX_VALUE))
+												.addGroup(gl_painelSecundario.createSequentialGroup()
+														.addGap(91)
+														.addComponent(btnFirst)
+														.addContainerGap(158, Short.MAX_VALUE))
+														.addGroup(gl_painelSecundario.createSequentialGroup()
+																.addGap(91)
+																.addComponent(btnFollow)
+																.addContainerGap(144, Short.MAX_VALUE))
+																.addGroup(gl_painelSecundario.createSequentialGroup()
+																		.addGap(91)
+																		.addComponent(btnParser)
+																		.addContainerGap(143, Short.MAX_VALUE))
+																		.addGroup(Alignment.TRAILING, gl_painelSecundario.createSequentialGroup()
+																				.addContainerGap(64, Short.MAX_VALUE)
+																				.addComponent(js, GroupLayout.PREFERRED_SIZE, 222, GroupLayout.PREFERRED_SIZE)
+																				.addGap(40))
+				);
 		gl_painelSecundario.setVerticalGroup(
-			gl_painelSecundario.createParallelGroup(Alignment.LEADING)
+				gl_painelSecundario.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_painelSecundario.createSequentialGroup()
-					.addGap(33)
-					.addComponent(btnRecEsq)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(btnFatorada)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(btnIntersec)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(btnFirst)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(btnFollow)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(btnParser)
-					.addGap(26)
-					.addComponent(js, GroupLayout.PREFERRED_SIZE, 144, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED, 38, Short.MAX_VALUE)
-					.addComponent(btnVoltar)
-					.addGap(21))
-		);
+						.addGap(33)
+						.addComponent(btnRecEsq)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(btnFatorada)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(btnIntersec)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(btnFirst)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(btnFollow)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(btnParser)
+						.addGap(26)
+						.addComponent(js, GroupLayout.PREFERRED_SIZE, 144, GroupLayout.PREFERRED_SIZE)
+						.addPreferredGap(ComponentPlacement.RELATED, 38, Short.MAX_VALUE)
+						.addComponent(btnVoltar)
+						.addGap(21))
+				);
 		painelSecundario.setLayout(gl_painelSecundario);
 
 		btnExcluirGramtica.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if (!modeloGLC.isEmpty() && !glcSelecionado.isEmpty()) {
 					int opcao = JOptionPane.showConfirmDialog(frame,
@@ -520,13 +514,15 @@ public class App extends JFrame {
 					if (JOptionPane.YES_OPTION == opcao) {
 						removeDaLista(glcSelecionado);
 					}
-				} else
+				} else {
 					JOptionPane.showMessageDialog(frame,
 							"É necessário selecionar uma gramática");
+				}
 
 			}
 		});
 		btnEditarGramtica.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 					editarGramatica(glcSelecionado);
@@ -538,6 +534,7 @@ public class App extends JFrame {
 			}
 		});
 		btAddGramatica.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				adicionarGramatica();
 			}
@@ -551,6 +548,7 @@ public class App extends JFrame {
 
 		JMenuItem mntmSalvarGramticas = new JMenuItem("Salvar Gramáticas");
 		mntmSalvarGramticas.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				GLCBase rgbBase = new GLCBase();
 				try {
@@ -563,6 +561,7 @@ public class App extends JFrame {
 
 		JMenuItem mntmAbrirGramticas = new JMenuItem("Abrir Gramáticas");
 		mntmAbrirGramticas.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				int opcao = JOptionPane
 						.showConfirmDialog(
@@ -584,6 +583,7 @@ public class App extends JFrame {
 
 		JMenuItem mntmSair = new JMenuItem("Sair");
 		mntmSair.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				System.exit(EXIT_ON_CLOSE);
 			}
