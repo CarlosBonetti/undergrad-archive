@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -232,6 +233,16 @@ public class GLCTest {
 		assertTrue(glc.getFatoracaoIndireta().contains("A"));
 		assertTrue(glc.getFatoracaoIndireta().contains("B"));
 		assertTrue(!glc.getFatoracaoIndireta().contains("C"));
-				
+
+		glc = new GLC("S -> L = R | R\n" + "R -> L\n" + "L -> * R | id");
+		assertTrue(glc.getFatoracaoIndireta().size()+"",glc.getFatoracaoIndireta().size()==1);
+		assertTrue(glc.getFatoracaoIndireta().contains("S"));
+		assertTrue(!glc.getFatoracaoIndireta().contains("R"));
+		assertTrue(!glc.getFatoracaoIndireta().contains("L"));
+
+
+		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
+		assertTrue(glc.getFatoracaoIndireta().size()+"",glc.getFatoracaoIndireta().size()==0);
+
 	}
 }

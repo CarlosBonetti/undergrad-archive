@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -459,6 +460,26 @@ public class GLC implements Serializable {
 		return false;
 	}
 
+	public boolean temRecursaoEsquerdaIndireta(String producao) {
+		GLC aux = new GLC();
+		aux.getProducoes().putAll(producoes);
+		
+		for (FormaSentencial forma : aux.getProducoes().get(producao)) {
+			if (producao.equals(forma.get(0))) {
+				return true;
+			}
+//			else if (this.getFirstSet().get(forma.get(0)).contains(GrammarUtils.EPSILON)) {
+//				Iterator<String> a = forma.iterator();
+//				while (a.hasNext()) {
+//					String formaNext = (String) a.next();
+//					forma.remove(forma);
+//					temRecursaoEsquerdaIndireta(formaNext);
+//				}
+//			}
+		}
+		return false;
+	}
+
 	/**
 	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
 	 * indireta
@@ -501,11 +522,29 @@ public class GLC implements Serializable {
 		//adiciona a uma lista os ñ terminais com recursao direta
 		ArrayList<String> recEsqIndireta = new ArrayList<String>();
 		for (String chave : glc.getProducoes().keySet()) {
-			if (glc.temRecursaoEsquerdaDireta(chave)) {
+			if (glc.temRecursaoEsquerdaIndireta(chave)) {
 				recEsqIndireta.add(chave);
 			}
 		}
 		return recEsqIndireta;
+	}
+	
+	private void testes(String chave, String chaveAnterior) {
+		List<FormaSentencial> refatorado = new ArrayList<GLC.FormaSentencial>();
+
+		this.getFirstSet().get(chave).contains(GrammarUtils.EPSILON);
+		
+		for (FormaSentencial forma : this.getProducoes().get(chave)) {
+			if (chaveAnterior.contains(forma.get(0))) {
+				for (FormaSentencial formaAnterior : this
+						.getProducoes().get(forma.get(0))) {
+					refatorado.add(formaAnterior);
+				}
+			} else {
+				refatorado.add(forma);
+			}
+		}
+		
 	}
 	// ===================================================================================================
 
@@ -552,8 +591,15 @@ public class GLC implements Serializable {
 	public Set<String> getFatoracaoIndireta(){
 		Set<String> naoFatoradaDireta = new HashSet<String>();
 		for (String chave : producoes.keySet()) {
-			if (temNaoDeterminismoIndireta(chave, getProducoesDerivadas(chave, new HashSet<String>()))) {
+			try {
+				if (temNaoDeterminismoIndireta(chave, getProducoesDerivadas(chave, new HashSet<String>()))) {
+					naoFatoradaDireta.add(chave);
+				}
+			} catch (Exception e) {
+				//captura excecao gerado pelo getProducoesDerivadas() - 
 				naoFatoradaDireta.add(chave);
+//				System.err.println(e.getMessage());
+//				return naoFatoradaDireta; 
 			}
 		}
 		return naoFatoradaDireta;
@@ -564,21 +610,29 @@ public class GLC implements Serializable {
 	 * @param producao
 	 * @param naoTerminaisDerivados
 	 * @return
+	 * @throws Exception 
 	 */
-	protected Set<String> getProducoesDerivadas(String producao, Set<String> naoTerminaisDerivados) {
+	protected Set<String> getProducoesDerivadas(String producao, Set<String> naoTerminaisDerivados) throws Exception {
+		//hash auxiliar de não-terminais
 		Set<String> aux = new HashSet<String>();
 		for (FormaSentencial forma : producoes.get(producao)) {
 			if (GrammarUtils.ehNaoTerminal(forma.get(0))) {
 				aux.add(forma.get(0));
 			}
 		}
+		
 		for (String string : aux) {
 			if (naoTerminaisDerivados.isEmpty()) {
 				naoTerminaisDerivados.addAll(getProducoesDerivadas(string, aux));
 			}else
-			if (!naoTerminaisDerivados.contains(string)) {
-				naoTerminaisDerivados.addAll(getProducoesDerivadas(string, naoTerminaisDerivados));
-			}
+				//caso derive um mesmo terminal por outro caminho gera exceção
+				if (naoTerminaisDerivados.contains(string)) {
+					throw new Exception();
+				}
+			
+				else if (!naoTerminaisDerivados.contains(string)) {
+					naoTerminaisDerivados.addAll(getProducoesDerivadas(string, naoTerminaisDerivados));
+				}
 		}
 		return naoTerminaisDerivados;
 	}
@@ -609,5 +663,4 @@ public class GLC implements Serializable {
 		}
 		return false;
 	}
-
 }
