@@ -382,6 +382,32 @@ public class GLC implements Serializable {
 	}
 
 	// ===================================================================================================
+	// Conflitos first/follow (terceira condição)
+
+	/**
+	 * Retorna o conjunto de símbolos não terminais da gramática que possuem conflitos first/follow
+	 * Também conhecido por "terceira condição da forma LL"
+	 * Um não terminal A possui conflito first/follow se A ⇒* ε e First(A) ∩ Follow(A) = ϕ
+	 *
+	 * @return
+	 */
+	public Set<String> getConflitosFF() {
+		Set<String> conflitos = new HashSet<String>();
+		for (String nt : this.getNaoTerminais()) {
+			Set<String> first = this.first(nt);
+			if (first.contains(GrammarUtils.EPSILON.toString())) {
+				Set<String> follow = this.follow(nt);
+				Set<String> intersection = new HashSet<String>(first);
+				intersection.removeAll(follow);
+				if (!first.isEmpty()) { // Intersecção não vazia = conflito
+					conflitos.add(nt);
+				}
+			}
+		}
+		return conflitos;
+	}
+
+	// ===================================================================================================
 
 	/**
 	 * Forma sentencial de uma gramática livre de contexto Representa o lado

@@ -194,6 +194,18 @@ public class GLCTest {
 	}
 
 	@Test
+	public void getConflitosFF() throws ParseException {
+		GLC glc = new GLC("S -> a A | b B \n" +
+				"A -> a A b | b A' \n" +
+				"A' -> B b | & \n" +
+				"B -> a B' | b B a \n" +
+				"B' -> A a | &");
+
+		assertTrue(glc.getConflitosFF().containsAll(Arrays.asList("A'", "B'")));
+		assertEquals(2, glc.getConflitosFF().size());
+	}
+
+	@Test
 	public void testarReqEsquerdaDireta() throws Exception {
 		String text = "E -> T | E + T | E - T \n" + "T -> F | T * F | T / F \n" + "F -> ( E ) | id";
 		GLC glc = new GLC(text);
@@ -270,6 +282,5 @@ public class GLCTest {
 
 		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
 		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 0);
-
 	}
 }
