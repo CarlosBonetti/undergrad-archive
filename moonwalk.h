@@ -62,6 +62,7 @@ namespace movement{
 
     typedef BodyMovement<noMovement,
             mw_right_arm, mw_right_forearm, mw_right_hand, 
+			noMovement, noMovement, noMovement,
             noMovement, noMovement, noMovement,
             noMovement, noMovement, noMovement> moonwalk_t;
     moonwalk_t moonwalk;

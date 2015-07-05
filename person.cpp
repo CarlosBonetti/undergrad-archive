@@ -29,22 +29,23 @@ void Person::draw_aux(int t) {
     
     	// Left side (upper part)
     	glPushMatrix();
-    		glTranslatef(trunk.width / 2 + larm.joint_radius / 2, trunk.height / 2 - larm.joint_radius / 2, 0);
+    		glTranslatef(trunk.width / 2 + larm.joint_radius / 2, trunk.height / 2 - larm.joint_radius / 2, trunk.depth /2);
+    		glRotatef(90, 1,0,0);
+    		apply_state(mode.leftArmMovement(t));
     		larm.draw(t);
     
     		glTranslatef(0, 0, larm.length + lforearm.joint_radius / 2);
+    		apply_state(mode.leftForearmMovement(t));
     		lforearm.draw(t);
     
-    		glTranslatef(0, 0, larm.length + lhand.joint_radius / 2);
+    		glTranslatef(0, 0, lforearm.length + lhand.joint_radius / 2);
+    		apply_state(mode.leftHandMovement(t));
     		lhand.draw(t);
     	glPopMatrix();
     
     	// Right side  (upper part)
     	glPushMatrix();
-            //coloring for debug
-            glColor3f(1, 1, 1);
-    
-    		glTranslatef(-trunk.width / 2 - rarm.joint_radius / 2, trunk.height / 2 - rarm.joint_radius / 2, 0);
+    		glTranslatef(-trunk.width / 2 - rarm.joint_radius / 2, trunk.height / 2 - rarm.joint_radius / 2, trunk.depth /2);
             //arms should start in the vertical position, poiting to the floor
             glRotatef(90, 1,0,0);
             apply_state(mode.rightArmMovement(t));
@@ -54,11 +55,9 @@ void Person::draw_aux(int t) {
             apply_state(mode.rightForearmMovement(t));
     		lforearm.draw(t);
     
-    		glTranslatef(0, 0, rarm.length + rhand.joint_radius / 2);
+    		glTranslatef(0, 0, rforearm.length + rhand.joint_radius / 2);
             apply_state(mode.rightHandMovement(t));
     		lhand.draw(t);
-    	    //decoloring for debug
-            glColor3f(0.435294f, 0.258824f, 0.258824f);
     	glPopMatrix();
     
     	// Left lower part
@@ -108,7 +107,7 @@ void Hand::draw(int t){
 	glTranslatef(0, 0, joint_radius / 2);
 
 	// Draw hand
-	draw_box(2,1,3);
+	draw_box(1,1.6,2.0);
 }
 
 void Forearm::draw(int t) {

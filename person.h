@@ -38,7 +38,7 @@ class Forearm {
 public:
 	void draw(int t);
 
-	double length = 4;
+	double length = 3.6;
 	double joint_radius = 1;
 	double radius = 1;
 };
@@ -50,7 +50,7 @@ class Arm {
 public:
 	void draw(int t);
 
-	double length = 4;
+	double length = 3.6;
 	double joint_radius = 1.2;
 	double radius = 1.2;
 };

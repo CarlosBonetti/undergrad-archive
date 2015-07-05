@@ -23,6 +23,8 @@ namespace movement
            return state(0, 0, 0, 0, dy, 0);
     });
 
+    // ===========================================
+    // Legs
 
     movement run_right_thigh([] (int t) -> state {
            t = t % run_length;
@@ -38,7 +40,7 @@ namespace movement
            else{
                 theta = 210 - 180*x;
            }
-           std::cout << x <<  " , " << theta << std::endl;
+           //std::cout << x <<  " , " << theta << std::endl;
            return state(-theta, 0, 0, 0, 0, 0);
     });
 
@@ -75,7 +77,7 @@ namespace movement
            else{
                 theta = 210 - 180*x;
            }
-           std::cout << x <<  " , " << theta << std::endl;
+           //std::cout << x <<  " , " << theta << std::endl;
            return state(-theta, 0, 0, 0, 0, 0);
     });
 
@@ -96,8 +98,53 @@ namespace movement
            
            return state(theta, 0, 0, 0, 0, 0);
     });
+
+    // ===========================================
+    // Arms
+
+    movement run_right_arm([] (int t) -> state {
+    	t = t % run_length;
+    	double x = static_cast<double>(t) / static_cast<double>(run_length); // actual fraction of the movement
+
+    	double minTheta = 35;
+    	double maxTheta = -20;
+
+    	x *= 2;
+    	if (x > 1)
+    		x = 2 - x;
+
+    	double theta = minTheta + (maxTheta - minTheta) * x;
+
+    	return state(theta, 0, 0, 0, 0, 0);
+    });
+
+    movement run_left_arm([] (int t) -> state {
+    	return run_right_arm(t + run_length/2);
+    });
+
+    movement run_right_forearm([] (int t) -> state {
+    	t = t % run_length;
+		double x = static_cast<double>(t) / static_cast<double>(run_length); // actual fraction of the movement
+
+		double minTheta = -30;
+		double maxTheta = -90;
+
+    	x *= 2;
+    	if (x > 1)
+    		x = 2 - x;
+
+    	double theta = minTheta + (maxTheta - minTheta) * x;
+
+		return state(theta, 0, 0, 0, 0, 0);
+    });
+
+    movement run_left_forearm([] (int t) -> state {
+    	return run_right_forearm(t + run_length/2);
+    });
+
     typedef BodyMovement<run_body, 
-            noMovement, noMovement, noMovement, 
+    		run_right_arm, run_right_forearm, noMovement,
+			run_left_arm, run_left_forearm, noMovement,
             run_right_thigh, run_right_leg, noMovement,
             run_left_thigh, run_left_leg, noMovement> run_t;
     run_t run;
