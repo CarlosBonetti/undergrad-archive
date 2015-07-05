@@ -8,6 +8,9 @@ namespace movement
     constexpr int run_length = 120;
 
     movement run_body([](int t) -> state{
+           double speed = .11;
+           double dx = speed * t;
+
             //length is divided by 2 because we want the up and down movement
             //to happen twice in each cycle, one for each leg
             t = t % (run_length/2);
@@ -20,7 +23,8 @@ namespace movement
            constexpr double a = - max_dy / (phase_len * phase_len);
            constexpr double b = 2.0 * max_dy / phase_len;
            double dy = a * t * t + b * t;
-           return state(0, 0, 0, 0, dy, 0);
+
+           return state(0, 0, 0, 0, dy, dx);
     });
 
     // ===========================================
