@@ -9,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Set;
 
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
@@ -55,7 +56,7 @@ public class App extends JFrame {
 		e.printStackTrace();
 		JOptionPane.showMessageDialog(this, e.getMessage() != null
 				| e.getMessage().isEmpty() ? e.getMessage()
-				: "\nTente novamente.");
+						: "\nTente novamente.");
 	}
 
 	private void persistGlc() {
@@ -210,54 +211,54 @@ public class App extends JFrame {
 
 		GroupLayout gl_principal = new GroupLayout(principal);
 		gl_principal
-				.setHorizontalGroup(gl_principal
-						.createParallelGroup(Alignment.LEADING)
+		.setHorizontalGroup(gl_principal
+				.createParallelGroup(Alignment.LEADING)
+				.addGroup(
+						gl_principal
+						.createSequentialGroup()
+						.addGap(66)
 						.addGroup(
 								gl_principal
-										.createSequentialGroup()
-										.addGap(66)
+								.createParallelGroup(
+										Alignment.LEADING)
 										.addGroup(
 												gl_principal
+												.createSequentialGroup()
+												.addGap(20)
+												.addGroup(
+														gl_principal
 														.createParallelGroup(
-																Alignment.LEADING)
-														.addGroup(
-																gl_principal
-																		.createSequentialGroup()
-																		.addGap(20)
-																		.addGroup(
-																				gl_principal
-																						.createParallelGroup(
-																								Alignment.LEADING,
-																								false)
+																Alignment.LEADING,
+																false)
+																.addComponent(
+																		btAddGramatica,
+																		Alignment.TRAILING,
+																		GroupLayout.DEFAULT_SIZE,
+																		GroupLayout.DEFAULT_SIZE,
+																		Short.MAX_VALUE)
+																		.addComponent(
+																				btnEditarGramtica,
+																				GroupLayout.DEFAULT_SIZE,
+																				GroupLayout.DEFAULT_SIZE,
+																				Short.MAX_VALUE)
+																				.addGroup(
+																						gl_principal
+																						.createSequentialGroup()
+																						.addGap(12)
 																						.addComponent(
-																								btAddGramatica,
-																								Alignment.TRAILING,
-																								GroupLayout.DEFAULT_SIZE,
-																								GroupLayout.DEFAULT_SIZE,
-																								Short.MAX_VALUE)
-																						.addComponent(
-																								btnEditarGramtica,
-																								GroupLayout.DEFAULT_SIZE,
-																								GroupLayout.DEFAULT_SIZE,
-																								Short.MAX_VALUE)
-																						.addGroup(
-																								gl_principal
-																										.createSequentialGroup()
-																										.addGap(12)
+																								lblGramar))
+																								.addComponent(
+																										btnExcluirGramtica,
+																										Alignment.TRAILING)))
 																										.addComponent(
-																												lblGramar))
-																						.addComponent(
-																								btnExcluirGramtica,
-																								Alignment.TRAILING)))
-														.addComponent(
-																listagemGlc,
-																GroupLayout.PREFERRED_SIZE,
-																190,
-																GroupLayout.PREFERRED_SIZE))
-										.addContainerGap(70, Short.MAX_VALUE)));
+																												listagemGlc,
+																												GroupLayout.PREFERRED_SIZE,
+																												190,
+																												GroupLayout.PREFERRED_SIZE))
+																												.addContainerGap(70, Short.MAX_VALUE)));
 		gl_principal.setVerticalGroup(gl_principal.createParallelGroup(
 				Alignment.LEADING).addGroup(
-				gl_principal
+						gl_principal
 						.createSequentialGroup()
 						.addGap(40)
 						.addComponent(btAddGramatica)
@@ -270,15 +271,33 @@ public class App extends JFrame {
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addComponent(listagemGlc, GroupLayout.PREFERRED_SIZE,
 								255, GroupLayout.PREFERRED_SIZE)
-						.addContainerGap(98, Short.MAX_VALUE)));
+								.addContainerGap(98, Short.MAX_VALUE)));
 		principal.setLayout(gl_principal);
 
 		getContentPane().add(painelSecundario, "name_24616259299173");
 
-		JButton btnIntersec = new JButton("Intersec é vazio ?");
+		JButton btnIntersec = new JButton("Conflitos First/Follow ?");
 		btnIntersec.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				try {
+					Set<String> conflitos = gramHash.get(glcSelecionado).getConflitosFF();
+
+					String msgSaida;
+					if (conflitos.isEmpty()) {
+						msgSaida = "Não há conflitos first/follow (terceira condição)";
+					} else {
+						msgSaida = "Conflitos first/follow detectados nos seguintes não terminais:\n";
+
+						for (String nt : conflitos) {
+							msgSaida += nt + "\n";
+						}
+					}
+
+					JOptionPane.showMessageDialog(frame, msgSaida);
+				} catch (Exception e) {
+					tratarException(e);
+				}
 			}
 		});
 		JButton btnFatorada = new JButton("Esta fatorada ?");
@@ -448,59 +467,59 @@ public class App extends JFrame {
 		GroupLayout gl_painelSecundario = new GroupLayout(painelSecundario);
 		gl_painelSecundario.setHorizontalGroup(
 				gl_painelSecundario.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_painelSecundario.createSequentialGroup()
-						.addGap(45)
-						.addComponent(btnVoltar, GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
-						.addGap(53))
+						.addGroup(gl_painelSecundario.createSequentialGroup()
+								.addGap(45)
+								.addComponent(btnVoltar, GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
+								.addGap(53))
 						.addGroup(gl_painelSecundario.createSequentialGroup()
 								.addGap(91)
 								.addComponent(btnRecEsq)
 								.addContainerGap(112, Short.MAX_VALUE))
-								.addGroup(gl_painelSecundario.createSequentialGroup()
-										.addGap(91)
-										.addComponent(btnFatorada)
-										.addContainerGap(93, Short.MAX_VALUE))
-										.addGroup(gl_painelSecundario.createSequentialGroup()
-												.addGap(91)
-												.addComponent(btnIntersec)
-												.addContainerGap(78, Short.MAX_VALUE))
-												.addGroup(gl_painelSecundario.createSequentialGroup()
-														.addGap(91)
-														.addComponent(btnFirst)
-														.addContainerGap(158, Short.MAX_VALUE))
-														.addGroup(gl_painelSecundario.createSequentialGroup()
-																.addGap(91)
-																.addComponent(btnFollow)
-																.addContainerGap(144, Short.MAX_VALUE))
-																.addGroup(gl_painelSecundario.createSequentialGroup()
-																		.addGap(91)
-																		.addComponent(btnParser)
-																		.addContainerGap(143, Short.MAX_VALUE))
-																		.addGroup(Alignment.TRAILING, gl_painelSecundario.createSequentialGroup()
-																				.addContainerGap(64, Short.MAX_VALUE)
-																				.addComponent(js, GroupLayout.PREFERRED_SIZE, 222, GroupLayout.PREFERRED_SIZE)
-																				.addGap(40))
+						.addGroup(gl_painelSecundario.createSequentialGroup()
+								.addGap(91)
+								.addComponent(btnFatorada)
+								.addContainerGap(93, Short.MAX_VALUE))
+						.addGroup(gl_painelSecundario.createSequentialGroup()
+								.addGap(91)
+								.addComponent(btnIntersec)
+								.addContainerGap(78, Short.MAX_VALUE))
+						.addGroup(gl_painelSecundario.createSequentialGroup()
+								.addGap(91)
+								.addComponent(btnFirst)
+								.addContainerGap(158, Short.MAX_VALUE))
+						.addGroup(gl_painelSecundario.createSequentialGroup()
+								.addGap(91)
+								.addComponent(btnFollow)
+								.addContainerGap(144, Short.MAX_VALUE))
+						.addGroup(gl_painelSecundario.createSequentialGroup()
+								.addGap(91)
+								.addComponent(btnParser)
+								.addContainerGap(143, Short.MAX_VALUE))
+						.addGroup(Alignment.TRAILING, gl_painelSecundario.createSequentialGroup()
+								.addContainerGap(64, Short.MAX_VALUE)
+								.addComponent(js, GroupLayout.PREFERRED_SIZE, 222, GroupLayout.PREFERRED_SIZE)
+								.addGap(40))
 				);
 		gl_painelSecundario.setVerticalGroup(
 				gl_painelSecundario.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_painelSecundario.createSequentialGroup()
-						.addGap(33)
-						.addComponent(btnRecEsq)
-						.addPreferredGap(ComponentPlacement.UNRELATED)
-						.addComponent(btnFatorada)
-						.addPreferredGap(ComponentPlacement.UNRELATED)
-						.addComponent(btnIntersec)
-						.addPreferredGap(ComponentPlacement.UNRELATED)
-						.addComponent(btnFirst)
-						.addPreferredGap(ComponentPlacement.UNRELATED)
-						.addComponent(btnFollow)
-						.addPreferredGap(ComponentPlacement.UNRELATED)
-						.addComponent(btnParser)
-						.addGap(26)
-						.addComponent(js, GroupLayout.PREFERRED_SIZE, 144, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(ComponentPlacement.RELATED, 38, Short.MAX_VALUE)
-						.addComponent(btnVoltar)
-						.addGap(21))
+						.addGroup(gl_painelSecundario.createSequentialGroup()
+								.addGap(33)
+								.addComponent(btnRecEsq)
+								.addPreferredGap(ComponentPlacement.UNRELATED)
+								.addComponent(btnFatorada)
+								.addPreferredGap(ComponentPlacement.UNRELATED)
+								.addComponent(btnIntersec)
+								.addPreferredGap(ComponentPlacement.UNRELATED)
+								.addComponent(btnFirst)
+								.addPreferredGap(ComponentPlacement.UNRELATED)
+								.addComponent(btnFollow)
+								.addPreferredGap(ComponentPlacement.UNRELATED)
+								.addComponent(btnParser)
+								.addGap(26)
+								.addComponent(js, GroupLayout.PREFERRED_SIZE, 144, GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(ComponentPlacement.RELATED, 38, Short.MAX_VALUE)
+								.addComponent(btnVoltar)
+								.addGap(21))
 				);
 		painelSecundario.setLayout(gl_painelSecundario);
 
@@ -602,7 +621,7 @@ public class App extends JFrame {
 	private boolean possuiRE() throws Exception {
 		if (gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta().isEmpty()
 				&& gramHash.get(glcSelecionado).getRecursaoEsquerdaIndireta()
-						.isEmpty()) {
+				.isEmpty()) {
 			return false;
 		}
 		return true;
