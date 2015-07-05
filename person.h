@@ -63,8 +63,8 @@ public:
 	void draw(int t);
 
 	double length = 5;
-	double width = 2.1;
-	double joint_radius = 1.2;
+	double width = 1.4;
+	double joint_radius = .8;
 };
 
 /**
@@ -75,8 +75,8 @@ public:
 	void draw(int t);
 
 	double length = 4;
-	double radius = 1.25;
-	double joint_radius = 1;
+	double radius = 1;
+	double joint_radius = .6;
 };
 
 /**
@@ -86,7 +86,7 @@ class Foot {
 public:
 	void draw(int t);
 
-	double joint_radius = 1;
+	double joint_radius = .5;
 };
 
 class Person {
@@ -98,7 +98,7 @@ public:
 	void draw(int t);
 
 private:
-    walkingMode currentMode = RUNNING;
+    walkingMode currentMode = MOONWALKING;
    
     template<typename T, T& mode> void draw_aux(int t);
 

@@ -40,7 +40,6 @@ namespace movement
            else{
                 theta = 210 - 180*x;
            }
-           //std::cout << x <<  " , " << theta << std::endl;
            return state(-theta, 0, 0, 0, 0, 0);
     });
 
@@ -77,7 +76,6 @@ namespace movement
            else{
                 theta = 210 - 180*x;
            }
-           //std::cout << x <<  " , " << theta << std::endl;
            return state(-theta, 0, 0, 0, 0, 0);
     });
 
