@@ -5,8 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.junit.Test;
 
@@ -154,6 +152,21 @@ public class GLCTest {
 	}
 
 	@Test
+	public void getFirstSetDeGramaticaComRecursao() throws ParseException {
+		String text = "E -> E + T | E - T | T\n" + "T -> T * F | T / F | F\n" + "F -> ( E ) | id";
+		GLC glc = new GLC(text);
+
+		assertTrue(glc.first("F").containsAll(Arrays.asList("id", "(")));
+		assertEquals(2, glc.first("F").size());
+
+		assertTrue(glc.first("T").containsAll(Arrays.asList("id", "(")));
+		assertEquals(2, glc.first("T").size());
+
+		assertTrue(glc.first("E").containsAll(Arrays.asList("id", "(")));
+		assertEquals(2, glc.first("E").size());
+	}
+
+	@Test
 	public void getFollowSet() throws Exception {
 		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
 		assertEquals("{E=[$, )], E'=[$, )], T=[$, +, )], T'=[$, +, )], F=[$, *, +, )]}", glc.getFollowSet().toString());
@@ -163,6 +176,21 @@ public class GLCTest {
 
 		GLC glc3 = new GLC("S -> A B C \n" + "A -> a A | & \n" + "B -> b B | A C d \n" + "C -> c C | &");
 		assertEquals("{S=[$], A=[d, b, c, a], B=[c, $], C=[d, $]}", glc3.getFollowSet().toString());
+	}
+
+	@Test
+	public void getFollowDeGramaticaComRecursao() throws ParseException {
+		String text = "E -> E + T | E - T | T\n" + "T -> T * F | T / F | F\n" + "F -> ( E ) | id";
+		GLC glc = new GLC(text);
+
+		assertTrue(glc.follow("F").containsAll(Arrays.asList("$", "+", "-", ")", "*", "/")));
+		assertEquals(6, glc.follow("F").size());
+
+		assertTrue(glc.follow("T").containsAll(Arrays.asList("$", "+", "-", ")", "*", "/")));
+		assertEquals(6, glc.follow("T").size());
+
+		assertTrue(glc.follow("E").containsAll(Arrays.asList("$", "+", "-", ")")));
+		assertEquals(4, glc.follow("E").size());
 	}
 
 	@Test
@@ -178,7 +206,7 @@ public class GLCTest {
 		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("T"));
 		assertTrue(!glc.getRecursaoEsquerdaDireta().contains("F"));
 	}
-	
+
 	@Test
 	public void testarReqEsquerdaInDireta() throws Exception {
 		String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
@@ -195,7 +223,7 @@ public class GLCTest {
 		assertTrue(glc.getRecursaoEsquerdaIndireta().isEmpty());
 
 	}
-	
+
 	@Test
 	public void testarTemNaoDeterminismoDireto() throws Exception {
 		String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
@@ -214,35 +242,34 @@ public class GLCTest {
 		assertTrue(glc.getFatoracaoDireta().contains("E"));
 
 	}
-	
+
 	@Test
 	public void testarTemNaoDeterminismoIndireto() throws Exception {
-//		String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
+		// String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
 		String text = "S -> A B | b C\n" + "A -> a A | B C | ε\n" + "B -> b B | d\n" + "C -> c C | ε";
 		GLC glc = new GLC(text);
-		assertTrue(glc.getFatoracaoIndireta().size()+"", glc.getFatoracaoIndireta().size()==1);
+		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 1);
 		assertTrue(glc.getFatoracaoIndireta().contains("S"));
 		assertTrue(!glc.getFatoracaoIndireta().contains("A"));
 		assertTrue(!glc.getFatoracaoIndireta().contains("B"));
 		assertTrue(!glc.getFatoracaoIndireta().contains("C"));
-		
-		glc = new GLC("S -> a | A C\n" + "A -> a A b | B\n" + "B -> d | a | C\n"+ "C -> d | b\n");
-		
-		assertTrue(glc.getFatoracaoIndireta().size()+"",glc.getFatoracaoIndireta().size()==3);
+
+		glc = new GLC("S -> a | A C\n" + "A -> a A b | B\n" + "B -> d | a | C\n" + "C -> d | b\n");
+
+		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 3);
 		assertTrue(glc.getFatoracaoIndireta().contains("S"));
 		assertTrue(glc.getFatoracaoIndireta().contains("A"));
 		assertTrue(glc.getFatoracaoIndireta().contains("B"));
 		assertTrue(!glc.getFatoracaoIndireta().contains("C"));
 
 		glc = new GLC("S -> L = R | R\n" + "R -> L\n" + "L -> * R | id");
-		assertTrue(glc.getFatoracaoIndireta().size()+"",glc.getFatoracaoIndireta().size()==1);
+		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 1);
 		assertTrue(glc.getFatoracaoIndireta().contains("S"));
 		assertTrue(!glc.getFatoracaoIndireta().contains("R"));
 		assertTrue(!glc.getFatoracaoIndireta().contains("L"));
 
-
 		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
-		assertTrue(glc.getFatoracaoIndireta().size()+"",glc.getFatoracaoIndireta().size()==0);
+		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 0);
 
 	}
 }

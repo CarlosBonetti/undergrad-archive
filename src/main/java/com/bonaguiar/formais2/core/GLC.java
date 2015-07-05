@@ -4,12 +4,10 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import lombok.Getter;
 
@@ -111,7 +109,7 @@ public class GLC implements Serializable {
 					"Produção mal formada: "
 							+ line
 							+ ". Produções devem seguir o padrao 'E -> E + T | .. | id'",
-					0);
+							0);
 		}
 
 		String produtor = parts[0].trim();
@@ -225,9 +223,9 @@ public class GLC implements Serializable {
 	// First
 
 	/**
-	 * Retorna um hash com todos os conjuntos 'first' da gramática O hash
-	 * retornado possui os símbolos não terminais da gramática como chave e um
-	 * conjunto de símbolos first associados a este não terminal
+	 * Retorna um hash com todos os conjuntos 'first' da gramática
+	 * O hash retornado possui os símbolos não terminais da gramática como
+	 * chave e um conjunto de símbolos first associados a este não terminal
 	 *
 	 * @return
 	 */
@@ -283,6 +281,12 @@ public class GLC implements Serializable {
 			} else {
 				// Calcula o first de cada produção
 				for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
+					// Se produção começar com o próprio símbolo, é uma recursão à esquerda
+					// Nesse caso, ignoramos esta produção. Exemplo: E -> E + T
+					if (formaSentencial.get(0).equals(simbolo)) {
+						continue;
+					}
+
 					set.addAll(first(formaSentencial));
 				}
 
@@ -463,19 +467,19 @@ public class GLC implements Serializable {
 	public boolean temRecursaoEsquerdaIndireta(String producao) {
 		GLC aux = new GLC();
 		aux.getProducoes().putAll(producoes);
-		
+
 		for (FormaSentencial forma : aux.getProducoes().get(producao)) {
 			if (producao.equals(forma.get(0))) {
 				return true;
 			}
-//			else if (this.getFirstSet().get(forma.get(0)).contains(GrammarUtils.EPSILON)) {
-//				Iterator<String> a = forma.iterator();
-//				while (a.hasNext()) {
-//					String formaNext = (String) a.next();
-//					forma.remove(forma);
-//					temRecursaoEsquerdaIndireta(formaNext);
-//				}
-//			}
+			// else if (this.getFirstSet().get(forma.get(0)).contains(GrammarUtils.EPSILON)) {
+			// Iterator<String> a = forma.iterator();
+			// while (a.hasNext()) {
+			// String formaNext = (String) a.next();
+			// forma.remove(forma);
+			// temRecursaoEsquerdaIndireta(formaNext);
+			// }
+			// }
 		}
 		return false;
 	}
@@ -491,8 +495,8 @@ public class GLC implements Serializable {
 		ArrayList<String> chavesAnteriores = new ArrayList<String>();
 		GLC glc = new GLC(raw);
 		List<FormaSentencial> refatorado;
-		
-		//realiza trocas nas producoes para posterior verificao de recursao
+
+		// realiza trocas nas producoes para posterior verificao de recursao
 		for (String chave : glc.getProducoes().keySet()) {
 			refatorado = new ArrayList<FormaSentencial>();
 			if (!chavesAnteriores.isEmpty()) {
@@ -518,8 +522,8 @@ public class GLC implements Serializable {
 			glc.getProducoes().put(chave, refatorado);
 			chavesAnteriores.add(chave);
 		}
-		
-		//adiciona a uma lista os ñ terminais com recursao direta
+
+		// adiciona a uma lista os ñ terminais com recursao direta
 		ArrayList<String> recEsqIndireta = new ArrayList<String>();
 		for (String chave : glc.getProducoes().keySet()) {
 			if (glc.temRecursaoEsquerdaIndireta(chave)) {
@@ -528,12 +532,12 @@ public class GLC implements Serializable {
 		}
 		return recEsqIndireta;
 	}
-	
+
 	private void testes(String chave, String chaveAnterior) {
 		List<FormaSentencial> refatorado = new ArrayList<GLC.FormaSentencial>();
 
 		this.getFirstSet().get(chave).contains(GrammarUtils.EPSILON);
-		
+
 		for (FormaSentencial forma : this.getProducoes().get(chave)) {
 			if (chaveAnterior.contains(forma.get(0))) {
 				for (FormaSentencial formaAnterior : this
@@ -544,8 +548,9 @@ public class GLC implements Serializable {
 				refatorado.add(forma);
 			}
 		}
-		
+
 	}
+
 	// ===================================================================================================
 
 	/**
@@ -557,7 +562,7 @@ public class GLC implements Serializable {
 	/**
 	 * Retorna uma lista com os ñ-terminais que possuem ñ-determinismo direto(os ñ fatorados)
 	 */
-	public Set<String> getFatoracaoDireta(){
+	public Set<String> getFatoracaoDireta() {
 		Set<String> naoFatoradaDireta = new HashSet<String>();
 		for (String chave : producoes.keySet()) {
 			if (temNaoDeterminismoDireto(chave)) {
@@ -566,17 +571,17 @@ public class GLC implements Serializable {
 		}
 		return naoFatoradaDireta;
 	}
-	
+
 	/**
 	 * verifica se a produção não esta fatorado diretamente
 	 */
 	protected boolean temNaoDeterminismoDireto(String producao) {
 		Set<String> terminaisDerivados = new HashSet<String>();
 		for (FormaSentencial forma : producoes.get(producao)) {
-//			Eh necessario ser nao terminal ??????
+			// Eh necessario ser nao terminal ??????
 			if (GrammarUtils.ehTerminal(forma.get(0))) {
-				
-			//ao add em Set caso o terminal jah exista retorna false
+
+				// ao add em Set caso o terminal jah exista retorna false
 				if (!terminaisDerivados.add(forma.get(0))) {
 					return true;
 				}
@@ -584,11 +589,13 @@ public class GLC implements Serializable {
 		}
 		return false;
 	}
+
 	/**
 	 * Retorna uma lista com os ñ-terminais que possuem ñ_determinismo indireto
+	 *
 	 * @return
 	 */
-	public Set<String> getFatoracaoIndireta(){
+	public Set<String> getFatoracaoIndireta() {
 		Set<String> naoFatoradaDireta = new HashSet<String>();
 		for (String chave : producoes.keySet()) {
 			try {
@@ -596,55 +603,57 @@ public class GLC implements Serializable {
 					naoFatoradaDireta.add(chave);
 				}
 			} catch (Exception e) {
-				//captura excecao gerado pelo getProducoesDerivadas() - 
+				// captura excecao gerado pelo getProducoesDerivadas() -
 				naoFatoradaDireta.add(chave);
-//				System.err.println(e.getMessage());
-//				return naoFatoradaDireta; 
+				// System.err.println(e.getMessage());
+				// return naoFatoradaDireta;
 			}
 		}
 		return naoFatoradaDireta;
 	}
-	
+
 	/**
 	 * Retorna uma lista com os ñ-terminais derivados de uma produção
+	 *
 	 * @param producao
 	 * @param naoTerminaisDerivados
 	 * @return
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	protected Set<String> getProducoesDerivadas(String producao, Set<String> naoTerminaisDerivados) throws Exception {
-		//hash auxiliar de não-terminais
+		// hash auxiliar de não-terminais
 		Set<String> aux = new HashSet<String>();
 		for (FormaSentencial forma : producoes.get(producao)) {
 			if (GrammarUtils.ehNaoTerminal(forma.get(0))) {
 				aux.add(forma.get(0));
 			}
 		}
-		
+
 		for (String string : aux) {
 			if (naoTerminaisDerivados.isEmpty()) {
 				naoTerminaisDerivados.addAll(getProducoesDerivadas(string, aux));
-			}else
-				//caso derive um mesmo terminal por outro caminho gera exceção
-				if (naoTerminaisDerivados.contains(string)) {
-					throw new Exception();
-				}
-			
-				else if (!naoTerminaisDerivados.contains(string)) {
-					naoTerminaisDerivados.addAll(getProducoesDerivadas(string, naoTerminaisDerivados));
-				}
+			} else
+			// caso derive um mesmo terminal por outro caminho gera exceção
+			if (naoTerminaisDerivados.contains(string)) {
+				throw new Exception();
+			}
+
+			else if (!naoTerminaisDerivados.contains(string)) {
+				naoTerminaisDerivados.addAll(getProducoesDerivadas(string, naoTerminaisDerivados));
+			}
 		}
 		return naoTerminaisDerivados;
 	}
-	
+
 	/**
 	 * Verificação se uma produção e suas derivadas derivam o mesmo terminal
+	 *
 	 * @param producao
 	 * @param producoesDerivadas
 	 * @return
 	 */
 	protected boolean temNaoDeterminismoIndireta(String producao, Set<String> producoesDerivadas) {
-		
+
 		for (FormaSentencial forma : this.producoes.get(producao)) {
 			for (String producaoDerivada : producoesDerivadas) {
 				for (String firstProdDerivada : this.getFirstSet().get(producaoDerivada)) {
@@ -658,7 +667,7 @@ public class GLC implements Serializable {
 				if (!f.isEmpty()) {
 					return temNaoDeterminismoIndireta(producaoDerivada, f);
 				}
-					
+
 			}
 		}
 		return false;
