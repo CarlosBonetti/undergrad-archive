@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "person.h"
+#include "floor.h"
 
 #define ESCAPE 27
 
@@ -78,10 +79,16 @@ void redraw() {
 	//			0, 1, 0);
 
 	glPushMatrix();
-	glTranslatef(0.0f, 3.0f, -23.0f);
+		glTranslatef(0.0f, 3.0f, -23.0f);
 		glRotatef(rotation, 0, 1, 0);
 		Person().draw(time);
 	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-50, -14.6, -100);
+		Floor().draw();
+	glPopMatrix();
+
 	glutSwapBuffers();
 }
 
