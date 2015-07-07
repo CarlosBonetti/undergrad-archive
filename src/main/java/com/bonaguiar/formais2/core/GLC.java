@@ -109,7 +109,7 @@ public class GLC implements Serializable {
 					"Produção mal formada: "
 							+ line
 							+ ". Produções devem seguir o padrao 'E -> E + T | .. | id'",
-							0);
+					0);
 		}
 
 		String produtor = parts[0].trim();
@@ -273,27 +273,31 @@ public class GLC implements Serializable {
 		if (GrammarUtils.ehTerminal(simbolo)) {
 			// First de um terminal é o próprio terminal
 			set.add(simbolo);
-		} else {
-			if (this.firstSet.containsKey(simbolo)) {
-				// Se for um símbolo não terminal já calculado, simplesmente
-				// retorna o conjunto previamente criado
-				set.addAll(this.firstSet.get(simbolo));
-			} else {
-				// Calcula o first de cada produção
-				for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
-					// Se produção começar com o próprio símbolo, é uma recursão à esquerda
-					// Nesse caso, ignoramos esta produção. Exemplo: E -> E + T
-					if (formaSentencial.get(0).equals(simbolo)) {
-						continue;
-					}
+			return set;
+		}
 
-					set.addAll(first(formaSentencial));
+		if (this.firstSet.containsKey(simbolo)) {
+			// Se for um símbolo não terminal já calculado, simplesmente
+			// retorna o conjunto previamente criado
+			set.addAll(this.firstSet.get(simbolo));
+		} else {
+			// Seta o firstSet do não-terminal para um conjunto vazio, indicando que ele está sendo calculado
+			this.firstSet.put(simbolo, set);
+
+			// Calcula o first de cada produção
+			for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
+				// Se produção começar com o próprio símbolo, é uma recursão à esquerda
+				// Nesse caso, ignoramos esta produção. Exemplo: E -> E + T
+				if (formaSentencial.get(0).equals(simbolo)) {
+					continue;
 				}
 
-				// Salva o firstSet recém calculado do terminal para evitar
-				// retrabalho
-				this.firstSet.put(simbolo, set);
+				set.addAll(first(formaSentencial));
 			}
+
+			// Salva o firstSet recém calculado do terminal para evitar
+			// retrabalho
+			this.firstSet.put(simbolo, set);
 		}
 
 		return set;
@@ -659,14 +663,14 @@ public class GLC implements Serializable {
 			if (naoTerminaisDerivados.isEmpty()) {
 				naoTerminaisDerivados.addAll(getProducoesDerivadas(string, aux));
 			} else
-			// caso derive um mesmo terminal por outro caminho gera exceção
-			if (naoTerminaisDerivados.contains(string)) {
-				throw new Exception();
-			}
+				// caso derive um mesmo terminal por outro caminho gera exceção
+				if (naoTerminaisDerivados.contains(string)) {
+					throw new Exception();
+				}
 
-			else if (!naoTerminaisDerivados.contains(string)) {
-				naoTerminaisDerivados.addAll(getProducoesDerivadas(string, naoTerminaisDerivados));
-			}
+				else if (!naoTerminaisDerivados.contains(string)) {
+					naoTerminaisDerivados.addAll(getProducoesDerivadas(string, naoTerminaisDerivados));
+				}
 		}
 		return naoTerminaisDerivados;
 	}

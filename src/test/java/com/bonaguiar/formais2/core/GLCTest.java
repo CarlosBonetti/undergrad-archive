@@ -1,10 +1,13 @@
 package com.bonaguiar.formais2.core;
 
+import static com.bonaguiar.formais2.test.Assert.assertCollectionEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -142,13 +145,25 @@ public class GLCTest {
 	@Test
 	public void getFirstSet() throws Exception {
 		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
-		assertEquals("{F=[id, (], T=[id, (], E=[id, (], E'=[&, +], T'=[&, *]}", glc.getFirstSet().toString());
+		Map<String, Set<String>> hash = glc.getFirstSet();
+		assertCollectionEquals(Arrays.asList("id", "("), hash.get("F"));
+		assertCollectionEquals(Arrays.asList("id", "("), hash.get("T"));
+		assertCollectionEquals(Arrays.asList("id", "("), hash.get("E"));
+		assertCollectionEquals(Arrays.asList("+", "&"), hash.get("E'"));
+		assertCollectionEquals(Arrays.asList("&", "*"), hash.get("T'"));
 
 		GLC glc2 = new GLC("S -> A b | A B c \n" + "B -> b B | A d | & \n" + "A -> a A | &");
-		assertEquals("{A=[&, a], B=[d, &, b, a], S=[d, b, c, a]}", glc2.getFirstSet().toString());
+		hash = glc2.getFirstSet();
+		assertCollectionEquals(Arrays.asList("&", "a"), hash.get("A"));
+		assertCollectionEquals(Arrays.asList("d", "&", "b", "a"), hash.get("B"));
+		assertCollectionEquals(Arrays.asList("d", "c", "b", "a"), hash.get("S"));
 
 		GLC glc3 = new GLC("S -> A B C \n" + "A -> a A | & \n" + "B -> b B | A C d \n" + "C -> c C | &");
-		assertEquals("{A=[&, a], C=[&, c], B=[d, b, c, a], S=[d, b, c, a]}", glc3.getFirstSet().toString());
+		hash = glc3.getFirstSet();
+		assertCollectionEquals(Arrays.asList("&", "a"), hash.get("A"));
+		assertCollectionEquals(Arrays.asList("&", "c"), hash.get("C"));
+		assertCollectionEquals(Arrays.asList("d", "b", "c", "a"), hash.get("B"));
+		assertCollectionEquals(Arrays.asList("d", "b", "c", "a"), hash.get("S"));
 	}
 
 	@Test
@@ -164,16 +179,10 @@ public class GLCTest {
 
 		assertTrue(glc.first("E").containsAll(Arrays.asList("id", "(")));
 		assertEquals(2, glc.first("E").size());
-		
+
 		glc = new GLC("S -> A S b | a\n" + "A -> &");
-		glc.getFirstSet();
-		assertTrue(glc.first("S").containsAll(Arrays.asList("a")));
-		assertEquals(1, glc.first("S").size());
-
-		assertTrue(glc.first("A").containsAll(Arrays.asList("&")));
-		assertEquals(1, glc.first("A").size());
-		
-
+		assertCollectionEquals(Arrays.asList("&"), glc.first("A"));
+		assertCollectionEquals(Arrays.asList("a"), glc.first("S"));
 	}
 
 	@Test
