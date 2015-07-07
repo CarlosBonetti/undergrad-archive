@@ -23,7 +23,7 @@ void Person::draw_aux(int t) {
     	trunk.draw(t);
     
     	glPushMatrix();
-    		glTranslated(0, head.height * 2, 0);
+    		glTranslated(0, trunk.height / 2, trunk.depth / 2);
     		head.draw(t);
     	glPopMatrix();
     
@@ -98,7 +98,22 @@ void Trunk::draw(int t) {
 }
 
 void Head::draw(int t) {
-	draw_box(width, height, depth);
+	float radius = 1.2;
+	float length = 1.3;
+
+	glTranslatef(0, length, 0);
+
+	// neck
+	glPushMatrix();
+	glRotatef(90, 1, 0, 0);
+		auto quad = gluNewQuadric();
+		gluCylinder(quad, radius, radius, length, 30, 30);
+		gluDeleteQuadric(quad);
+	glPopMatrix();
+
+	// head
+	glTranslatef(0, length, 0);
+	glutSolidSphere(2.3, 30, 30);
 }
 
 void Hand::draw(int t){
