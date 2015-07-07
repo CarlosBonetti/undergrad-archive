@@ -164,6 +164,16 @@ public class GLCTest {
 
 		assertTrue(glc.first("E").containsAll(Arrays.asList("id", "(")));
 		assertEquals(2, glc.first("E").size());
+		
+		glc = new GLC("S -> A S b | a\n" + "A -> &");
+		glc.getFirstSet();
+		assertTrue(glc.first("S").containsAll(Arrays.asList("a")));
+		assertEquals(1, glc.first("S").size());
+
+		assertTrue(glc.first("A").containsAll(Arrays.asList("&")));
+		assertEquals(1, glc.first("A").size());
+		
+
 	}
 
 	@Test
