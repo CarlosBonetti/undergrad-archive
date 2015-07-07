@@ -234,6 +234,11 @@ public class GLCTest {
 		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("F"));
 		assertTrue(glc.getRecursaoEsquerdaIndireta().isEmpty());
 
+		glc = new GLC("S -> A | a | & \n" + "A -> B | a \n" + "B -> S | a");
+		assertTrue(!glc.getRecursaoEsquerdaIndireta().isEmpty());
+		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("S"));
+		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("A"));
+		assertTrue(glc.getRecursaoEsquerdaIndireta().contains("B"));
 	}
 
 	@Test
