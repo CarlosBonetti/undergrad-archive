@@ -82,7 +82,7 @@ void redraw() {
 	glPushMatrix();
 		glTranslatef(0.0f, 3.0f, -23.0f);
 		glRotatef(rotation, 0, 1, 0);
-		person.draw(time);
+		person.draw(abs(time));
 	glPopMatrix();
 
 	glPushMatrix();

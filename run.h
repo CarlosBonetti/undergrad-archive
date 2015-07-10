@@ -5,7 +5,7 @@
 
 namespace movement
 {
-    constexpr int run_length = 120;
+    constexpr int run_length = 100;
 
     movement run_body([](int t) -> state{
            double speed = .11;

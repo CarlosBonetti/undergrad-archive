@@ -11,56 +11,65 @@ namespace movement{
     */
     
     //number of "ticks" a cycle of the movement will have
-    constexpr int mw_length = 160;
+    constexpr int mw_length = 140;
    
     //describes the movement of the right arm
     //code of the other body parts will be similar, thus they won't have detailed comments.
     movement mw_right_arm([](int t) -> state{
-            //make sure time is between 0 and mk_length
-            t = t % mw_length;
+    	t = t % mw_length;
+		double x = static_cast<double>(t) / static_cast<double>(mw_length); // actual fraction of the movement
 
-            //how much of the total duration of a moonwalk cycle is the arm moving?
-            // 60%?
-            constexpr int movement_duration = mw_length * 0.6;
-            if(t > movement_duration) return state(0,0,0,0,0,0);
-    
-           //arm movement is like a pendulum: it rotates to max_theta and then goes back to 0.
-           //in this case we are simulating a parabola with points
-           //(0,0)  (len, max_theta) (2*len, 0)
-           constexpr int phase_len = movement_duration/2;
-           constexpr double max_theta = -30.0;
-           constexpr double a = - max_theta / (phase_len * phase_len);
-           constexpr double b = 2.0 * max_theta / phase_len;
-           double theta = a * t * t + b * t;
-           return state(theta, 0, 0, 0, 0, 0);
+		double minTheta = 20;
+		double maxTheta = -10;
+
+		x *= 2;
+		if (x > 1)
+			x = 2 - x;
+
+		double theta = minTheta + (maxTheta - minTheta) * x;
+		return state(theta, 0, 0, 0, 0, 0);
     });
     
+    movement mw_left_arm([](int t) -> state {
+    	return mw_right_arm(t + mw_length / 2);
+    });
+
     movement mw_right_forearm([](int t) -> state{
-            t = t % mw_length;
+    	t = t % mw_length;
+		double x = static_cast<double>(t) / static_cast<double>(mw_length); // actual fraction of the movement
 
-            constexpr int movement_duration = mw_length * 0.8;
-            if(t > movement_duration) return state(0,0,0,0,0,0);
-    
-           constexpr int phase_len = movement_duration/2;
-           constexpr double max_theta = -70.0;
-           constexpr double a = - max_theta / (phase_len * phase_len);
-           constexpr double b = 2.0 * max_theta / phase_len;
-           double theta = a * t * t + b * t;
-           return state(theta, 0, 0, 0, 0, 0);
+		double minTheta = -10;
+		double maxTheta = -60;
+
+		x *= 2;
+		if (x > 1)
+			x = 2 - x;
+
+		double theta = minTheta + (maxTheta - minTheta) * x;
+		return state(theta, 0, 0, 0, 0, 0);
     });
 
-    movement mw_right_hand([](int t) -> state{
-            t = t % mw_length;
+    movement mw_left_forearm([](int t) -> state {
+    	return mw_right_forearm(t + mw_length / 2);
+    });
 
-            constexpr int movement_duration = mw_length * 0.9;
-            if(t > movement_duration) return state(0,0,0,0,0,0);
-    
-           constexpr int phase_len = movement_duration/2;
-           constexpr double max_theta = -80.0;
-           constexpr double a = - max_theta / (phase_len * phase_len);
-           constexpr double b = 2.0 * max_theta / phase_len;
-           double theta = a * t * t + b * t;
-           return state(theta, 0, 0, 0, 0, 0);
+    movement mw_right_hand([](int t) -> state {
+		t = t % mw_length;
+		double x = static_cast<double>(t) / static_cast<double>(mw_length); // actual fraction of the movement
+
+		double minTheta = 0;
+		double maxTheta = -30;
+
+		x *= 2;
+		if (x > 1)
+			x = 2 - x;
+
+		double theta = minTheta + (maxTheta - minTheta) * x;
+		return state(theta, 0, 0, 0, 0, 0);
+    });
+
+    movement mw_left_hand([](int t) -> state {
+    	return mw_right_hand(t + mw_length / 2);
     });
 
     constexpr int phase1 = mw_length * 2 / 16;
@@ -135,17 +144,14 @@ namespace movement{
     
     movement mw_left_thigh([](int t) -> state{
             t = (t + mw_length/2) % mw_length;
-          //  return noMovement(t);
             return mw_right_thigh(t);
     });
     movement mw_left_leg([](int t) -> state{
             t = (t + mw_length/2) % mw_length;
-           // return noMovement(t);
             return mw_right_leg(t);
     });
     movement mw_left_foot([](int t) -> state{
             t = (t + mw_length/2) % mw_length;
-        //    return noMovement(t);
             return mw_right_foot(t);
     });
 
@@ -153,27 +159,14 @@ namespace movement{
            double speed = .11;
            double dx = speed * t;
 
-            //length is divided by 2 because we want the up and down movement
-            //to happen twice in each cycle, one for each leg
-            t = t % (mw_length/2);
-
-            constexpr int movement_duration = mw_length/2 * 1.0;
-            if(t > movement_duration) return state(0,0,0,0,0,0);
-    
-           constexpr int phase_len = movement_duration/2;
-           constexpr double max_dy = 1.0;
-           constexpr double a = - max_dy / (phase_len * phase_len);
-           constexpr double b = 2.0 * max_dy / phase_len;
-           double dy = a * t * t + b * t;
-
            return state(0, 0, 0, 0, 0, -dx);
     });
 
-    typedef BodyMovement< mw_body,
-            mw_right_arm, mw_right_forearm, mw_right_hand, 
-			noMovement, noMovement, noMovement,
-            mw_right_thigh, mw_right_leg, mw_right_foot,
-            mw_left_thigh, mw_left_leg, mw_left_foot> moonwalk_t;
+    typedef BodyMovement<   mw_body,
+            mw_right_arm,   mw_right_forearm, mw_right_hand,
+			mw_left_arm,    mw_left_forearm,  mw_left_hand,
+            mw_right_thigh, mw_right_leg,     mw_right_foot,
+            mw_left_thigh,  mw_left_leg,      mw_left_foot> moonwalk_t;
     moonwalk_t moonwalk;
 }
 #endif
