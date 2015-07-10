@@ -51,7 +51,16 @@ namespace movement{
             const movement& leftLegMovement = _leftLegMovement;
             const movement& leftFootMovement = _leftFootMovement;
     };
-    
-    
+
+    inline double linearFit(double y0, double yF, double x0, double xF, double t){
+        return y0 + (t - x0) * (yF - y0) / (xF - x0);
+    }
+
+    //does not work
+    inline double quadraticFit(double y0, double yF, double x0, double xF, double t, double g = -.2){
+       double b = ((y0 - yF) - g * (x0*x0 - xF*xF)) / (x0 - xF);
+       double c = y0 - g * x0*x0 - b * x0;
+       return g * t*t + b * t + c;
+    }
 }
 #endif

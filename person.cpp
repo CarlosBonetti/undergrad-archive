@@ -17,7 +17,7 @@ void Person::draw_aux(int t) {
 
     	glColor3f(0.435294f, 0.258824f, 0.258824f);
         auto d = mode.bodyMovement(t);
-        glTranslatef(0, d.ty, 0);
+        glTranslatef(d.tx, d.ty, d.tz);
     
     
     	trunk.draw(t);
