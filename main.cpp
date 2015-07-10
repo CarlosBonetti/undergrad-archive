@@ -12,6 +12,7 @@ int window;
 float rotation = 90; // Camera rotation
 int time = 0;
 int KEY_STATES[256];
+Person person;
 
 void init_light() {
 	// Let there be light
@@ -81,7 +82,7 @@ void redraw() {
 	glPushMatrix();
 		glTranslatef(0.0f, 3.0f, -23.0f);
 		glRotatef(rotation, 0, 1, 0);
-		Person().draw(time);
+		person.draw(time);
 	glPopMatrix();
 
 	glPushMatrix();
@@ -116,6 +117,12 @@ void key_pressed(unsigned char key, int x, int y) {
 		case ESCAPE:
 			glutDestroyWindow(window);
 			exit(0);
+		case '1':
+			person.setWalkingMode(Person::walkingMode::RUNNING);
+			break;
+		case '2':
+			person.setWalkingMode(Person::walkingMode::MOONWALKING);
+			break;
 		default:
 			printf("Key pressed: %c\n", key);
 			break;
