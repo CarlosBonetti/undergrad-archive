@@ -1,5 +1,6 @@
 package com.bonaguiar.formais2.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
@@ -11,6 +12,12 @@ public class Assert {
 			assertTrue(actual.containsAll(expected));
 		} catch (AssertionError e) {
 			throw new AssertionError("Collections diverge. Expected <" + expected + "> but was <" + actual + ">");
+		}
+
+		try {
+			assertEquals(expected.size(), actual.size());
+		} catch (AssertionError e) {
+			throw new AssertionError("Collection sizes diverge. Expected <" + expected + "> but was <" + actual + ">");
 		}
 	}
 }
