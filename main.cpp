@@ -2,17 +2,27 @@
 #include <stdio.h>
 #include <GL/glut.h>
 #include <math.h>
+#include <time.h>
 
 #include "person.h"
 #include "floor.h"
+#include "star.h"
 
 #define ESCAPE 27
+#define STARS 200
 
 int window;
-int time = 0;
+int tick = 0;
 int KEY_STATES[256];
 Person person;
 float velocity = 0;
+Star stars[STARS];
+
+void init_stars() {
+	for (int i = 0; i < STARS; i++) {
+		stars[i] = Star();
+	}
+}
 
 void init_light() {
 	// Let there be light
@@ -79,7 +89,11 @@ void redraw() {
 				person.position.x, person.position.y, person.position.z,
 				0, 1, 0);
 
-	person.draw(abs(time));
+	person.draw(abs(tick));
+
+	for (int i = 0; i < STARS; i++) {
+		stars[i].draw();
+	}
 
 	glPushMatrix();
 		glTranslatef(-50, -14.6, -40);
@@ -91,10 +105,10 @@ void redraw() {
 
 void handle_keys() {
 	if (KEY_STATES[GLUT_KEY_UP]) {
-		time++;
+		tick++;
 		velocity = 0.2;
 	} else if (KEY_STATES[GLUT_KEY_DOWN]) {
-		time--;
+		tick--;
 		velocity = -0.2;
 	} else {
 		velocity = 0;
@@ -147,6 +161,7 @@ void key_special_up(int key, int x, int y) {
 }
 
 int main(int argc, char **argv) {
+	srand(time(0));
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowSize(800, 800);
@@ -159,6 +174,8 @@ int main(int argc, char **argv) {
 	glutSpecialFunc(key_special_down);
 	glutSpecialUpFunc(key_special_up);
 	initGL();
+
+	init_stars();
 	glutMainLoop();
 	return 0;
 }
