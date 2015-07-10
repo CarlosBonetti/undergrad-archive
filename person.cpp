@@ -101,6 +101,10 @@ void Person::draw_aux(int t) {
 }
 
 void Person::update(float vel) {
+	if (this->currentMode == MOONWALKING) {
+		vel = -vel;
+	}
+
 	position.x += vel * sin(rotation * M_PI / 180);
 	position.z += vel * cos(rotation * M_PI / 180);
 }
