@@ -9,10 +9,10 @@
 #define ESCAPE 27
 
 int window;
-float rotation = 90; // Camera rotation
 int time = 0;
 int KEY_STATES[256];
 Person person;
+float velocity = 0;
 
 void init_light() {
 	// Let there be light
@@ -75,18 +75,14 @@ void redraw() {
 
 	glLoadIdentity(); // Resete a corrente Modelview Matrix
 
-	//gluLookAt(	sinf(rotation), 0, cosf(rotation),
-	//			0, 0, 0,
-	//			0, 1, 0);
+	gluLookAt(	person.position.x, 3, person.position.z - 25,
+				person.position.x, person.position.y, person.position.z,
+				0, 1, 0);
+
+	person.draw(abs(time));
 
 	glPushMatrix();
-		glTranslatef(0.0f, 3.0f, -23.0f);
-		glRotatef(rotation, 0, 1, 0);
-		person.draw(abs(time));
-	glPopMatrix();
-
-	glPushMatrix();
-		glTranslatef(-50, -14.6, -100);
+		glTranslatef(-50, -14.6, -40);
 		Floor().draw();
 	glPopMatrix();
 
@@ -96,19 +92,24 @@ void redraw() {
 void handle_keys() {
 	if (KEY_STATES[GLUT_KEY_UP]) {
 		time++;
+		velocity = 0.2;
 	} else if (KEY_STATES[GLUT_KEY_DOWN]) {
 		time--;
+		velocity = -0.2;
+	} else {
+		velocity = 0;
 	}
 
 	if (KEY_STATES[GLUT_KEY_RIGHT]) {
-		rotation -= 2.0f;
+		person.rotation -= 2.0f;
 	} else if (KEY_STATES[GLUT_KEY_LEFT]) {
-		rotation += 2.0f;
+		person.rotation += 2.0f;
 	}
 }
 
 void idle() {
 	handle_keys();
+	person.update(velocity);
 	redraw();
 }
 

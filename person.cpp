@@ -1,8 +1,14 @@
 #include "person.h"
+
+#include <math.h>
 #include "moonwalk.h"
 #include "run.h"
 #include "utils.h"
 
+Person::Person() {
+	position.y = 3;
+	position.z = -23;
+}
 
 void Person::draw(int t) {
     if(currentMode == MOONWALKING)
@@ -13,13 +19,14 @@ void Person::draw(int t) {
 
 template<typename T, T& mode>
 void Person::draw_aux(int t) {
-    glPushMatrix();
 
-    	glColor3f(0.435294f, 0.258824f, 0.258824f);
-        auto d = mode.bodyMovement(t);
-        glTranslatef(d.tx, d.ty, d.tz);
-    
-    
+    glPushMatrix();
+		glColor3f(0.435294f, 0.258824f, 0.258824f);
+    	auto d = mode.bodyMovement(t);
+
+    	glTranslatef(position.x, position.y + d.ty, position.z);
+    	glRotatef(rotation, 0, 1, 0);
+
     	trunk.draw(t);
     
     	glPushMatrix();
@@ -91,6 +98,11 @@ void Person::draw_aux(int t) {
     	glPopMatrix();
 
     glPopMatrix();
+}
+
+void Person::update(float vel) {
+	position.x += vel * sin(rotation * M_PI / 180);
+	position.z += vel * cos(rotation * M_PI / 180);
 }
 
 void Trunk::draw(int t) {

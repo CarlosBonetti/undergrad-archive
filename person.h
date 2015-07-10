@@ -89,16 +89,27 @@ public:
 	double joint_radius = .5;
 };
 
+class vector {
+public:
+	GLfloat x = 0;
+	GLfloat y = 0;
+	GLfloat z = 0;
+};
+
 class Person {
 public:
     enum walkingMode{MOONWALKING, RUNNING};
 
-
+    Person();
     void setWalkingMode(walkingMode m) {currentMode = m;}
 	void draw(int t);
+	void update(float velocity);
+
+	vector position;
+	GLfloat rotation = 0;
 
 private:
-    walkingMode currentMode = MOONWALKING;
+    walkingMode currentMode = RUNNING;
    
     template<typename T, T& mode> void draw_aux(int t);
 
