@@ -320,7 +320,7 @@ public class App extends JFrame {
 								.getFatoracaoDireta()) {
 							simbolos += s + "\n";
 						}
-						msgSaida += "\nGrammar não esta Fatorada\npossui Não-Determinismo direto\n"
+						msgSaida += "\nGramática não esta Fatorada\nPossui Não-Determinismo direto em:\n"
 								+ simbolos;
 					}
 					if (!gramHash.get(glcSelecionado)
@@ -330,13 +330,13 @@ public class App extends JFrame {
 								.getFatoracaoIndireta()) {
 							simbolos += s + "\n";
 						}
-						msgSaida += "\nGrammar não esta Fatorada\npossui Não-Determinismo indireta\n"
+						msgSaida += "\nGramática não esta Fatorada\nPossui Não-Determinismo indireto em:\n"
 								+ simbolos;
 					}
 					if (gramHash.get(glcSelecionado).getFatoracaoDireta()
 							.isEmpty() && gramHash.get(glcSelecionado)
 							.getFatoracaoIndireta().isEmpty()) {
-						msgSaida = "Grammar esta Fatorada";
+						msgSaida = "Gramática esta Fatorada";
 					}
 
 					JOptionPane.showMessageDialog(frame,
@@ -369,9 +369,9 @@ public class App extends JFrame {
 									+ "\n";
 						}
 						JOptionPane.showMessageDialog(frame,
-								"Grammar FOLLOW\n" + simbolos);
+								"Gramática FOLLOW\n" + simbolos);
 					} else {
-						JOptionPane.showMessageDialog(frame, "Try again!");
+						JOptionPane.showMessageDialog(frame, "Tente novamente!");
 					}
 
 				} catch (Exception e) {
@@ -418,9 +418,9 @@ public class App extends JFrame {
 									+ "\n";
 						}
 						JOptionPane.showMessageDialog(frame,
-								"Grammar FIRST\n" + simbolos);
+								"Gramática FIRST\n" + simbolos);
 					} else {
-						JOptionPane.showMessageDialog(frame, "Try again!");
+						JOptionPane.showMessageDialog(frame, "Tente novamente!");
 					}
 				} catch (Exception e) {
 					tratarException(e);
@@ -442,7 +442,7 @@ public class App extends JFrame {
 								.getRecursaoEsquerdaDireta()) {
 							simbolos += s + "\n";
 						}
-						msgSaida += "\nGrammar possui R.E. direta\n" + simbolos;
+						msgSaida += "\nGramática possui R.E. direta\n" + simbolos;
 					}
 					if (!gramHash.get(glcSelecionado)
 							.getRecursaoEsquerdaIndireta().isEmpty()) {
@@ -451,10 +451,10 @@ public class App extends JFrame {
 								.getRecursaoEsquerdaIndireta()) {
 							simbolos += s + "\n";
 						}
-						msgSaida += "\nGrammar possui R.E. indireta\n" + simbolos;
+						msgSaida += "\nGramática possui R.E. indireta\n" + simbolos;
 					}
 					if (!possuiRE()) {
-						msgSaida = "Grammar NÂO possui R.E direta ou indireta";
+						msgSaida = "Gramática NÂO possui R.E direta ou indireta";
 					}
 					JOptionPane.showMessageDialog(frame,
 							msgSaida);
@@ -485,13 +485,13 @@ public class App extends JFrame {
 					String msgSaida = "";
 
 					if (possuiRE()){
-						msgSaida += "\nGrammar possui R.E. \n" ;
+						msgSaida += "\nGramática possui R.E. \n" ;
 					}
 					if (!estaFatorada()) {
-						msgSaida += "\nGrammar não está Fatorada\n";
+						msgSaida += "\nGramática não está Fatorada\n";
 					}
 					if (possuiConflitosFF()) {
-						msgSaida += "\nGrammar possui Conflitos intersecção First-Follow\n";
+						msgSaida += "\nGramática possui Conflitos intersecção First-Follow\n";
 					}
 					if (msgSaida.trim().isEmpty()) {
 						msgSaida = "A Gramática \"" + glcSelecionado + "\" é LL(1)!";
