@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.bonaguiar.formais2.core.GLC.FormaSentencial;
@@ -62,15 +63,15 @@ public class ParserGenerator {
 				result += "else ";
 			}
 
-			result += this.getIfProducao(fs, 0);
+			result += this.getIfProducao(fs, 0, nt);
 			first = false;
 		}
 
 		Template ultimoElseTemplate = this.getElseTemplate();
 		if (producoes.contains(GrammarUtils.PRODUCAO_VAZIA)) {
-			ultimoElseTemplate = ultimoElseTemplate.replace("$(body)", "");
+			ultimoElseTemplate = ultimoElseTemplate.removeLine("$(body)");
 		} else {
-			String exc = "throw new ParseException(x, 0);";
+			String exc = "error(x);";
 			ultimoElseTemplate = ultimoElseTemplate.replace("$(body)", exc);
 		}
 
@@ -79,21 +80,58 @@ public class ParserGenerator {
 		return result;
 	}
 
-	protected String getIfProducao(FormaSentencial formaSentencial, int index) {
+	protected String getIfProducao(FormaSentencial formaSentencial, int index, String metodo) {
 		Template ifTemplate = this.getIfTemplate();
 		String simboloAtual = formaSentencial.get(index);
 
-		// TODO: se for não terminal, fazer aquilo...
-		ifTemplate = ifTemplate.replace("$(condition)", "x == '" + simboloAtual + "'");
+		if (GrammarUtils.ehTerminal(simboloAtual)) {
+			// Cria if
+			ifTemplate = ifTemplate.replace("$(condition)", "sym == '" + simboloAtual + "'");
+			ifTemplate = ifTemplate.replace("$(body)", "x = alex(x, \"" + metodo + "\");");
+		} else {
+			ifTemplate = ifTemplate.replace("$(condition)",
+					this.getInOp(this.glc.first(simboloAtual)));
+			ifTemplate = ifTemplate.replace("$(body)", simboloAtual + "(x);");
+		}
 
-		ifTemplate = ifTemplate.replace("$(body)", "TODO");
+		// se não for o último símbolo da produção, chama recursivamente este método
+		// criando os ifs aninhados
+		if (index < formaSentencial.size() - 1) {
+			ifTemplate = ifTemplate.replace("$(post-body)", this.getIfProducao(formaSentencial, index + 1, metodo));
+		} else {
+			ifTemplate = ifTemplate.removeLine("$(post-body)");
+		}
+
+		// Se não for o primeiro símbolo da produção, adiciona um else levando a erro
+		if (index != 0) {
+			ifTemplate.add("else {");
+			ifTemplate.add("	error(x);");
+			ifTemplate.add("}");
+		}
+
 		return ifTemplate.toString();
+	}
+
+	protected String getInOp(Collection<String> c) {
+		Template template = new Template();
+		template.add("Arrays.asList($(lista)).contains(sym)");
+
+		String lista = "";
+		for (String f : c) {
+			lista += String.format("'%s', ", f);
+		}
+		// Removendo o último ", " inserido:
+		lista = lista.isEmpty() ? lista : lista.substring(0, lista.length() - 2);
+
+		template = template.replace("$(lista)", lista);
+		return template.toString().trim();
 	}
 
 	protected Template getIfTemplate() {
 		Template template = new Template();
 		template.add("if ($(condition)) {");
 		template.add("	$(body)");
+		template.add("	$(post-body)");
 		template.add("}");
 		return template;
 	}
@@ -108,7 +146,7 @@ public class ParserGenerator {
 
 	protected Template getMetodoTemplate() {
 		Template template = new Template();
-		template.add("public static void $(nome)(x) {");
+		template.add("public static void $(nome)(String x) throws Exception {");
 		template.add("	$(corpo)");
 		template.add("}");
 		template.add("");
@@ -165,6 +203,22 @@ public class ParserGenerator {
 				}
 
 				novo.add(newLine);
+			}
+			return novo;
+		}
+
+		/**
+		 * Remove a linha que contém o target
+		 *
+		 * @param target
+		 * @return
+		 */
+		public Template removeLine(String target) {
+			Template novo = new Template();
+			for (String line : this) {
+				if (!line.contains(target)) {
+					novo.add(line);
+				}
 			}
 			return novo;
 		}

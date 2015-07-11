@@ -1,15 +1,39 @@
 import java.security.InvalidParameterException;
 import java.text.ParseException;
+import java.util.Arrays;
 
-class Parser {
+public class Parser {
 	
-	public static void main(String args[]) {
-		if (args[0] == null) {
+	// Símbolo que está sendo analisado atualmente
+	private static char sym;
+	
+	// Salva a sequência de ativações da análise
+	private static String sequence = "";
+	
+	public static void main(String[] args) throws Exception {
+		if (args == null || args.length == 0 || args[0] == null) {
 			throw new InvalidParameterException("Forneça uma sentença para ser analisada!");
 		}
 		
-		String x = args[0];
+		String x = args[0] + "$";
+		x = alex(x, "");
 		$(inicial)(x);
+		
+		if (sym == '$') {
+			System.out.println(sequence.trim());
+		} else {
+			error(x);
+		}		
+	}
+	
+	public static String alex(String x, String ativacao) {
+		sym = x.charAt(0);
+		sequence += ativacao + " ";
+		return x.substring(1);
+	}
+	
+	public static void error(String x) throws Exception {
+		throw new ParseException(x, 0);
 	}
 	
 	$(metodos)	
