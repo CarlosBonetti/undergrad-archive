@@ -164,8 +164,8 @@ public class GLCTest {
 		assertCollectionEquals(Arrays.asList("&", "c"), hash.get("C"));
 		assertCollectionEquals(Arrays.asList("d", "b", "c", "a"), hash.get("B"));
 		assertCollectionEquals(Arrays.asList("d", "b", "c", "a"), hash.get("S"));
-	
-		glc3 = new GLC("\nS -> a A | b B \n" + "C -> S | &\n"+ "D -> S | &\n"+ "A -> C b \n" + "B -> D a\n" );
+
+		glc3 = new GLC("\nS -> a A | b B \n" + "C -> S | &\n" + "D -> S | &\n" + "A -> C b \n" + "B -> D a\n");
 		hash = glc3.getFirstSet();
 		assertCollectionEquals(Arrays.asList("&", "a", "b"), hash.get("D"));
 		assertCollectionEquals(Arrays.asList("b", "a"), hash.get("A"));
@@ -173,23 +173,22 @@ public class GLCTest {
 		assertCollectionEquals(Arrays.asList("a", "b"), hash.get("B"));
 		assertCollectionEquals(Arrays.asList("b", "a"), hash.get("S"));
 
-		glc3 = new GLC("S -> A B \n" + "A -> &\n"+ "B -> & \n");
+		glc3 = new GLC("S -> A B \n" + "A -> &\n" + "B -> & \n");
 		hash = glc3.getFirstSet();
 		assertCollectionEquals(Arrays.asList("&"), hash.get("S"));
 		assertCollectionEquals(Arrays.asList("&"), hash.get("A"));
 		assertCollectionEquals(Arrays.asList("&"), hash.get("B"));
-		
-		glc3 = new GLC("S -> A B a | a \n" + "A -> B | &\n"+ "B -> A C | c \n"+ "C -> & \n");
+
+		glc3 = new GLC("S -> A B a | a \n" + "A -> B | &\n" + "B -> A C | c \n" + "C -> & \n");
 		hash = glc3.getFirstSet();
 		assertCollectionEquals(Arrays.asList("c", "a"), hash.get("S"));
 		assertCollectionEquals(Arrays.asList("c", "&"), hash.get("A"));
 		assertCollectionEquals(Arrays.asList("&", "c"), hash.get("B"));
 		assertCollectionEquals(Arrays.asList("&"), hash.get("C"));
-		
-		
-		glc3 = new GLC("\nS -> A B C | b | c \n" + "A -> a A | &\n"+ "B -> b B | A C d | c \n" );
-//		hash = glc3.getFirstSet(); //C nao existe na gramatica
-		//validar adicao de grammar
+
+		glc3 = new GLC("\nS -> A B C | b | c \n" + "A -> a A | &\n" + "B -> b B | A C d | c \n");
+		// hash = glc3.getFirstSet(); // C nao existe na gramatica
+		// validar adicao de grammar
 	}
 
 	@Test
@@ -292,23 +291,23 @@ public class GLCTest {
 		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getRecursaoEsquerdaIndireta());
 
 		glc = new GLC("S -> A S | a | & \n" + "A -> B | a \n" + "B -> B S | a | &");
-		assertCollectionEquals(Arrays.asList("A","B", "S"), glc.getRecursaoEsquerdaIndireta());
-		
-		glc = new GLC("S -> A S | a | & \n" + "A -> & | a \n" + "B ->  a | &\n"+ "C ->  a | &");
+		assertCollectionEquals(Arrays.asList("A", "B", "S"), glc.getRecursaoEsquerdaIndireta());
+
+		glc = new GLC("S -> A S | a | & \n" + "A -> & | a \n" + "B ->  a | &\n" + "C ->  a | &");
 		assertCollectionEquals(Arrays.asList("S"), glc.getRecursaoEsquerdaIndireta());
-		
+
 		glc = new GLC("S -> A | S | & \n" + "A -> a S | a \n");
 		assertTrue(glc.getRecursaoEsquerdaIndireta().isEmpty());
 
 		glc = new GLC("S -> A | S | & \n" + "A -> B S | a \n" + "B -> A S | a ");
-		assertCollectionEquals(Arrays.asList("A","B"), glc.getRecursaoEsquerdaIndireta());
-	
-		glc = new GLC("S -> A B C S | a | & \n" + "A -> & | a \n" + "B ->  a | &\n"+ "C ->  a | &");
+		assertCollectionEquals(Arrays.asList("A", "B"), glc.getRecursaoEsquerdaIndireta());
+
+		glc = new GLC("S -> A B C S | a | & \n" + "A -> & | a \n" + "B ->  a | &\n" + "C ->  a | &");
 		assertCollectionEquals(Arrays.asList("S"), glc.getRecursaoEsquerdaIndireta());
-		
-		glc = new GLC("S -> B C | a  \n" + "A -> & | a | C \n" + "B ->  a | &\n"+ "C ->  S A | a");
+
+		glc = new GLC("S -> B C | a  \n" + "A -> & | a | C \n" + "B ->  a | &\n" + "C ->  S A | a");
 		System.out.println();
-		assertCollectionEquals(Arrays.asList("S","C"), glc.getRecursaoEsquerdaIndireta());
+		assertCollectionEquals(Arrays.asList("S", "C"), glc.getRecursaoEsquerdaIndireta());
 	}
 
 	@Test
@@ -318,7 +317,7 @@ public class GLCTest {
 		assertTrue(glc.getFatoracaoDireta().isEmpty());
 
 		glc = new GLC("S -> a S b | A C\n" + "A -> a A b | a D | b E\n" + "C -> c C | &\n" + "D -> a D | c\n" + "E -> b E | b");
-		assertCollectionEquals(Arrays.asList("E","A"), glc.getFatoracaoDireta());
+		assertCollectionEquals(Arrays.asList("E", "A"), glc.getFatoracaoDireta());
 
 		glc = new GLC("S -> S | S C | a\n" + "A -> a A b | A d | b e\n" + "C -> c C | &\n");
 		assertCollectionEquals(Arrays.asList("S"), glc.getFatoracaoDireta());
@@ -331,26 +330,26 @@ public class GLCTest {
 		String text = "S -> A B | b C\n" + "A -> a A | C B | &\n" + "B -> b B | d\n" + "C -> c C | &";
 		GLC glc = new GLC(text);
 		assertCollectionEquals(Arrays.asList("S"), glc.getFatoracaoIndireta());
-		
+
 		glc = new GLC("S -> a | A C\n" + "A -> a A b | B\n" + "B -> d | a | C\n" + "C -> d | b\n");
 		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta());
-		
+
 		glc = new GLC("S -> L = R | R\n" + "R -> L\n" + "L -> * R | id");
 		assertCollectionEquals(Arrays.asList("S"), glc.getFatoracaoIndireta());
 
 		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
-		assertTrue(""+glc.getFatoracaoIndireta().size(), glc.getFatoracaoIndireta().size() ==0);
-		
+		assertTrue("" + glc.getFatoracaoIndireta().size(), glc.getFatoracaoIndireta().size() == 0);
+
 		glc = new GLC("S -> S a | a | &\n" + "A -> S b | a \n");
 		assertCollectionEquals(Arrays.asList("S", "A"), glc.getFatoracaoIndireta());
-		
-		glc = new GLC("S -> A B a | a \n" + "A -> B | &\n"+ "B -> A C | c \n"+ "C -> & \n");
+
+		glc = new GLC("S -> A B a | a \n" + "A -> B | &\n" + "B -> A C | c \n" + "C -> & \n");
 		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta());
 
-		glc = new GLC("S -> A a | B c \n" + "A -> &\n"+ "B -> &\n");
-//		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta22222());
-		assertTrue(""+glc.getFatoracaoIndireta().size(), glc.getFatoracaoIndireta().size() ==0);
-		
+		glc = new GLC("S -> A a | B c \n" + "A -> &\n" + "B -> &\n");
+		// assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta22222());
+		assertTrue("" + glc.getFatoracaoIndireta().size(), glc.getFatoracaoIndireta().size() == 0);
+
 	}
 
 }

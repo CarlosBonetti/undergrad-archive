@@ -3,7 +3,6 @@ package com.bonaguiar.formais2.core;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -111,7 +110,7 @@ public class GLC implements Serializable {
 					"Produção mal formada: "
 							+ line
 							+ ". Produções devem seguir o padrao 'E -> E + T | .. | id'",
-					0);
+							0);
 		}
 
 		String produtor = parts[0].trim();
@@ -233,12 +232,46 @@ public class GLC implements Serializable {
 	 */
 	public Map<String, Set<String>> getFirstSet() {
 		for (String naoTerminal : this.producoes.keySet()) {
-			if (!this.firstSet.containsKey(naoTerminal)) {
-				this.firstSet.put(naoTerminal, first(naoTerminal));
+			this.firstSet.put(naoTerminal, new HashSet<String>());
+		}
+
+		boolean alterou = true;
+		while (alterou) {
+			alterou = false;
+			for (String naoTerminal : this.producoes.keySet()) {
+				Set<String> oldFirst = this.firstSet.get(naoTerminal);
+				Set<String> newFirst = calcFirst(naoTerminal);
+				this.firstSet.put(naoTerminal, newFirst);
+
+				alterou = alterou || oldFirst.size() != newFirst.size();
 			}
 		}
 
 		return this.firstSet;
+	}
+
+	/**
+	 * Retorna o firstSet do símbolo
+	 *
+	 * @param simbolo
+	 * @return
+	 */
+	public Set<String> first(String simbolo) {
+		if (GrammarUtils.ehTerminal(simbolo)) {
+			// First de um terminal é o próprio terminal
+			Set<String> set = new HashSet<String>();
+			set.add(simbolo);
+			return set;
+		}
+
+		if (this.firstSet.containsKey(simbolo)) {
+			// Se for um símbolo não terminal já calculado, simplesmente
+			// retorna o conjunto previamente criado
+			return this.firstSet.get(simbolo);
+		}
+
+		// Senão, calcula todos e retorna
+		return this.getFirstSet().get(simbolo);
 	}
 
 	/**
@@ -247,7 +280,7 @@ public class GLC implements Serializable {
 	 * @param formaSentencial
 	 * @return
 	 */
-	protected Set<String> first(FormaSentencial formaSentencial) {
+	public Set<String> first(FormaSentencial formaSentencial) {
 		Set<String> set = new HashSet<String>();
 
 		for (String simbolo : formaSentencial) {
@@ -264,42 +297,21 @@ public class GLC implements Serializable {
 	}
 
 	/**
-	 * Retorna o firstSet do símbolo
+	 * Calcula o first do símbolo não terminal parâmetro com base em suas produções e
+	 * o first dos outros não terminais salvos neste momento.
+	 * Este método não calcula o first de forma total, ele é chamado diversas vezes até
+	 * que o first de todos os símbolos estejam completos. Use getFirstSet() ou first(simbolo)
+	 * para obter os conjuntos first totais
 	 *
 	 * @param simbolo
 	 * @return
 	 */
-	protected Set<String> first(String simbolo) {
+	private Set<String> calcFirst(String simbolo) {
 		Set<String> set = new HashSet<String>();
 
-		if (GrammarUtils.ehTerminal(simbolo)) {
-			// First de um terminal é o próprio terminal
-			set.add(simbolo);
-			return set;
-		}
-
-		if (this.firstSet.containsKey(simbolo)) {
-			// Se for um símbolo não terminal já calculado, simplesmente
-			// retorna o conjunto previamente criado
-			set.addAll(this.firstSet.get(simbolo));
-		} else {
-			// Seta o firstSet do não-terminal para um conjunto vazio, indicando que ele está sendo calculado
-			this.firstSet.put(simbolo, set);
-
-			// Calcula o first de cada produção
-			for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
-				// Se produção começar com o próprio símbolo, é uma recursão à esquerda
-				// Nesse caso, ignoramos esta produção. Exemplo: E -> E + T
-				if (formaSentencial.get(0).equals(simbolo)) {
-					continue;
-				}
-
-				set.addAll(first(formaSentencial));
-			}
-
-			// Salva o firstSet recém calculado do terminal para evitar
-			// retrabalho
-			this.firstSet.put(simbolo, set);
+		// Calcula o first de cada produção
+		for (FormaSentencial formaSentencial : this.producoes.get(simbolo)) {
+			set.addAll(first(formaSentencial));
 		}
 
 		return set;
@@ -496,10 +508,10 @@ public class GLC implements Serializable {
 		return false;
 	}
 
-
 	/**
 	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
 	 * indireta
+	 *
 	 * @return Set<String> ñ-terminais
 	 */
 	public Set<String> getRecursaoEsquerdaIndireta() {
@@ -511,17 +523,18 @@ public class GLC implements Serializable {
 		}
 		return recEsqIndireta;
 	}
-	
+
 	/**
-	 * Metodo faz uma busca recursiva para encontrar se alguma producao deriva a chave de entrada  
+	 * Metodo faz uma busca recursiva para encontrar se alguma producao deriva a chave de entrada
+	 *
 	 * @param chave producao inicial a ser analisado se possue recursão a esquerda
-	 * @param producao	producao que é derivada da producão inicial direta ou indiretamente
+	 * @param producao producao que é derivada da producão inicial direta ou indiretamente
 	 * @return boolean
 	 */
-	private boolean producaoIniciaCom(String chave, String producao){
-		try{
+	private boolean producaoIniciaCom(String chave, String producao) {
+		try {
 			for (FormaSentencial forma : getProducoes().get(producao)) {
-				for (String simbolo: forma) {
+				for (String simbolo : forma) {
 					if (GrammarUtils.ehNaoTerminal(simbolo)) {
 						if (simbolo.equals(chave)) {
 							return true;
@@ -529,52 +542,59 @@ public class GLC implements Serializable {
 						if (producaoIniciaCom(chave, simbolo)) {
 							return true;
 						}
-						
-						//caso o nao-terminal derive EPSILON continua analisando mesma formaSentencial
-						//caso contrario pula para próxima formaSentencial
+
+						// caso o nao-terminal derive EPSILON continua analisando mesma formaSentencial
+						// caso contrario pula para próxima formaSentencial
 						if (!getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
 							break;
 						}
-					}else break;
+					} else {
+						break;
+					}
 				}
 			}
-		} catch (StackOverflowError e){
-//			System.err.println(chave + " <chave - producao> " + producao + "\n");
+		} catch (StackOverflowError e) {
+			// System.err.println(chave + " <chave - producao> " + producao + "\n");
 			return false;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Retorna um verdade se encontrar alguma derivação do simbolo analisado
+	 *
 	 * @param producao Simbolo não terminal a ser aalisado
 	 * @return
 	 * @throws ParseException
 	 */
-	private boolean temRecursaoEsquerdaIndireta(String producao)  {
+	private boolean temRecursaoEsquerdaIndireta(String producao) {
 		for (FormaSentencial forma : getProducoes().get(producao)) {
-			for (String simbolo: forma) {
+			for (String simbolo : forma) {
 				if (GrammarUtils.ehNaoTerminal(simbolo)) {
-					if (forma.get(0).equals(producao) && forma.get(0).equals(simbolo) ) {
+					if (forma.get(0).equals(producao) && forma.get(0).equals(simbolo)) {
 						if (getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
 							continue;
-						} else break;
+						} else {
+							break;
+						}
 					}
 					if (producaoIniciaCom(producao, simbolo)) {
 						return true;
 					}
-					
-					//caso o nao-terminal derive EPSILON continua analisando mesma formaSentencial
-					//caso contrario pula para próxima formaSentencial
+
+					// caso o nao-terminal derive EPSILON continua analisando mesma formaSentencial
+					// caso contrario pula para próxima formaSentencial
 					if (!getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
 						break;
 					}
-				}else break;
+				} else {
+					break;
+				}
 			}
 		}
 		return false;
 	}
-	
+
 	// ===================================================================================================
 
 	/**
@@ -619,22 +639,25 @@ public class GLC implements Serializable {
 		}
 		return naoFatoradaDireta;
 	}
-	
+
 	/**
 	 * Retorna todas os firsts terminais ou nao da setenca direta
+	 *
 	 * @param producao
 	 * @return
 	 */
 	protected LinkedList<FormaSentencial> getFatoracaoIndireta(String producao) {
 		LinkedList<FormaSentencial> derivacoesFormaDiretas = new LinkedList<FormaSentencial>();
 		for (FormaSentencial forma : getProducoes().get(producao)) {
-			String aux = ""; //para gerar uma forma sentencial
+			String aux = ""; // para gerar uma forma sentencial
 			for (String simbolo : forma) {
-				if (forma.get(0).equals(producao) && forma.get(0).equals(simbolo) ) {
+				if (forma.get(0).equals(producao) && forma.get(0).equals(simbolo)) {
 					if (getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
 						aux += simbolo + " ";
 						continue;
-					} else break;
+					} else {
+						break;
+					}
 				}
 				if (GrammarUtils.ehTerminal(simbolo)) {
 					if (!aux.trim().isEmpty()) {
@@ -645,7 +668,7 @@ public class GLC implements Serializable {
 					break;
 				} else if (GrammarUtils.ehNaoTerminal(simbolo)) {
 					aux += simbolo + " ";
-					if (!getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString()) ) {
+					if (!getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
 						derivacoesFormaDiretas.add(new FormaSentencial(aux));
 						break;
 					}
@@ -654,27 +677,28 @@ public class GLC implements Serializable {
 		}
 		return derivacoesFormaDiretas;
 	}
-	
+
 	/**
-	 * Percorre a lista verificando se existem casos onde dois termos ou suas derivacoes possuem o mesmo valor  
-	 * @param lista 
+	 * Percorre a lista verificando se existem casos onde dois termos ou suas derivacoes possuem o mesmo valor
+	 *
+	 * @param lista
 	 * @return
 	 */
 	protected boolean contemIndeterminismo(LinkedList<FormaSentencial> lista) {
-		//varre a lista
+		// varre a lista
 		for (int i = 0; i < lista.size(); i++) {
 			for (String simbolo : lista.get(i)) {
-				//se terminal faz validacoes diretas
+				// se terminal faz validacoes diretas
 				if (GrammarUtils.ehTerminal(simbolo)) {
-					//percorre a lista sem valores de i
-					for (int j = i+1; j < lista.size(); j++) {
+					// percorre a lista sem valores de i
+					for (int j = i + 1; j < lista.size(); j++) {
 						for (String simbolo2 : lista.get(j)) {
-							//indeterminismo direto
-//							if (GrammarUtils.ehTerminal(simbolo2)) {
-//								if (simbolo.equals(simbolo2)) {
-//									return true;
-//								}
-//							} else
+							// indeterminismo direto
+							// if (GrammarUtils.ehTerminal(simbolo2)) {
+							// if (simbolo.equals(simbolo2)) {
+							// return true;
+							// }
+							// } else
 							if (GrammarUtils.ehNaoTerminal(simbolo2)) {
 								if (getFirstSet().get(simbolo2).contains(simbolo)) {
 									return true;
@@ -685,43 +709,44 @@ public class GLC implements Serializable {
 				} else if (GrammarUtils.ehNaoTerminal(simbolo)) {
 					for (int j = i + 1; j < lista.size(); j++) {
 						for (String simbolo2 : lista.get(j)) {
-					
+
 							if (GrammarUtils.ehTerminal(simbolo2)) {
 								if (getFirstSet().get(simbolo).contains(simbolo2)) {
-									
+
 									if (!simbolo2.equals(GrammarUtils.EPSILON.toString())) {
 										return true;
 									}
-									//faz verificacao se eh o ultimo simbolo da FormaSentencial
-									if (lista.get(i).get(lista.get(i).size() -1) == simbolo2) {
+									// faz verificacao se eh o ultimo simbolo da FormaSentencial
+									if (lista.get(i).get(lista.get(i).size() - 1) == simbolo2) {
 										return true;
+									} else {
+										continue;
 									}
-									else continue;
 								}
-							} else
-							if (GrammarUtils.ehNaoTerminal(simbolo2)) {
-								//verifica de existem firsts semelhantes
+							} else if (GrammarUtils.ehNaoTerminal(simbolo2)) {
+								// verifica de existem firsts semelhantes
 								if (firstsComFirsts(simbolo, simbolo2)) {
 									return true;
 								}
-							
+
 							}
-						}	
+						}
 					}
 				}
 			}
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Verifica se duas producoes possuem firsts semelhantes
-	* Excluindo da verificao Epsilon
+	 * Excluindo da verificao Epsilon
+	 *
 	 * @param chave
 	 * @param producao
 	 * @return
 	 */
-	private boolean firstsComFirsts(String chave, String producao){
+	private boolean firstsComFirsts(String chave, String producao) {
 		for (String firstProducao : getFirstSet().get(producao)) {
 			if (firstProducao.equals(GrammarUtils.EPSILON.toString())) {
 				continue;
