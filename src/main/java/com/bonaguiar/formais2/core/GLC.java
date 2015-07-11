@@ -645,18 +645,24 @@ public class GLC implements Serializable {
 	}
 
 	/**
-	 * Retorna todas os firsts terminais ou nao da setenca direta
+	 * Retorna todas os firsts, terminais ou nao, da setenca direta
 	 *
 	 * @param producao
 	 * @return
 	 */
 	protected LinkedList<FormaSentencial> getFatoracaoIndireta(String producao) {
-		LinkedList<FormaSentencial> derivacoesFormaDiretas = new LinkedList<FormaSentencial>();
+		LinkedList<FormaSentencial> derivacoesDiretas = new LinkedList<FormaSentencial>();
+		//percorre formaSentencial da producao
 		for (FormaSentencial forma : getProducoes().get(producao)) {
-			String aux = ""; // para gerar uma forma sentencial
+			// auxiliar para gerar uma forma sentencial
+			String aux = ""; 
+			//auxiliar para saber o tamanho da sentenca
 			int tamForma = forma.size();
+			
 			for (String simbolo : forma) {
+				//se simbolo gera recursao
 				if (forma.get(0).equals(producao) && forma.get(0).equals(simbolo)) {
+					//se simbolo gerar recursao e derivar '&' continua senão vai para próxima forma
 					if (getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
 						aux += simbolo + " ";
 						continue;
@@ -665,25 +671,29 @@ public class GLC implements Serializable {
 					}
 				}
 				if (GrammarUtils.ehTerminal(simbolo)) {
+					//se aux nao for vazio concatena com o simbolo gerando nova forma sentencial senao nova forma eh somente o simbolo
 					if (!aux.trim().isEmpty()) {
-						derivacoesFormaDiretas.add(new FormaSentencial(aux + simbolo));
+						derivacoesDiretas.add(new FormaSentencial(aux + simbolo));
 						break;
 					}
-					derivacoesFormaDiretas.add(new FormaSentencial(simbolo));
+					derivacoesDiretas.add(new FormaSentencial(simbolo));
 					break;
+					
 				} else if (GrammarUtils.ehNaoTerminal(simbolo)) {
 					aux += simbolo + " ";
+					//se producao nao derivar '&' termina loop
 					if (!getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
-						derivacoesFormaDiretas.add(new FormaSentencial(aux));
+						derivacoesDiretas.add(new FormaSentencial(aux));
 						break;
 					} 
+					//se não existir mais simbolos na atual FormaSentencial aux eh adicionado a listagem
 					if ((--tamForma) == 0) {
-						derivacoesFormaDiretas.add(new FormaSentencial(aux));
+						derivacoesDiretas.add(new FormaSentencial(aux));
 					}
 				}
 			}
 		}
-		return derivacoesFormaDiretas;
+		return derivacoesDiretas;
 	}
 
 	/**
@@ -693,27 +703,29 @@ public class GLC implements Serializable {
 	 * @return
 	 */
 	protected boolean contemIndeterminismo(LinkedList<FormaSentencial> lista) {
-		// varre a lista
+		// percorre a lista
 		for (int i = 0; i < lista.size(); i++) {
+			//auxiliar para saber o tamanho da sentenca
 			int tamForma = lista.get(i).size();
 			for (String simbolo : lista.get(i)) {
-				// se terminal faz validacoes diretas
+				// se for terminal, faz validacoes diretas
 				if (GrammarUtils.ehTerminal(simbolo)) {
-					// percorre a lista sem valores de i
+					// percorre a lista sem valores de atual e anterores i
 					for (int j = i + 1; j < lista.size(); j++) {
 						for (String simbolo2 : lista.get(j)) {
-							// indeterminismo direto
 							 if (GrammarUtils.ehTerminal(simbolo2)) {
+								 //verifica se duas sentencas geram o mesmo terminal
 								 if (simbolo.equals(simbolo2)) {
-										// faz verificacao se eh o ultimo simbolo da FormaSentencial
-										if (lista.get(i).get(0).equals(lista.get(j).get(0))) {
-											continue;
-										} else {
-											return true;
-										}
-								 }
-							 } else
+									// faz verificacao se eh o ultimo simbolo da FormaSentencial
+									if (lista.get(i).get(0).equals(lista.get(j).get(0))) {
+										continue;
+									} else {
+										return true;
+									}
+								}
+						 	} else
 							if (GrammarUtils.ehNaoTerminal(simbolo2)) {
+								//se simbolo que eh terminal existir nas derivacoes de simbolo2(ñ-terminal) retorna true
 								if (getFirstSet().get(simbolo2).contains(simbolo)) {
 									return true;
 								}
@@ -721,18 +733,15 @@ public class GLC implements Serializable {
 						}
 					}
 				} else if (GrammarUtils.ehNaoTerminal(simbolo)) {
+					// percorre a lista sem valores de atual e anterores i
 					for (int j = i + 1; j < lista.size(); j++) {
 						for (String simbolo2 : lista.get(j)) {
-
 							if (GrammarUtils.ehTerminal(simbolo2)) {
+								//se simbolo que eh ñ-terminal ter em suas derivacoes de simbolo2(terminal)
 								if (getFirstSet().get(simbolo).contains(simbolo2)) {
-
+									//se simbolo2 for diferente de '&' ou for ultimo simbolo da formaSentencial retorna true
 									if (!simbolo2.equals(GrammarUtils.EPSILON.toString()) || (--tamForma) == 0) {
 										return true;
-//									}
-//									// faz verificacao se eh o ultimo simbolo da FormaSentencial
-//									if (lista.get(i).get(lista.get(i).size() - 1) == simbolo2) {
-//										return true;
 									} else {
 										continue;
 									}
@@ -742,7 +751,6 @@ public class GLC implements Serializable {
 								if (firstsComFirsts(simbolo, simbolo2, (--tamForma) > 0)) {
 									return true;
 								}
-
 							}
 						}
 					}
@@ -754,18 +762,20 @@ public class GLC implements Serializable {
 
 	/**
 	 * Verifica se duas producoes possuem firsts semelhantes
-	 * Excluindo da verificao Epsilon
+	 * Excluindo da verificao Epsilon caso producao não for ultimo valor da Forma sentencial 
 	 *
-	 * @param chave
-	 * @param producao
+	 * @param producao1
+	 * @param producao2
+	 * @param desconsiderarEpsilon 
 	 * @return
 	 */
-	private boolean firstsComFirsts(String chave, String producao, boolean considerarEpsilon) {
-		for (String firstProducao : getFirstSet().get(producao)) {
-			if (considerarEpsilon) {
+	private boolean firstsComFirsts(String producao1, String producao2, boolean desconsiderarEpsilon) {
+		
+		for (String firstProducao : getFirstSet().get(producao2)) {
+			if (desconsiderarEpsilon) {
 				continue;
 			}
-			if (getFirstSet().get(chave).contains(firstProducao)) {
+			if (getFirstSet().get(producao1).contains(firstProducao)) {
 				return true;
 			}
 		}
