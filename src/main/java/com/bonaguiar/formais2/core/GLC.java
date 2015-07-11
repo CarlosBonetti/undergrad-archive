@@ -739,7 +739,7 @@ public class GLC implements Serializable {
 								}
 							} else if (GrammarUtils.ehNaoTerminal(simbolo2)) {
 								// verifica de existem firsts semelhantes
-								if (firstsComFirsts(simbolo, simbolo2)) {
+								if (firstsComFirsts(simbolo, simbolo2, (--tamForma) > 0)) {
 									return true;
 								}
 
@@ -760,9 +760,9 @@ public class GLC implements Serializable {
 	 * @param producao
 	 * @return
 	 */
-	private boolean firstsComFirsts(String chave, String producao) {
+	private boolean firstsComFirsts(String chave, String producao, boolean considerarEpsilon) {
 		for (String firstProducao : getFirstSet().get(producao)) {
-			if (firstProducao.equals(GrammarUtils.EPSILON.toString())) {
+			if (considerarEpsilon) {
 				continue;
 			}
 			if (getFirstSet().get(chave).contains(firstProducao)) {
