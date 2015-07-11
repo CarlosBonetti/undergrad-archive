@@ -172,6 +172,12 @@ public class GLCTest {
 		assertCollectionEquals(Arrays.asList("&", "a", "b"), hash.get("C"));
 		assertCollectionEquals(Arrays.asList("a", "b"), hash.get("B"));
 		assertCollectionEquals(Arrays.asList("b", "a"), hash.get("S"));
+
+		glc3 = new GLC("S -> A B \n" + "A -> &\n"+ "B -> & \n");
+		hash = glc3.getFirstSet();
+		assertCollectionEquals(Arrays.asList("&"), hash.get("S"));
+		assertCollectionEquals(Arrays.asList("&"), hash.get("A"));
+		assertCollectionEquals(Arrays.asList("&"), hash.get("B"));
 		
 		glc3 = new GLC("S -> A B a | a \n" + "A -> B | &\n"+ "B -> A C | c \n"+ "C -> & \n");
 		hash = glc3.getFirstSet();
