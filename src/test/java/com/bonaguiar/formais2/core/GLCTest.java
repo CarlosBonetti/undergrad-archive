@@ -345,7 +345,7 @@ public class GLCTest {
 		assertCollectionEquals(Arrays.asList("S", "A"), glc.getFatoracaoIndireta());
 		
 		glc = new GLC("S -> A B a | a \n" + "A -> B | &\n"+ "B -> A C | c \n"+ "C -> & \n");
-		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta());
+		assertCollectionEquals(Arrays.asList("S", "A"), glc.getFatoracaoIndireta());
 
 		glc = new GLC("S -> A a | B c \n" + "A -> &\n"+ "B -> &\n");
 //		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta22222());

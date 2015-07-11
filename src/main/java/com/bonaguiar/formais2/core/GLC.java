@@ -610,6 +610,10 @@ public class GLC implements Serializable {
 		return false;
 	}
 
+	/**
+	 * Retorna uma lista com os ñ-terminais que possuem ñ-determinismo indireto(os ñ fatorados)
+	 * @return
+	 */
 	public Set<String> getFatoracaoIndireta() {
 		Set<String> naoFatoradaDireta = new HashSet<String>();
 		for (String chave : producoes.keySet()) {
