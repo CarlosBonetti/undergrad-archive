@@ -200,6 +200,21 @@ public class GLCTest {
 	}
 
 	@Test
+	public void getFirstSetDeGramaticaComRecursaoIndireta() throws ParseException {
+		GLC glc = new GLC("S -> a A | b B \n" +
+				"A -> C b \n " +
+				"C -> S  | & \n" +
+				"B -> D c \n" +
+				"D -> S  | & \n");
+
+		assertCollectionEquals(Arrays.asList("a", "b"), glc.first("S"));
+		assertCollectionEquals(Arrays.asList("a", "b"), glc.first("A"));
+		assertCollectionEquals(Arrays.asList("a", "b", "&"), glc.first("C"));
+		assertCollectionEquals(Arrays.asList("a", "b", "c"), glc.first("B"));
+		assertCollectionEquals(Arrays.asList("a", "b", "&"), glc.first("D"));
+	}
+
+	@Test
 	public void getFollowSet() throws Exception {
 		GLC glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
 		assertEquals("{E=[$, )], E'=[$, )], T=[$, +, )], T'=[$, +, )], F=[$, *, +, )]}", glc.getFollowSet().toString());
