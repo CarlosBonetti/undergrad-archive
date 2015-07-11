@@ -390,6 +390,7 @@ public class App extends JFrame {
 				try {
 					if (!gramHash.get(glcSelecionado).getFirstSet()
 							.toString().isEmpty()) {
+						System.out.println(gramHash.get(glcSelecionado).getFirstSet().get("A"));
 						String simbolos = "";
 						for (String chave : gramHash.get(glcSelecionado)
 								.getFirstSet().keySet()) {

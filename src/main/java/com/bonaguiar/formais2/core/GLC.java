@@ -467,10 +467,10 @@ public class GLC implements Serializable {
 	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
 	 * direta
 	 *
-	 * @return ArrayList<String>
+	 * @return Set<String> ñ-terminais
 	 */
-	public ArrayList<String> getRecursaoEsquerdaDireta() {
-		ArrayList<String> recEsqDireta = new ArrayList<String>();
+	public Set<String> getRecursaoEsquerdaDireta() {
+		Set<String> recEsqDireta = new HashSet<String>();
 		for (String chave : producoes.keySet()) {
 			if (temRecursaoEsquerdaDireta(chave)) {
 				recEsqDireta.add(chave);
@@ -485,7 +485,7 @@ public class GLC implements Serializable {
 	 * @param producao
 	 * @return
 	 */
-	public boolean temRecursaoEsquerdaDireta(String producao) {
+	private boolean temRecursaoEsquerdaDireta(String producao) {
 		for (FormaSentencial forma : producoes.get(producao)) {
 			if (producao.equals(forma.get(0))) {
 				return true;
@@ -494,93 +494,83 @@ public class GLC implements Serializable {
 		return false;
 	}
 
-	public boolean temRecursaoEsquerdaIndireta(String producao) {
-		GLC aux = new GLC();
-		aux.getProducoes().putAll(producoes);
-
-		for (FormaSentencial forma : aux.getProducoes().get(producao)) {
-			if (producao.equals(forma.get(0))) {
-				return true;
-			}
-			// else if (this.getFirstSet().get(forma.get(0)).contains(GrammarUtils.EPSILON)) {
-			// Iterator<String> a = forma.iterator();
-			// while (a.hasNext()) {
-			// String formaNext = (String) a.next();
-			// forma.remove(forma);
-			// temRecursaoEsquerdaIndireta(formaNext);
-			// }
-			// }
-		}
-		return false;
-	}
 
 	/**
 	 * Retorna uma lista com os ñ-teminais que possuem recursão a esquerda
 	 * indireta
-	 *
-	 * @return
-	 * @throws Exception
+	 * @return Set<String> ñ-terminais
 	 */
-	public ArrayList<String> getRecursaoEsquerdaIndireta() throws Exception {
-		ArrayList<String> chavesAnteriores = new ArrayList<String>();
-		GLC glc = new GLC(raw);
-		List<FormaSentencial> refatorado;
-
-		// realiza trocas nas producoes para posterior verificao de recursao
-		for (String chave : glc.getProducoes().keySet()) {
-			refatorado = new ArrayList<FormaSentencial>();
-			if (!chavesAnteriores.isEmpty()) {
-				for (String chaveAnterior : chavesAnteriores) {
-					refatorado = new ArrayList<FormaSentencial>();
-					for (FormaSentencial forma : glc.getProducoes().get(chave)) {
-						if (chaveAnterior.contains(forma.get(0))) {
-							for (FormaSentencial formaAnterior : glc
-									.getProducoes().get(forma.get(0))) {
-								refatorado.add(formaAnterior);
-							}
-						} else {
-							refatorado.add(forma);
-						}
-					}
-					glc.getProducoes().put(chave, refatorado);
-				}
-			} else {
-				for (FormaSentencial forma : glc.getProducoes().get(chave)) {
-					refatorado.add(forma);
-				}
-			}
-			glc.getProducoes().put(chave, refatorado);
-			chavesAnteriores.add(chave);
-		}
-
-		// adiciona a uma lista os ñ terminais com recursao direta
-		ArrayList<String> recEsqIndireta = new ArrayList<String>();
-		for (String chave : glc.getProducoes().keySet()) {
-			if (glc.temRecursaoEsquerdaIndireta(chave)) {
+	public Set<String> getRecursaoEsquerdaIndireta() {
+		Set<String> recEsqIndireta = new HashSet<String>();
+		for (String chave : producoes.keySet()) {
+			if (temRecursaoEsquerdaIndireta(chave)) {
 				recEsqIndireta.add(chave);
 			}
 		}
 		return recEsqIndireta;
 	}
-
-	private void testes(String chave, String chaveAnterior) {
-		List<FormaSentencial> refatorado = new ArrayList<GLC.FormaSentencial>();
-
-		this.getFirstSet().get(chave).contains(GrammarUtils.EPSILON);
-
-		for (FormaSentencial forma : this.getProducoes().get(chave)) {
-			if (chaveAnterior.contains(forma.get(0))) {
-				for (FormaSentencial formaAnterior : this
-						.getProducoes().get(forma.get(0))) {
-					refatorado.add(formaAnterior);
+	
+	/**
+	 * Metodo faz uma busca recursiva para encontrar se alguma producao deriva a chave de entrada  
+	 * @param chave producao inicial a ser analisado se possue recursão a esquerda
+	 * @param producao	producao que é derivada da producão inicial direta ou indiretamente
+	 * @return boolean
+	 */
+	private boolean producaoIniciaCom(String chave, String producao){
+		try{
+			for (FormaSentencial forma : getProducoes().get(producao)) {
+				for (String simbolo: forma) {
+					if (GrammarUtils.ehNaoTerminal(simbolo)) {
+						if (simbolo.equals(chave)) {
+							return true;
+						}
+						if (producaoIniciaCom(chave, simbolo)) {
+							return true;
+						}
+						
+						//caso o nao-terminal derive EPSILON continua analisando mesma formaSentencial
+						//caso contrario pula para próxima formaSentencial
+						if (!getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
+							break;
+						}
+					}else break;
 				}
-			} else {
-				refatorado.add(forma);
+			}
+		} catch (StackOverflowError e){
+//			System.err.println(chave + " <chave - producao> " + producao + "\n");
+			return false;
+		}
+		return false;
+	}
+	
+	/**
+	 * Retorna um verdade se encontrar alguma derivação do simbolo analisado
+	 * @param producao Simbolo não terminal a ser aalisado
+	 * @return
+	 * @throws ParseException
+	 */
+	private boolean temRecursaoEsquerdaIndireta(String producao)  {
+		for (FormaSentencial forma : getProducoes().get(producao)) {
+			for (String simbolo: forma) {
+				if (GrammarUtils.ehNaoTerminal(simbolo)) {
+					if (forma.get(0).equals(producao) && forma.get(0).equals(simbolo) ) {
+						continue;
+					}
+					if (producaoIniciaCom(producao, simbolo)) {
+						return true;
+					}
+					
+					//caso o nao-terminal derive EPSILON continua analisando mesma formaSentencial
+					//caso contrario pula para próxima formaSentencial
+					if (!getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
+						break;
+					}
+				}else break;
 			}
 		}
-
+		return false;
 	}
-
+	
 	// ===================================================================================================
 
 	/**

@@ -164,6 +164,20 @@ public class GLCTest {
 		assertCollectionEquals(Arrays.asList("&", "c"), hash.get("C"));
 		assertCollectionEquals(Arrays.asList("d", "b", "c", "a"), hash.get("B"));
 		assertCollectionEquals(Arrays.asList("d", "b", "c", "a"), hash.get("S"));
+	
+		glc3 = new GLC("\nS -> a A | b B \n" + "C -> S | &\n"+ "D -> S | &\n"+ "A -> C b \n" + "B -> D a\n" );
+		hash = glc3.getFirstSet();
+		assertCollectionEquals(Arrays.asList("&", "a", "b"), hash.get("D"));
+		assertCollectionEquals(Arrays.asList("b", "a"), hash.get("A"));
+		assertCollectionEquals(Arrays.asList("&", "a", "b"), hash.get("C"));
+		assertCollectionEquals(Arrays.asList("a", "b"), hash.get("B"));
+		assertCollectionEquals(Arrays.asList("b", "a"), hash.get("S"));
+		
+		glc3 = new GLC("\nS -> A B C | b | c \n" + "A -> a A | &\n"+ "B -> b B | A C d | c \n" );
+		System.out.println(glc3.getRaw());
+		hash = glc3.getFirstSet();
+//		assertCollectionEquals(Arrays.asList("&", "a", "b"), hash.get("D"));
+		
 	}
 
 	@Test
@@ -242,22 +256,32 @@ public class GLCTest {
 	public void testarReqEsquerdaInDireta() throws Exception {
 		String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
 		GLC glc = new GLC(text);
-		assertTrue(!glc.getRecursaoEsquerdaIndireta().isEmpty());
-		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("S"));
-		assertTrue(glc.getRecursaoEsquerdaIndireta().contains("A"));
-		assertTrue(glc.getRecursaoEsquerdaIndireta().contains("B"));
+		assertCollectionEquals(Arrays.asList("B", "S", "A"), glc.getRecursaoEsquerdaIndireta());
 
 		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
-		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("E"));
-		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("T"));
-		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("F"));
 		assertTrue(glc.getRecursaoEsquerdaIndireta().isEmpty());
 
 		glc = new GLC("S -> A | a | & \n" + "A -> B | a \n" + "B -> S | a");
-		assertTrue(!glc.getRecursaoEsquerdaIndireta().isEmpty());
-		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("S"));
-		assertTrue(!glc.getRecursaoEsquerdaIndireta().contains("A"));
-		assertTrue(glc.getRecursaoEsquerdaIndireta().contains("B"));
+		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getRecursaoEsquerdaIndireta());
+
+		glc = new GLC("S -> A S | a | & \n" + "A -> B | a \n" + "B -> B S | a | &");
+		assertCollectionEquals(Arrays.asList("A","B", "S"), glc.getRecursaoEsquerdaIndireta());
+		
+		glc = new GLC("S -> A S | a | & \n" + "A -> & | a \n" + "B ->  a | &\n"+ "C ->  a | &");
+		assertCollectionEquals(Arrays.asList("S"), glc.getRecursaoEsquerdaIndireta());
+		
+		glc = new GLC("S -> A | S | & \n" + "A -> a S | a \n");
+		assertTrue(glc.getRecursaoEsquerdaIndireta().isEmpty());
+
+		glc = new GLC("S -> A | S | & \n" + "A -> B S | a \n" + "B -> A S | a ");
+		assertCollectionEquals(Arrays.asList("A","B"), glc.getRecursaoEsquerdaIndireta());
+	
+		glc = new GLC("S -> A B C S | a | & \n" + "A -> & | a \n" + "B ->  a | &\n"+ "C ->  a | &");
+		assertCollectionEquals(Arrays.asList("S"), glc.getRecursaoEsquerdaIndireta());
+		
+		glc = new GLC("S -> B C | a  \n" + "A -> & | a | C \n" + "B ->  a | &\n"+ "C ->  S A | a");
+		System.out.println();
+		assertCollectionEquals(Arrays.asList("S","C"), glc.getRecursaoEsquerdaIndireta());
 	}
 
 	@Test
@@ -269,7 +293,7 @@ public class GLCTest {
 		assertTrue(!glc.getFatoracaoDireta().contains("A"));
 		assertTrue(!glc.getFatoracaoDireta().contains("B"));
 
-		glc = new GLC("S -> a S b | A C\n" + "A -> a A b | a D | b E\n" + "C -> c C | ε\n" + "D -> a D | c\n" + "E -> b E | b");
+		glc = new GLC("S -> a S b | A C\n" + "A -> a A b | a D | b E\n" + "C -> c C | &\n" + "D -> a D | c\n" + "E -> b E | b");
 		assertTrue(!glc.getFatoracaoDireta().isEmpty());
 		assertTrue(!glc.getFatoracaoDireta().contains("S"));
 		assertTrue(glc.getFatoracaoDireta().contains("A"));
@@ -282,7 +306,7 @@ public class GLCTest {
 	@Test
 	public void testarTemNaoDeterminismoIndireto() throws Exception {
 		// String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
-		String text = "S -> A B | b C\n" + "A -> a A | B C | ε\n" + "B -> b B | d\n" + "C -> c C | ε";
+		String text = "S -> A B | b C\n" + "A -> a A | B C | &\n" + "B -> b B | d\n" + "C -> c C | &";
 		GLC glc = new GLC(text);
 		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 1);
 		assertTrue(glc.getFatoracaoIndireta().contains("S"));
