@@ -1,6 +1,7 @@
 package com.bonaguiar.formais2.core;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -29,12 +30,19 @@ public class ParserGenerator {
 		this.glc = glc;
 	}
 
-	public String getParser() throws IOException {
+	/**
+	 * Retorna um novo Parser para a gramática
+	 *
+	 * @return
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	public JavaParser getParser() throws Exception {
 		Template parserTemplate = this.getParserTemplate();
 
 		parserTemplate = parserTemplate.replace("$(inicial)", this.glc.getSimboloInicial());
 		parserTemplate = parserTemplate.replace("$(metodos)", this.getMetodos());
-		return parserTemplate.toString();
+		return new JavaParser(parserTemplate.toString());
 	}
 
 	public String getMetodos() {
