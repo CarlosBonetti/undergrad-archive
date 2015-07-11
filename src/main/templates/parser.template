@@ -4,36 +4,41 @@ import java.util.Arrays;
 
 public class Parser {
 	
-	// Símbolo que está sendo analisado atualmente
-	private static char sym;
-	
-	// Salva a sequência de ativações da análise
-	private static String sequence = "";
-	
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0 || args[0] == null) {
 			throw new InvalidParameterException("Forneça uma sentença para ser analisada!");
 		}
 		
-		String x = args[0] + "$";
+		Parser parser = new Parser();
+		System.out.println(parser.parse(args[0]));	
+	}	
+		
+	// Símbolo que está sendo analisado atualmente
+	private char sym;
+	
+	// Salva a sequência de ativações da análise
+	private String sequence = "";
+	
+	public String parse(String x) throws Exception {
+		x += "$";
 		x = alex(x, "");
 		$(inicial)(x);
 		
-		if (sym == '$') {
-			System.out.println(sequence.trim());
-		} else {
+		if (sym != '$') {
 			error(x);
-		}		
+		}
+
+		return sequence.trim();
 	}
 	
-	public static String alex(String x, String ativacao) {
+	public String alex(String x, String ativacao) {
 		sym = x.charAt(0);
 		sequence += ativacao + " ";
 		return x.substring(1);
 	}
 	
-	public static void error(String x) throws Exception {
-		throw new ParseException(x, 0);
+	public void error(String x) throws Exception {
+		throw new ParseException(sym + "", 0);
 	}
 	
 	$(metodos)	

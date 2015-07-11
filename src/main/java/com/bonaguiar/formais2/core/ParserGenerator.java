@@ -154,7 +154,7 @@ public class ParserGenerator {
 
 	protected Template getMetodoTemplate() {
 		Template template = new Template();
-		template.add("public static void $(nome)(String x) throws Exception {");
+		template.add("public void $(nome)(String x) throws Exception {");
 		template.add("	$(corpo)");
 		template.add("}");
 		template.add("");

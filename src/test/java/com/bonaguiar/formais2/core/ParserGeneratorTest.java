@@ -1,19 +1,34 @@
 package com.bonaguiar.formais2.core;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
+import java.text.ParseException;
+
+import org.junit.Before;
 import org.junit.Test;
 
 public class ParserGeneratorTest {
 
-	@Test
-	public void test() throws Exception {
-		GLC glc = new GLC("S -> a B \n B -> a B | b | C \n C -> c | &");
-		ParserGenerator generator = new ParserGenerator(glc);
-		JavaParser parser = generator.getParser();
+	private GLC glc;
+	private ParserGenerator generator;
+	private JavaParser parser;
 
-		assertTrue(parser.run("aab").message().contains("S B B"));
-		assertFalse(parser.run("aa").success());
+	@Before
+	public void setup() throws Exception {
+		glc = new GLC("E -> T E2 \n" + "E2 -> + T E2 | & \n" + "T -> F T2 \n" + "T2 -> * F T2 | & \n" + "F -> ( E ) | d");
+		generator = new ParserGenerator(glc);
+		parser = generator.getParser();
+	}
+
+	@Test
+	public void testarAnaliseCorretas() throws Throwable {
+		System.out.println(parser);
+		assertEquals("TODO", parser.run("d+d"));
+		assertEquals("TODO", parser.run("d*d"));
+	}
+
+	@Test(expected = ParseException.class)
+	public void testarAnaliseIncorreta() throws Throwable {
+		parser.run("");
 	}
 }

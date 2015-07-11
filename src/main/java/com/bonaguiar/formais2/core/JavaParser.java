@@ -1,10 +1,12 @@
 package com.bonaguiar.formais2.core;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Arrays;
 
 import javax.tools.DiagnosticCollector;
@@ -45,15 +47,31 @@ public class JavaParser extends SimpleJavaFileObject {
 
 	/**
 	 * Roda o parser com a sentença de entrada
+	 * Retorna a sequência de ativações caso a sentença seja aceita ou lança um
+	 * ParseException caso contrário
 	 *
 	 * @param sentenca
-	 * @throws Exception
+	 * @throws Throwable
 	 */
-	public ParseResult run(String sentenca) throws Exception {
+	public String run(String sentenca) throws Throwable {
 		this.compile();
 
-		Process p = Runtime.getRuntime().exec("java Parser " + sentenca);
-		return new ParseResult(p);
+		File file = new File("./");
+		URL[] classUrls = { file.toURL() };
+		ClassLoader cl = new URLClassLoader(classUrls);
+		Class<?> parserClass = cl.loadClass("Parser");
+
+		Method main = parserClass.getMethod("parse", String.class);
+		Object parser = parserClass.newInstance();
+
+		Object result = null;
+		try {
+			result = main.invoke(parser, sentenca);
+		} catch (InvocationTargetException e) {
+			throw e.getTargetException();
+		}
+
+		return (String) result;
 	}
 
 	private void compile() throws Exception {
@@ -69,37 +87,6 @@ public class JavaParser extends SimpleJavaFileObject {
 
 		if (!success) {
 			throw new Exception("Compilação falhou: " + diagnostics.getDiagnostics());
-		}
-	}
-
-	public static class ParseResult {
-		private Process p;
-		private String output;
-
-		public ParseResult(Process p) throws IOException, InterruptedException {
-			this.p = p;
-			this.output = "";
-
-			BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-			String line;
-			while ((line = is.readLine()) != null) {
-				output += line;
-			}
-
-			p.waitFor();
-		}
-
-		public int exitValue() {
-			return p.exitValue();
-		}
-
-		public boolean success() {
-			return exitValue() == 0;
-		}
-
-		public String message() {
-			return output;
 		}
 	}
 }
