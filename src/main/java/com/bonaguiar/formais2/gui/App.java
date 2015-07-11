@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -185,6 +186,7 @@ public class App extends JFrame {
 		getContentPane().add(principal, "name_24394437385808");
 
 		listagemGlc = new JList<String>(modeloGLC);
+		JScrollPane jsListagem = new JScrollPane(listagemGlc);
 		listagemGlc.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -200,7 +202,7 @@ public class App extends JFrame {
 			}
 		});
 		listagemGlc.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
+		
 		JLabel lblGramar = new JLabel("Gramáticas:");
 
 		JButton btAddGramatica = new JButton("Nova Gramática");
@@ -251,7 +253,7 @@ public class App extends JFrame {
 																										btnExcluirGramtica,
 																										Alignment.TRAILING)))
 																										.addComponent(
-																												listagemGlc,
+																												jsListagem,
 																												GroupLayout.PREFERRED_SIZE,
 																												190,
 																												GroupLayout.PREFERRED_SIZE))
@@ -269,7 +271,7 @@ public class App extends JFrame {
 						.addPreferredGap(ComponentPlacement.UNRELATED)
 						.addComponent(lblGramar)
 						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(listagemGlc, GroupLayout.PREFERRED_SIZE,
+						.addComponent(jsListagem, GroupLayout.PREFERRED_SIZE,
 								255, GroupLayout.PREFERRED_SIZE)
 								.addContainerGap(98, Short.MAX_VALUE)));
 		principal.setLayout(gl_principal);

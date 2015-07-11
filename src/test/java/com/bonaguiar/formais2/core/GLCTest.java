@@ -174,10 +174,8 @@ public class GLCTest {
 		assertCollectionEquals(Arrays.asList("b", "a"), hash.get("S"));
 		
 		glc3 = new GLC("\nS -> A B C | b | c \n" + "A -> a A | &\n"+ "B -> b B | A C d | c \n" );
-		System.out.println(glc3.getRaw());
-		hash = glc3.getFirstSet();
-//		assertCollectionEquals(Arrays.asList("&", "a", "b"), hash.get("D"));
-		
+//		hash = glc3.getFirstSet(); //C nao existe na gramatica
+		//validar adicao de grammar
 	}
 
 	@Test
