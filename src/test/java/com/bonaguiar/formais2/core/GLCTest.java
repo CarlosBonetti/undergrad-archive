@@ -172,6 +172,20 @@ public class GLCTest {
 		assertCollectionEquals(Arrays.asList("&", "a", "b"), hash.get("C"));
 		assertCollectionEquals(Arrays.asList("a", "b"), hash.get("B"));
 		assertCollectionEquals(Arrays.asList("b", "a"), hash.get("S"));
+
+		glc3 = new GLC("S -> A B \n" + "A -> &\n"+ "B -> & \n");
+		hash = glc3.getFirstSet();
+		assertCollectionEquals(Arrays.asList("&"), hash.get("S"));
+		assertCollectionEquals(Arrays.asList("&"), hash.get("A"));
+		assertCollectionEquals(Arrays.asList("&"), hash.get("B"));
+		
+		glc3 = new GLC("S -> A B a | a \n" + "A -> B | &\n"+ "B -> A C | c \n"+ "C -> & \n");
+		hash = glc3.getFirstSet();
+		assertCollectionEquals(Arrays.asList("c", "a"), hash.get("S"));
+		assertCollectionEquals(Arrays.asList("c", "&"), hash.get("A"));
+		assertCollectionEquals(Arrays.asList("&", "c"), hash.get("B"));
+		assertCollectionEquals(Arrays.asList("&"), hash.get("C"));
+		
 		
 		glc3 = new GLC("\nS -> A B C | b | c \n" + "A -> a A | &\n"+ "B -> b B | A C d | c \n" );
 //		hash = glc3.getFirstSet(); //C nao existe na gramatica
@@ -302,46 +316,41 @@ public class GLCTest {
 		String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
 		GLC glc = new GLC(text);
 		assertTrue(glc.getFatoracaoDireta().isEmpty());
-		assertTrue(!glc.getFatoracaoDireta().contains("S"));
-		assertTrue(!glc.getFatoracaoDireta().contains("A"));
-		assertTrue(!glc.getFatoracaoDireta().contains("B"));
 
 		glc = new GLC("S -> a S b | A C\n" + "A -> a A b | a D | b E\n" + "C -> c C | &\n" + "D -> a D | c\n" + "E -> b E | b");
-		assertTrue(!glc.getFatoracaoDireta().isEmpty());
-		assertTrue(!glc.getFatoracaoDireta().contains("S"));
-		assertTrue(glc.getFatoracaoDireta().contains("A"));
-		assertTrue(!glc.getFatoracaoDireta().contains("C"));
-		assertTrue(!glc.getFatoracaoDireta().contains("D"));
-		assertTrue(glc.getFatoracaoDireta().contains("E"));
+		assertCollectionEquals(Arrays.asList("E","A"), glc.getFatoracaoDireta());
+
+		glc = new GLC("S -> S | S C | a\n" + "A -> a A b | A d | b e\n" + "C -> c C | &\n");
+		assertCollectionEquals(Arrays.asList("S"), glc.getFatoracaoDireta());
 
 	}
 
 	@Test
-	public void testarTemNaoDeterminismoIndireto() throws Exception {
+	public void testarFatoracaoIndireta() throws Exception {
 		// String text = "S -> A f \n" + "A -> B e | S f | d\n" + "B -> S d | A c | a";
-		String text = "S -> A B | b C\n" + "A -> a A | B C | &\n" + "B -> b B | d\n" + "C -> c C | &";
+		String text = "S -> A B | b C\n" + "A -> a A | C B | &\n" + "B -> b B | d\n" + "C -> c C | &";
 		GLC glc = new GLC(text);
-		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 1);
-		assertTrue(glc.getFatoracaoIndireta().contains("S"));
-		assertTrue(!glc.getFatoracaoIndireta().contains("A"));
-		assertTrue(!glc.getFatoracaoIndireta().contains("B"));
-		assertTrue(!glc.getFatoracaoIndireta().contains("C"));
-
+		assertCollectionEquals(Arrays.asList("S"), glc.getFatoracaoIndireta());
+		
 		glc = new GLC("S -> a | A C\n" + "A -> a A b | B\n" + "B -> d | a | C\n" + "C -> d | b\n");
-
-		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 3);
-		assertTrue(glc.getFatoracaoIndireta().contains("S"));
-		assertTrue(glc.getFatoracaoIndireta().contains("A"));
-		assertTrue(glc.getFatoracaoIndireta().contains("B"));
-		assertTrue(!glc.getFatoracaoIndireta().contains("C"));
-
+		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta());
+		
 		glc = new GLC("S -> L = R | R\n" + "R -> L\n" + "L -> * R | id");
-		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 1);
-		assertTrue(glc.getFatoracaoIndireta().contains("S"));
-		assertTrue(!glc.getFatoracaoIndireta().contains("R"));
-		assertTrue(!glc.getFatoracaoIndireta().contains("L"));
+		assertCollectionEquals(Arrays.asList("S"), glc.getFatoracaoIndireta());
 
 		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
-		assertTrue(glc.getFatoracaoIndireta().size() + "", glc.getFatoracaoIndireta().size() == 0);
+		assertTrue(""+glc.getFatoracaoIndireta().size(), glc.getFatoracaoIndireta().size() ==0);
+		
+		glc = new GLC("S -> S a | a | &\n" + "A -> S b | a \n");
+		assertCollectionEquals(Arrays.asList("S", "A"), glc.getFatoracaoIndireta());
+		
+		glc = new GLC("S -> A B a | a \n" + "A -> B | &\n"+ "B -> A C | c \n"+ "C -> & \n");
+		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta());
+
+		glc = new GLC("S -> A a | B c \n" + "A -> &\n"+ "B -> &\n");
+//		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta22222());
+		assertTrue(""+glc.getFatoracaoIndireta().size(), glc.getFatoracaoIndireta().size() ==0);
+		
 	}
+
 }
