@@ -19,25 +19,28 @@ public class Parser {
 	// Salva a sequência de ativações da análise
 	private String sequence = "";
 	
-	public String parse(String x) throws Exception {
+	// Parte da sentença ainda não analisada
+	private String x;	
+	
+	public String parse(String sentence) throws Exception {
+		x = sentence;
 		x += "$";
-		x = alex(x, "");
-		$(inicial)(x);
+		alex();
+		$(inicial)();
 		
 		if (sym != '$') {
-			error(x);
+			error();
 		}
 
 		return sequence.trim();
 	}
 	
-	public String alex(String x, String ativacao) {
+	public void alex() {
 		sym = x.charAt(0);
-		sequence += ativacao + " ";
-		return x.substring(1);
+		x = x.substring(1);
 	}
 	
-	public void error(String x) throws Exception {
+	public void error() throws Exception {
 		throw new ParseException(sym + "", 0);
 	}
 	

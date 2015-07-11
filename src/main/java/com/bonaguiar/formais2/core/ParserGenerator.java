@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import com.bonaguiar.formais2.core.GLC.FormaSentencial;
 
@@ -79,7 +80,7 @@ public class ParserGenerator {
 		if (producoes.contains(GrammarUtils.PRODUCAO_VAZIA)) {
 			ultimoElseTemplate = ultimoElseTemplate.removeLine("$(body)");
 		} else {
-			String exc = "error(x);";
+			String exc = "error();";
 			ultimoElseTemplate = ultimoElseTemplate.replace("$(body)", exc);
 		}
 
@@ -95,11 +96,15 @@ public class ParserGenerator {
 		if (GrammarUtils.ehTerminal(simboloAtual)) {
 			// Cria if
 			ifTemplate = ifTemplate.replace("$(condition)", "sym == '" + simboloAtual + "'");
-			ifTemplate = ifTemplate.replace("$(body)", "x = alex(x, \"" + metodo + "\");");
+			ifTemplate = ifTemplate.replace("$(body)", "alex();");
 		} else {
-			ifTemplate = ifTemplate.replace("$(condition)",
-					this.getInOp(this.glc.first(simboloAtual)));
-			ifTemplate = ifTemplate.replace("$(body)", simboloAtual + "(x);");
+			Set<String> lista = this.glc.first(simboloAtual);
+			if (lista.contains(GrammarUtils.EPSILON.toString())) {
+				lista.addAll(this.glc.follow(simboloAtual));
+			}
+
+			ifTemplate = ifTemplate.replace("$(condition)", this.getInOp(lista));
+			ifTemplate = ifTemplate.replace("$(body)", simboloAtual + "();");
 		}
 
 		// se não for o último símbolo da produção, chama recursivamente este método
@@ -113,7 +118,7 @@ public class ParserGenerator {
 		// Se não for o primeiro símbolo da produção, adiciona um else levando a erro
 		if (index != 0) {
 			ifTemplate.add("else {");
-			ifTemplate.add("	error(x);");
+			ifTemplate.add("	error();");
 			ifTemplate.add("}");
 		}
 
@@ -154,7 +159,8 @@ public class ParserGenerator {
 
 	protected Template getMetodoTemplate() {
 		Template template = new Template();
-		template.add("public void $(nome)(String x) throws Exception {");
+		template.add("public void $(nome)() throws Exception {");
+		template.add("	sequence += \"$(nome) \";");
 		template.add("	$(corpo)");
 		template.add("}");
 		template.add("");
