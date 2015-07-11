@@ -262,6 +262,10 @@ public class GLCTest {
 
 		assertTrue(glc.getConflitosFF().containsAll(Arrays.asList("A'", "B'")));
 		assertEquals(2, glc.getConflitosFF().size());
+		
+		glc = new GLC("E -> T E' \n" + "E' -> + T E' | & \n" + "T -> F T' \n" + "T' -> * F T' | & \n" + "F -> ( E ) | id");
+		System.err.println(glc.getRaw());
+		assertEquals(0, glc.getConflitosFF().size());
 	}
 
 	@Test

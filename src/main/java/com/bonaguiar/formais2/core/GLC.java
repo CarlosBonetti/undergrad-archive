@@ -416,7 +416,40 @@ public class GLC implements Serializable {
 			if (first.contains(GrammarUtils.EPSILON.toString())) {
 				Set<String> follow = this.follow(nt);
 				Set<String> intersection = new HashSet<String>(first);
+				for (String string : first) {
+					System.out.println(string + " - FIRST");
+				}
+				
+				for (String string : follow) {
+					System.out.println(string + " - FOLLOW");
+				}
+				
 				intersection.removeAll(follow);
+				intersection.remove(GrammarUtils.EPSILON.toString());
+				System.out.println(intersection.size() + " tam");
+				for (String string : intersection) {
+					System.out.println(string + " INTERSERC");
+				}
+				if (!first.isEmpty()) { // Intersecção não vazia = conflito
+					conflitos.add(nt);
+				}
+			}
+		}
+		return conflitos;
+	}
+
+	public Set<String> getConflitosFF2() {
+		Set<String> conflitos = new HashSet<String>();
+		for (String nt : this.getNaoTerminais()) {
+			Set<String> first = this.first(nt);
+			if (first.contains(GrammarUtils.EPSILON.toString())) {
+				Set<String> follow = this.follow(nt);
+				Set<String> intersection = new HashSet<String>(first);
+				intersection.removeAll(follow);
+				System.out.println(intersection.size() + " tam");
+				for (String string : intersection) {
+					System.out.println(string + " q");
+				}
 				if (!first.isEmpty()) { // Intersecção não vazia = conflito
 					conflitos.add(nt);
 				}
