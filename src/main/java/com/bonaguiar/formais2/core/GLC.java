@@ -416,8 +416,8 @@ public class GLC implements Serializable {
 			if (first.contains(GrammarUtils.EPSILON.toString())) {
 				Set<String> follow = this.follow(nt);
 				Set<String> intersection = new HashSet<String>(first);
-				intersection.removeAll(follow);
-				if (!first.isEmpty()) { // Intersecção não vazia = conflito
+				intersection.retainAll(follow);
+				if (!intersection.isEmpty()) { // Intersecção não vazia = conflito
 					conflitos.add(nt);
 				}
 			}
@@ -632,6 +632,7 @@ public class GLC implements Serializable {
 
 	/**
 	 * Retorna uma lista com os ñ-terminais que possuem ñ-determinismo indireto(os ñ fatorados)
+	 *
 	 * @return
 	 */
 	public Set<String> getFatoracaoIndireta() {
@@ -652,17 +653,17 @@ public class GLC implements Serializable {
 	 */
 	protected LinkedList<FormaSentencial> getFatoracaoIndireta(String producao) {
 		LinkedList<FormaSentencial> derivacoesDiretas = new LinkedList<FormaSentencial>();
-		//percorre formaSentencial da producao
+		// percorre formaSentencial da producao
 		for (FormaSentencial forma : getProducoes().get(producao)) {
 			// auxiliar para gerar uma forma sentencial
-			String aux = ""; 
-			//auxiliar para saber o tamanho da sentenca
+			String aux = "";
+			// auxiliar para saber o tamanho da sentenca
 			int tamForma = forma.size();
-			
+
 			for (String simbolo : forma) {
-				//se simbolo gera recursao
+				// se simbolo gera recursao
 				if (forma.get(0).equals(producao) && forma.get(0).equals(simbolo)) {
-					//se simbolo gerar recursao e derivar '&' continua senão vai para próxima forma
+					// se simbolo gerar recursao e derivar '&' continua senão vai para próxima forma
 					if (getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
 						aux += simbolo + " ";
 						continue;
@@ -671,22 +672,22 @@ public class GLC implements Serializable {
 					}
 				}
 				if (GrammarUtils.ehTerminal(simbolo)) {
-					//se aux nao for vazio concatena com o simbolo gerando nova forma sentencial senao nova forma eh somente o simbolo
+					// se aux nao for vazio concatena com o simbolo gerando nova forma sentencial senao nova forma eh somente o simbolo
 					if (!aux.trim().isEmpty()) {
 						derivacoesDiretas.add(new FormaSentencial(aux + simbolo));
 						break;
 					}
 					derivacoesDiretas.add(new FormaSentencial(simbolo));
 					break;
-					
+
 				} else if (GrammarUtils.ehNaoTerminal(simbolo)) {
 					aux += simbolo + " ";
-					//se producao nao derivar '&' termina loop
+					// se producao nao derivar '&' termina loop
 					if (!getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
 						derivacoesDiretas.add(new FormaSentencial(aux));
 						break;
-					} 
-					//se não existir mais simbolos na atual FormaSentencial aux eh adicionado a listagem
+					}
+					// se não existir mais simbolos na atual FormaSentencial aux eh adicionado a listagem
 					if ((--tamForma) == 0) {
 						derivacoesDiretas.add(new FormaSentencial(aux));
 					}
@@ -705,7 +706,7 @@ public class GLC implements Serializable {
 	protected boolean contemIndeterminismo(LinkedList<FormaSentencial> lista) {
 		// percorre a lista
 		for (int i = 0; i < lista.size(); i++) {
-			//auxiliar para saber o tamanho da sentenca
+			// auxiliar para saber o tamanho da sentenca
 			int tamForma = lista.get(i).size();
 			for (String simbolo : lista.get(i)) {
 				// se for terminal, faz validacoes diretas
@@ -713,9 +714,9 @@ public class GLC implements Serializable {
 					// percorre a lista sem valores de atual e anterores i
 					for (int j = i + 1; j < lista.size(); j++) {
 						for (String simbolo2 : lista.get(j)) {
-							 if (GrammarUtils.ehTerminal(simbolo2)) {
-								 //verifica se duas sentencas geram o mesmo terminal
-								 if (simbolo.equals(simbolo2)) {
+							if (GrammarUtils.ehTerminal(simbolo2)) {
+								// verifica se duas sentencas geram o mesmo terminal
+								if (simbolo.equals(simbolo2)) {
 									// faz verificacao se eh o ultimo simbolo da FormaSentencial
 									if (lista.get(i).get(0).equals(lista.get(j).get(0))) {
 										continue;
@@ -723,9 +724,8 @@ public class GLC implements Serializable {
 										return true;
 									}
 								}
-						 	} else
-							if (GrammarUtils.ehNaoTerminal(simbolo2)) {
-								//se simbolo que eh terminal existir nas derivacoes de simbolo2(ñ-terminal) retorna true
+							} else if (GrammarUtils.ehNaoTerminal(simbolo2)) {
+								// se simbolo que eh terminal existir nas derivacoes de simbolo2(ñ-terminal) retorna true
 								if (getFirstSet().get(simbolo2).contains(simbolo)) {
 									return true;
 								}
@@ -737,9 +737,9 @@ public class GLC implements Serializable {
 					for (int j = i + 1; j < lista.size(); j++) {
 						for (String simbolo2 : lista.get(j)) {
 							if (GrammarUtils.ehTerminal(simbolo2)) {
-								//se simbolo que eh ñ-terminal ter em suas derivacoes de simbolo2(terminal)
+								// se simbolo que eh ñ-terminal ter em suas derivacoes de simbolo2(terminal)
 								if (getFirstSet().get(simbolo).contains(simbolo2)) {
-									//se simbolo2 for diferente de '&' ou for ultimo simbolo da formaSentencial retorna true
+									// se simbolo2 for diferente de '&' ou for ultimo simbolo da formaSentencial retorna true
 									if (!simbolo2.equals(GrammarUtils.EPSILON.toString()) || (--tamForma) == 0) {
 										return true;
 									} else {
@@ -762,15 +762,15 @@ public class GLC implements Serializable {
 
 	/**
 	 * Verifica se duas producoes possuem firsts semelhantes
-	 * Excluindo da verificao Epsilon caso producao não for ultimo valor da Forma sentencial 
+	 * Excluindo da verificao Epsilon caso producao não for ultimo valor da Forma sentencial
 	 *
 	 * @param producao1
 	 * @param producao2
-	 * @param desconsiderarEpsilon 
+	 * @param desconsiderarEpsilon
 	 * @return
 	 */
 	private boolean firstsComFirsts(String producao1, String producao2, boolean desconsiderarEpsilon) {
-		
+
 		for (String firstProducao : getFirstSet().get(producao2)) {
 			if (desconsiderarEpsilon) {
 				continue;

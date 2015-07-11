@@ -262,6 +262,9 @@ public class GLCTest {
 
 		assertTrue(glc.getConflitosFF().containsAll(Arrays.asList("A'", "B'")));
 		assertEquals(2, glc.getConflitosFF().size());
+
+		glc = new GLC("A -> B C \n B -> b | & \n C -> c");
+		assertTrue(glc.getConflitosFF().isEmpty());
 	}
 
 	@Test
@@ -342,8 +345,8 @@ public class GLCTest {
 
 		glc = new GLC("S -> S a | a | &\n" + "A -> S b | a \n");
 		assertCollectionEquals(Arrays.asList("S", "A"), glc.getFatoracaoIndireta());
-		
-		glc = new GLC("S -> A B a | a \n" + "A -> B | &\n"+ "B -> A C | c \n"+ "C -> & \n");
+
+		glc = new GLC("S -> A B a | a \n" + "A -> B | &\n" + "B -> A C | c \n" + "C -> & \n");
 		assertCollectionEquals(Arrays.asList("S", "A", "B"), glc.getFatoracaoIndireta());
 
 		glc = new GLC("S -> A a | B c \n" + "A -> &\n" + "B -> &\n");
