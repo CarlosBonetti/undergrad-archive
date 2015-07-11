@@ -1,13 +1,11 @@
 package com.bonaguiar.formais2.core;
 
-import java.io.File;
 import java.io.IOException;
-
-import com.helger.jcodemodel.JClassAlreadyExistsException;
-import com.helger.jcodemodel.JCodeModel;
-import com.helger.jcodemodel.JDefinedClass;
-import com.helger.jcodemodel.JMethod;
-import com.helger.jcodemodel.JMod;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Um gerador de parser para gramáticas livres de contexto
@@ -16,23 +14,70 @@ import com.helger.jcodemodel.JMod;
 public class ParserGenerator {
 
 	/**
-	 * Cria um novo gerador de parser para a gramática
-	 *
-	 * @param glc
-	 * @throws IOException
-	 * @throws JClassAlreadyExistsException
+	 * Gramática Base do Parser
 	 */
-	public ParserGenerator(GLC glc) throws IOException, JClassAlreadyExistsException {
-		// http://stackoverflow.com/questions/121324/a-java-api-to-generate-java-source-files#136010
-		// https://github.com/phax/jcodemodel
+	protected GLC glc;
 
-		JCodeModel model = new JCodeModel();
-		JDefinedClass dc = model._class("Bar");
-		JMethod m = dc.method(JMod.PUBLIC | JMod.STATIC, void.class, "main");
-		m.param(String[].class, "args");
+	/**
+	 * Cria um novo gerador de parser para a gramática
+	 */
+	public ParserGenerator(GLC glc) {
+		// TODO: verificar se é LL(1)
+		this.glc = glc;
+	}
 
-		File file = new File("./parsers/");
-		file.mkdirs();
-		model.build(file);
+	public String getParser() throws IOException {
+		Template parserTemplate = this.getParserTemplate();
+
+		parserTemplate = parserTemplate.replace("$(inicial)", this.glc.getSimboloInicial());
+		parserTemplate = parserTemplate.replace("$(metodos)", this.getMetodos());
+		return parserTemplate.toString();
+	}
+
+	public String getMetodos() {
+		return "TODO";
+	}
+
+	protected Template getParserTemplate() throws IOException {
+		return new Template(Files.readAllLines(Paths.get("./src/main/templates/parser.template"), Charset.defaultCharset()));
+	}
+
+	/**
+	 * Lista de linhas (String), representando um arquivo de texto com tags especiais para serem processadas
+	 * em tempo de execução, como por exemplo, a tag $(inicial)
+	 */
+	public static class Template extends ArrayList<String> {
+		private static final long serialVersionUID = -9031772507297147620L;
+
+		public Template() {
+		}
+
+		public Template(List<String> list) {
+			super(list);
+		}
+
+		/**
+		 * Altera toda a sequência de caracteres encontrada pelo replacement
+		 *
+		 * @param target
+		 * @param replacement
+		 * @return
+		 */
+		public Template replace(String target, String replacement) {
+			Template novo = new Template();
+			for (String line : this) {
+				novo.add(line.replace(target, replacement));
+			}
+			return novo;
+		}
+
+		@Override
+		public String toString() {
+			String result = "";
+			for (String line : this) {
+				result += line + "\n";
+			}
+			return result;
+		}
 	}
 }
