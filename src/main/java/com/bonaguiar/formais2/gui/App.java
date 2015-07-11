@@ -466,64 +466,82 @@ public class App extends JFrame {
 		JScrollPane js = new JScrollPane(textAreaGrammar);
 		js.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		textAreaGrammar.setEditable(false);
+		
+		JButton ll1 = new JButton("LL(1) ?");
+		ll1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					String msgSaida = "";
+
+					if (possuiRE()){
+						msgSaida += "\nGrammar possui R.E. \n" ;
+					}
+					if (!estaFatorada()) {
+						msgSaida += "\nGrammar não está Fatorada\n";
+					}
+					if (possuiConflitosFF()) {
+						msgSaida += "\nGrammar possui Conflitos intersecção First-Follow\n";
+					}
+					if (msgSaida.trim().isEmpty()) {
+						msgSaida = "A Gramática \"" + glcSelecionado + "\" é LL(1)!";
+					} else
+						msgSaida += "\nA Gramática \"" + glcSelecionado + "\" não é LL(1)!";
+					JOptionPane.showMessageDialog(frame,
+							msgSaida);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
 		// textAreaGrammar.add(js);
 		GroupLayout gl_painelSecundario = new GroupLayout(painelSecundario);
 		gl_painelSecundario.setHorizontalGroup(
-				gl_painelSecundario.createParallelGroup(Alignment.LEADING)
+			gl_painelSecundario.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addGroup(gl_painelSecundario.createParallelGroup(Alignment.TRAILING)
 						.addGroup(gl_painelSecundario.createSequentialGroup()
-								.addGap(45)
-								.addComponent(btnVoltar, GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
-								.addGap(53))
+							.addContainerGap()
+							.addComponent(js, GroupLayout.PREFERRED_SIZE, 209, GroupLayout.PREFERRED_SIZE))
 						.addGroup(gl_painelSecundario.createSequentialGroup()
-								.addGap(91)
-								.addComponent(btnRecEsq)
-								.addContainerGap(112, Short.MAX_VALUE))
-						.addGroup(gl_painelSecundario.createSequentialGroup()
-								.addGap(91)
-								.addComponent(btnFatorada)
-								.addContainerGap(93, Short.MAX_VALUE))
-						.addGroup(gl_painelSecundario.createSequentialGroup()
-								.addGap(91)
-								.addComponent(btnIntersec)
-								.addContainerGap(78, Short.MAX_VALUE))
-						.addGroup(gl_painelSecundario.createSequentialGroup()
-								.addGap(91)
-								.addComponent(btnFirst)
-								.addContainerGap(158, Short.MAX_VALUE))
-						.addGroup(gl_painelSecundario.createSequentialGroup()
-								.addGap(91)
-								.addComponent(btnFollow)
-								.addContainerGap(144, Short.MAX_VALUE))
-						.addGroup(gl_painelSecundario.createSequentialGroup()
-								.addGap(91)
-								.addComponent(btnParser)
-								.addContainerGap(143, Short.MAX_VALUE))
-						.addGroup(Alignment.TRAILING, gl_painelSecundario.createSequentialGroup()
-								.addContainerGap(64, Short.MAX_VALUE)
-								.addComponent(js, GroupLayout.PREFERRED_SIZE, 222, GroupLayout.PREFERRED_SIZE)
-								.addGap(40))
-				);
+							.addGap(45)
+							.addComponent(btnVoltar, GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)))
+					.addGap(53))
+				.addGroup(Alignment.LEADING, gl_painelSecundario.createSequentialGroup()
+					.addGap(91)
+					.addGroup(gl_painelSecundario.createParallelGroup(Alignment.LEADING)
+						.addComponent(btnFirst)
+						.addComponent(btnIntersec)
+						.addComponent(btnFatorada)
+						.addComponent(btnRecEsq)
+						.addComponent(btnParser)
+						.addGroup(gl_painelSecundario.createParallelGroup(Alignment.TRAILING, false)
+							.addComponent(ll1, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(btnFollow, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+					.addContainerGap(41, Short.MAX_VALUE))
+		);
 		gl_painelSecundario.setVerticalGroup(
-				gl_painelSecundario.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_painelSecundario.createSequentialGroup()
-								.addGap(33)
-								.addComponent(btnRecEsq)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnFatorada)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnIntersec)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnFirst)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnFollow)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(btnParser)
-								.addGap(26)
-								.addComponent(js, GroupLayout.PREFERRED_SIZE, 144, GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(ComponentPlacement.RELATED, 38, Short.MAX_VALUE)
-								.addComponent(btnVoltar)
-								.addGap(21))
-				);
+			gl_painelSecundario.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_painelSecundario.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(btnRecEsq)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnFatorada)
+					.addGap(18)
+					.addComponent(btnIntersec)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(ll1)
+					.addPreferredGap(ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+					.addComponent(btnFirst)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnFollow)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnParser)
+					.addGap(26)
+					.addComponent(js, GroupLayout.PREFERRED_SIZE, 138, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnVoltar)
+					.addGap(21))
+		);
 		painelSecundario.setLayout(gl_painelSecundario);
 
 		btnExcluirGramtica.addActionListener(new ActionListener() {
@@ -625,6 +643,22 @@ public class App extends JFrame {
 		if (gramHash.get(glcSelecionado).getRecursaoEsquerdaDireta().isEmpty()
 				&& gramHash.get(glcSelecionado).getRecursaoEsquerdaIndireta()
 				.isEmpty()) {
+			return false;
+		}
+		return true;
+	}
+	
+	private boolean estaFatorada() throws Exception {
+		if (gramHash.get(glcSelecionado).getFatoracaoDireta().isEmpty()
+				&& gramHash.get(glcSelecionado).getFatoracaoIndireta()
+				.isEmpty()) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean possuiConflitosFF() throws Exception {
+		if (gramHash.get(glcSelecionado).getConflitosFF().isEmpty()){
 			return false;
 		}
 		return true;
