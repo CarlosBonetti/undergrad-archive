@@ -18,6 +18,7 @@ import com.bonaguiar.formais2.core.GLC.FormaSentencial;
  */
 public class ParserGenerator {
 
+	private static final Exception Exception = null;
 	/**
 	 * Gramática Base do Parser
 	 */
@@ -25,9 +26,12 @@ public class ParserGenerator {
 
 	/**
 	 * Cria um novo gerador de parser para a gramática
+	 * @throws java.lang.Exception 
 	 */
-	public ParserGenerator(GLC glc) {
-		// TODO: verificar se é LL(1)
+	public ParserGenerator(GLC glc) throws java.lang.Exception {
+		if (!glc.ehLL1()) {
+			throw Exception;
+		}
 		this.glc = glc;
 	}
 

@@ -30,15 +30,20 @@ import javax.swing.JTextArea;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
 
+import lombok.Getter;
+
 import com.bonaguiar.formais2.core.GLC;
+import com.bonaguiar.formais2.core.ParserGenerator;
 import com.bonaguiar.formais2.persistence.GLCBase;
 
 public class App extends JFrame {
 
 	private static final long serialVersionUID = 1L;
+	@Getter
 	private HashMap<String, GLC> gramHash = new HashMap<String, GLC>();
 	private DefaultListModel<String> modeloGLC = new DefaultListModel<String>();
 	private JList<String> listagemGlc = new JList<String>(modeloGLC);;
+	@Getter
 	private String glcSelecionado = "";
 	private GLCBase GLCBase = new GLCBase();
 	private JPanel painelSecundario = new JPanel();
@@ -379,10 +384,16 @@ public class App extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println(glcSelecionado + " glcSelect");
-				// for (String iterable_element : gramHash.keySet()) {
-				// System.out.println(gramHash.get(glcSelecionado).getFirstSet()
-				// + " - hash");
-				// }
+				try {
+					ParserGenerator parser = new ParserGenerator(gramHash.get(glcSelecionado));
+					AppParse parse = new AppParse(frame, parser);
+					parse.setVisible(true);
+					parse.setTitle("Descendente Recursivo de \"" + glcSelecionado + "\"");
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(frame,
+							"Gramática NÂO é LL(1).\nTente com uma gramática que satisfaça as condições.");
+				}
+				
 			}
 		});
 		JButton btnFirst = new JButton("First ?");

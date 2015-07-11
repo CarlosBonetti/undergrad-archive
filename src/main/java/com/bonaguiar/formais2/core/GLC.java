@@ -152,7 +152,6 @@ public class GLC implements Serializable {
 			lista = new ArrayList<FormaSentencial>();
 			producoes.put(produtor, lista);
 		}
-
 		lista.add(formaSentencial);
 	}
 
@@ -168,7 +167,6 @@ public class GLC implements Serializable {
 				lista.addAll(this.producoes.get(produtor));
 			}
 		}
-
 		return lista;
 	}
 
@@ -178,10 +176,10 @@ public class GLC implements Serializable {
 	 * @return
 	 */
 	public Set<String> getNaoTerminais() {
+		this.naoTerminais = this.naoTerminais == null ? new HashSet<String>() : this.naoTerminais;
 		if (this.naoTerminais.isEmpty()) {
 			this.naoTerminais.addAll(this.producoes.keySet());
 		}
-
 		return this.naoTerminais;
 	}
 
@@ -780,5 +778,23 @@ public class GLC implements Serializable {
 			}
 		}
 		return false;
+	}
+	
+	protected boolean ehLL1() {
+		if (!(this.getRecursaoEsquerdaDireta().isEmpty()
+				&& this.getRecursaoEsquerdaIndireta()
+				.isEmpty())) {
+			return false;
+		}
+		if (!(this.getFatoracaoDireta().isEmpty()
+				&& this.getFatoracaoIndireta()
+				.isEmpty())) {
+			return false;
+		}
+		if (!(this.getConflitosFF().isEmpty())){
+			return false;
+		}
+		
+		return true;
 	}
 }
