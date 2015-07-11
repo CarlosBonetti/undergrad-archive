@@ -3,8 +3,10 @@ package com.bonaguiar.formais2.core;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -554,7 +556,9 @@ public class GLC implements Serializable {
 			for (String simbolo: forma) {
 				if (GrammarUtils.ehNaoTerminal(simbolo)) {
 					if (forma.get(0).equals(producao) && forma.get(0).equals(simbolo) ) {
-						continue;
+						if (getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
+							continue;
+						} else break;
 					}
 					if (producaoIniciaCom(producao, simbolo)) {
 						return true;
@@ -598,96 +602,132 @@ public class GLC implements Serializable {
 	protected boolean temNaoDeterminismoDireto(String producao) {
 		Set<String> terminaisDerivados = new HashSet<String>();
 		for (FormaSentencial forma : producoes.get(producao)) {
-			// Eh necessario ser nao terminal ??????
-			if (GrammarUtils.ehTerminal(forma.get(0))) {
-
-				// ao add em Set caso o terminal jah exista retorna false
-				if (!terminaisDerivados.add(forma.get(0))) {
-					return true;
-				}
+			// ao add em Set caso o terminal jah exista retorna false
+			if (!terminaisDerivados.add(forma.get(0))) {
+				return true;
 			}
 		}
 		return false;
 	}
 
-	/**
-	 * Retorna uma lista com os ñ-terminais que possuem ñ_determinismo indireto
-	 *
-	 * @return
-	 */
 	public Set<String> getFatoracaoIndireta() {
 		Set<String> naoFatoradaDireta = new HashSet<String>();
 		for (String chave : producoes.keySet()) {
-			try {
-				if (temNaoDeterminismoIndireta(chave, getProducoesDerivadas(chave, new HashSet<String>()))) {
-					naoFatoradaDireta.add(chave);
-				}
-			} catch (Exception e) {
-				// captura excecao gerado pelo getProducoesDerivadas() -
+			if (contemIndeterminismo(getFatoracaoIndireta(chave))) {
 				naoFatoradaDireta.add(chave);
-				// System.err.println(e.getMessage());
-				// return naoFatoradaDireta;
 			}
 		}
 		return naoFatoradaDireta;
 	}
-
+	
 	/**
-	 * Retorna uma lista com os ñ-terminais derivados de uma produção
-	 *
+	 * Retorna todas os firsts terminais ou nao da setenca direta
 	 * @param producao
-	 * @param naoTerminaisDerivados
-	 * @return
-	 * @throws Exception
-	 */
-	protected Set<String> getProducoesDerivadas(String producao, Set<String> naoTerminaisDerivados) throws Exception {
-		// hash auxiliar de não-terminais
-		Set<String> aux = new HashSet<String>();
-		for (FormaSentencial forma : producoes.get(producao)) {
-			if (GrammarUtils.ehNaoTerminal(forma.get(0))) {
-				aux.add(forma.get(0));
-			}
-		}
-
-		for (String string : aux) {
-			if (naoTerminaisDerivados.isEmpty()) {
-				naoTerminaisDerivados.addAll(getProducoesDerivadas(string, aux));
-			} else
-				// caso derive um mesmo terminal por outro caminho gera exceção
-				if (naoTerminaisDerivados.contains(string)) {
-					throw new Exception();
-				}
-
-				else if (!naoTerminaisDerivados.contains(string)) {
-					naoTerminaisDerivados.addAll(getProducoesDerivadas(string, naoTerminaisDerivados));
-				}
-		}
-		return naoTerminaisDerivados;
-	}
-
-	/**
-	 * Verificação se uma produção e suas derivadas derivam o mesmo terminal
-	 *
-	 * @param producao
-	 * @param producoesDerivadas
 	 * @return
 	 */
-	protected boolean temNaoDeterminismoIndireta(String producao, Set<String> producoesDerivadas) {
-
-		for (FormaSentencial forma : this.producoes.get(producao)) {
-			for (String producaoDerivada : producoesDerivadas) {
-				for (String firstProdDerivada : this.getFirstSet().get(producaoDerivada)) {
-					if (forma.get(0).contains(firstProdDerivada)) {
-						return true;
+	protected LinkedList<FormaSentencial> getFatoracaoIndireta(String producao) {
+		LinkedList<FormaSentencial> derivacoesFormaDiretas = new LinkedList<FormaSentencial>();
+		for (FormaSentencial forma : getProducoes().get(producao)) {
+			String aux = ""; //para gerar uma forma sentencial
+			for (String simbolo : forma) {
+				if (forma.get(0).equals(producao) && forma.get(0).equals(simbolo) ) {
+					if (getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString())) {
+						aux += simbolo + " ";
+						continue;
+					} else break;
+				}
+				if (GrammarUtils.ehTerminal(simbolo)) {
+					if (!aux.trim().isEmpty()) {
+						derivacoesFormaDiretas.add(new FormaSentencial(aux + simbolo));
+						break;
+					}
+					derivacoesFormaDiretas.add(new FormaSentencial(simbolo));
+					break;
+				} else if (GrammarUtils.ehNaoTerminal(simbolo)) {
+					aux += simbolo + " ";
+					if (!getFirstSet().get(simbolo).contains(GrammarUtils.EPSILON.toString()) ) {
+						derivacoesFormaDiretas.add(new FormaSentencial(aux));
+						break;
 					}
 				}
-				Set<String> f = new HashSet<String>();
-				f.addAll(producoesDerivadas);
-				f.remove(producaoDerivada);
-				if (!f.isEmpty()) {
-					return temNaoDeterminismoIndireta(producaoDerivada, f);
+			}
+		}
+		return derivacoesFormaDiretas;
+	}
+	
+	/**
+	 * Percorre a lista verificando se existem casos onde dois termos ou suas derivacoes possuem o mesmo valor  
+	 * @param lista 
+	 * @return
+	 */
+	protected boolean contemIndeterminismo(LinkedList<FormaSentencial> lista) {
+		//varre a lista
+		for (int i = 0; i < lista.size(); i++) {
+			for (String simbolo : lista.get(i)) {
+				//se terminal faz validacoes diretas
+				if (GrammarUtils.ehTerminal(simbolo)) {
+					//percorre a lista sem valores de i
+					for (int j = i+1; j < lista.size(); j++) {
+						for (String simbolo2 : lista.get(j)) {
+							//indeterminismo direto
+//							if (GrammarUtils.ehTerminal(simbolo2)) {
+//								if (simbolo.equals(simbolo2)) {
+//									return true;
+//								}
+//							} else
+							if (GrammarUtils.ehNaoTerminal(simbolo2)) {
+								if (getFirstSet().get(simbolo2).contains(simbolo)) {
+									return true;
+								}
+							}
+						}
+					}
+				} else if (GrammarUtils.ehNaoTerminal(simbolo)) {
+					for (int j = i + 1; j < lista.size(); j++) {
+						for (String simbolo2 : lista.get(j)) {
+					
+							if (GrammarUtils.ehTerminal(simbolo2)) {
+								if (getFirstSet().get(simbolo).contains(simbolo2)) {
+									
+									if (!simbolo2.equals(GrammarUtils.EPSILON.toString())) {
+										return true;
+									}
+									//faz verificacao se eh o ultimo simbolo da FormaSentencial
+									if (lista.get(i).get(lista.get(i).size() -1) == simbolo2) {
+										return true;
+									}
+									else continue;
+								}
+							} else
+							if (GrammarUtils.ehNaoTerminal(simbolo2)) {
+								//verifica de existem firsts semelhantes
+								if (firstsComFirsts(simbolo, simbolo2)) {
+									return true;
+								}
+							
+							}
+						}	
+					}
 				}
-
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Verifica se duas producoes possuem firsts semelhantes
+	* Excluindo da verificao Epsilon
+	 * @param chave
+	 * @param producao
+	 * @return
+	 */
+	private boolean firstsComFirsts(String chave, String producao){
+		for (String firstProducao : getFirstSet().get(producao)) {
+			if (firstProducao.equals(GrammarUtils.EPSILON.toString())) {
+				continue;
+			}
+			if (getFirstSet().get(chave).contains(firstProducao)) {
+				return true;
 			}
 		}
 		return false;
