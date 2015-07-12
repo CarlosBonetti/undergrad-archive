@@ -46,38 +46,38 @@ public class ParserGeneratorTest {
 
 	@Test
 	public void testarAnaliseCorretas() throws Throwable {
-		assertEquals("E T F T2 E2 T F T2 E2", parser1.run("d+d"));
-		assertEquals("E T F T2 F T2 E2", parser1.run("d*d"));
-		assertEquals("E T F E T F T2 E2 T F T2 E2 T2 F E T F E T F T2 E2 T2 E2 T2 E2", parser1.run("(d+d)*((d))"));
+		assertEquals("E T F T2 E2 T F T2 E2", parser1.run("d + d"));
+		assertEquals("E T F T2 F T2 E2", parser1.run("d * d"));
+		assertEquals("E T F E T F T2 E2 T F T2 E2 T2 F E T F E T F T2 E2 T2 E2 T2 E2", parser1.run("( d + d ) * ( ( d ) )"));
 	}
 
 	@Test
 	public void testarAnaliseCorretasDeParser2() throws Throwable {
-		assertEquals("A B C", parser2.run("bc"));
+		assertEquals("A B C", parser2.run("b c"));
 		assertEquals("A B C", parser2.run("c"));
 	}
 
 	@Test
 	public void testarAnaliseCorretasDeParser3() throws Throwable {
-		assertEquals("S L L1 L L", parser3.run("id=*id"));
+		assertEquals("S L L1 L L", parser3.run("id = * id"));
 		assertEquals("S L", parser3.run("id"));
 	}
 
 	@Test
 	public void testarAnaliseCorretasDeParser4() throws Throwable {
-		assertEquals("S A A", parser4.run("ab"));
-		assertEquals("S B B", parser4.run("ba"));
+		assertEquals("S A A", parser4.run("a b"));
+		assertEquals("S B B", parser4.run("b a"));
 	}
 
 	@Test
 	public void testarAnaliseCorretasDeParser5() throws Throwable {
-		assertEquals("S", parser5.run("begin com end"));
+		assertEquals("P D C", parser5.run("begin com end"));
 		// assertEquals("S", parser5.run("begin com end"));
 	}
 
 	@Test
 	public void testarAnaliseCorretasDeParser6() throws Throwable {
-		assertEquals("P B K K V V C P1", parser6.run("cv"));
+		assertEquals("P B K K V V C P1", parser6.run("c v"));
 	}
 
 	@Test(expected = ParseException.class)

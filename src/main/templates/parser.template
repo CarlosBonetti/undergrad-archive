@@ -3,46 +3,57 @@ import java.text.ParseException;
 import java.util.Arrays;
 
 public class Parser {
-	
+
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0 || args[0] == null) {
 			throw new InvalidParameterException("Forneça uma sentença para ser analisada!");
 		}
-		
+
 		Parser parser = new Parser();
-		System.out.println(parser.parse(args[0]));	
-	}	
-		
+		System.out.println(parser.parse(args[0]));
+	}
+
 	// Símbolo que está sendo analisado atualmente
 	private String sym;
-	
+
 	// Salva a sequência de ativações da análise
 	private String sequence = "";
-	
+
 	// Parte da sentença ainda não analisada
-	private String x;	
-	
+	private String[] x;
+
+	// quantidade de tokens da sentença
+	private int qntTokens;
+
+	// aux para ir ao próximo símbolo da sentença
+	private int i =0;
+
 	public String parse(String sentence) throws Exception {
-		x = sentence;
-		x += "$";
+		sentence += " $";
+		x = sentence.split(" ");
+		qntTokens = x.length;
+	//	x = sentence;
+		//x += "$";
 		alex();
 		$(inicial)();
-		
+
 		if (!sym.equals("$")) {
 			error();
 		}
 
 		return sequence.trim();
 	}
-	
+
 	public void alex() {
-		sym = x.substring(0, 1);
-		x = x.substring(1);
+	sym = x[i];
+	i++;
+	//	sym = x.substring(0, 1);
+	//	x = x.substring(1);
 	}
-	
+
 	public void error() throws Exception {
 		throw new ParseException(sym, 0);
 	}
-	
-	$(metodos)	
+
+	$(metodos)
 }
