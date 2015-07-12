@@ -73,13 +73,14 @@ public class AppParse extends JFrame {
 		JButton btnNewButton = new JButton("Analisar");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				String parse = "";
 				try {
-					String parse = parser.getParser().run(textField.getText()).replace(" ", "\n");
+					parse = parser.getParser().run(textField.getText().trim()).replace(" ", "\n");
 					
 					textArea_Analisado.setText(parse);
 					
 				} catch (Throwable e) {
-					textArea_Analisado.setText("Não deu...");
+					textArea_Analisado.setText(parse+"\nNão deu...");
 					e.printStackTrace();
 				}
 			}

@@ -68,7 +68,8 @@ public class JavaParser extends SimpleJavaFileObject {
 		try {
 			result = main.invoke(parser, sentenca);
 		} catch (InvocationTargetException e) {
-			throw e.getTargetException();
+			return e.getTargetException().getMessage();
+//			throw e.getTargetException();
 		}
 
 		return (String) result;

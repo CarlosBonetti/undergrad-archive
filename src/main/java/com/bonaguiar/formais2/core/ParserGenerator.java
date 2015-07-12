@@ -6,7 +6,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -66,7 +68,6 @@ public class ParserGenerator {
 	protected String getCorpo(String nt) {
 		String result = "";
 		List<FormaSentencial> producoes = this.glc.getProducoes(nt);
-
 		boolean first = true;
 		for (FormaSentencial fs : producoes) {
 			if (fs.equals(GrammarUtils.PRODUCAO_VAZIA)) {
@@ -90,7 +91,7 @@ public class ParserGenerator {
 		if (producoes.contains(GrammarUtils.PRODUCAO_VAZIA)) {
 			ultimoElseTemplate = ultimoElseTemplate.removeLine("$(body)");
 		} else {
-			String exc = "error();";
+			String exc = "error(new HashSet<String>(Arrays.asList("+formatoArraysAsList(this.glc.getFirstSet().get(nt))+")));";
 			ultimoElseTemplate = ultimoElseTemplate.replace("$(body)", exc);
 		}
 
@@ -98,19 +99,30 @@ public class ParserGenerator {
 
 		return result;
 	}
-
+	private String formatoArraysAsList(Collection<String> c){
+		String aux ="";
+		for (String f : c) {
+			aux += String.format("\"%s\", ", f);
+		}
+		// Removendo o último ", " inserido:
+		aux = aux.isEmpty() ? aux : aux.substring(0, aux.length() - 2);
+		return aux;
+	}
+	
 	protected String getIfProducao(FormaSentencial formaSentencial, int index, String produtor) {
 		Template ifTemplate = this.getIfTemplate();
 		String simboloAtual = formaSentencial.get(index);
-
+		boolean terminal = false;
+		Set<String> lista = new HashSet<String>();
 		if (GrammarUtils.ehTerminal(simboloAtual)) {
+			terminal = true;
 			// Cria if
 			ifTemplate = ifTemplate.replace("$(condition)", "sym.equals(\"" + simboloAtual + "\")");
 			ifTemplate = ifTemplate.replace("$(body)", "alex();");
 		} else {
 			FormaSentencial subFS = new FormaSentencial();
 			subFS.addAll(formaSentencial.subList(index, formaSentencial.size()));
-			Set<String> lista = this.glc.first(subFS);
+			lista = this.glc.first(subFS);
 			if (lista.contains(GrammarUtils.EPSILON.toString())) {
 				lista.addAll(this.glc.follow(produtor));
 			}
@@ -130,25 +142,23 @@ public class ParserGenerator {
 		// Se não for o primeiro símbolo da produção, adiciona um else levando a erro
 		if (index != 0) {
 			ifTemplate.add("else {");
-			ifTemplate.add("	error();");
+			if (terminal) {
+				ifTemplate.add("	error(new HashSet<String>(Arrays.asList(\""+simboloAtual+"\")));");
+			} else{
+				ifTemplate.add("	error(new HashSet<String>(Arrays.asList("+formatoArraysAsList(lista)+ ")));");
+			}
 			ifTemplate.add("}");
 		}
-
+		new HashSet<String>(Arrays.asList("+aux+ "));
 		return ifTemplate.toString();
 	}
-
+	
+	
 	protected String getInOp(Collection<String> c) {
 		Template template = new Template();
 		template.add("Arrays.asList($(lista)).contains(sym)");
 
-		String lista = "";
-		for (String f : c) {
-			lista += String.format("\"%s\", ", f);
-		}
-		// Removendo o último ", " inserido:
-		lista = lista.isEmpty() ? lista : lista.substring(0, lista.length() - 2);
-
-		template = template.replace("$(lista)", lista);
+		template = template.replace("$(lista)", formatoArraysAsList(c));
 		return template.toString().trim();
 	}
 

@@ -1,6 +1,8 @@
 import java.security.InvalidParameterException;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
 
 public class Parser {
 
@@ -32,13 +34,11 @@ public class Parser {
 		sentence += " $";
 		x = sentence.split(" ");
 		qntTokens = x.length;
-	//	x = sentence;
-		//x += "$";
 		alex();
 		$(inicial)();
 
 		if (!sym.equals("$")) {
-			error();
+			error(new HashSet<String>(Arrays.asList("$")));
 		}
 
 		return sequence.trim();
@@ -47,13 +47,21 @@ public class Parser {
 	public void alex() {
 	sym = x[i];
 	i++;
-	//	sym = x.substring(0, 1);
-	//	x = x.substring(1);
 	}
 
-	public void error() throws Exception {
-		throw new ParseException(sym, 0);
+	public void error(Set<String> lista) throws Exception {
+
+		String msg = String.format("Símbolo '%s' não reconhecido.\nEsperava-se:\n", sym );
+		String aux = "";
+		for (String esperava : lista) {
+			aux += String.format("\"%s\" ", esperava);
+		}
+		if (sym.equals("$") || sym.trim().isEmpty()) {
+			msg = "Final_de_sentença inválido.\nEsperava-se:\n";
+		}
+		System.out.println(sym);
+		throw new ParseException(msg + aux, 0);
 	}
 
-	$(metodos)
+$(metodos)
 }
