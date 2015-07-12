@@ -1,6 +1,19 @@
 #include "colors.inc"
 #include "textures.inc"
-#include "finish.inc"
+#include "finish.inc"            
+
+#include "chair.pov"      
+
+global_settings{assumed_gamma 1.0 radiosity{recursion_limit 1}}
+
+background{White}          
+
+light_source{
+    -z*6 color White
+    area_light 1*x,1*z, 10,10 jitter adaptive 1 orient
+    rotate x*45
+    rotate -y*30
+}
 
 // Camera (Window) posicionada em x=0, y=2, z=-5 voltada para
 // direção apontada pelo vetor x=0, y=1, z=2.
@@ -38,57 +51,10 @@ plane { <0, 1, 0>, -1
 plane {
     <0, 0, 1>, 30
     pigment { Red }
+} 
+
+object{
+    Chair 
+    rotate -y * 45
+    translate <0,0,0>
 }
-
-// Esfera em x=0, y=1, z=2 com raio=2
-sphere {
-    <0, 1, 2>, 2
-    texture {
-      pigment {
-        White_Marble   // predefinida em textures.inc
-        scale 0.4        // fator de escala da textura
-      }
-      finish { Shiny } // predefinida em finish.inc
-    }
-  }
-
-// Esfera ao fundo para mais tarde demonstrar efeitos de nevoa
-sphere {
-    <15, 1, 30>, 2
-    texture {
-      pigment {Red}
-      finish { Shiny }
-    }
-  }
-      
-intersection {
-      sphere { <0, 0, 0>, 1
-        translate -0.5*x
-     }
-      sphere { <0, 0, 0>, 1
-        translate 0.5*x
-      }
-      pigment { Red }
-      rotate -30*z     // Para vermos o disco meio de lado
-      finish { Shiny }
-}
-
-// Exemplo de Geometria Construtiva
-// Diferenca entre um cilindro e o resultado da intersecção de duas esferas.
-/*difference {
-    intersection {
-      sphere { <0, 0, 0>, 1
-        translate -0.5*x
-     }
-      sphere { <0, 0, 0>, 1
-        translate 0.5*x
-      }
-      pigment { Red }
-      rotate 90*y
-      finish { Shiny }
-     }
-    cylinder { <0, 0, -1> <0, 0, 1>, .35
-      pigment { Blue }
-    }
-    rotate -30*y
-  } */
