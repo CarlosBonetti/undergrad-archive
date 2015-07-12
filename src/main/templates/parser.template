@@ -59,6 +59,9 @@ public class Parser {
 		if (sym.equals("$") || sym.trim().isEmpty()) {
 			msg = "Final_de_sentença inválido.\nEsperava-se:\n";
 		}
+		else if (aux.trim().equals("\"$\""))
+			aux = "o_fim_da_sentença";
+
 		System.out.println(sym);
 		throw new ParseException(msg + aux, 0);
 	}
