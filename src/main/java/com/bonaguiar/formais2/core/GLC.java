@@ -776,7 +776,7 @@ public class GLC implements Serializable {
 		return false;
 	}
 	
-	protected boolean ehLL1() {
+	public boolean ehLL1() {
 		if (!(this.getRecursaoEsquerdaDireta().isEmpty()
 				&& this.getRecursaoEsquerdaIndireta()
 				.isEmpty())) {

@@ -391,8 +391,14 @@ public class App extends JFrame {
 					parse.setVisible(true);
 					parse.setTitle("Descendente Recursivo de \"" + glcSelecionado + "\"");
 				} catch (Exception e) {
-					JOptionPane.showMessageDialog(frame,
+					e.printStackTrace();
+					if (gramHash.get(glcSelecionado).ehLL1()) {
+						JOptionPane.showMessageDialog(frame,
+								"Erro. Por favor verifique a gramática");
+					} else {
+						JOptionPane.showMessageDialog(frame,
 							"Gramática NÂO é LL(1).\nTente com uma gramática que satisfaça as condições.");
+					}
 				}
 				
 			}
