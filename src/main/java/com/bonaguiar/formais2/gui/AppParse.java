@@ -46,6 +46,7 @@ public class AppParse extends JFrame {
 		this.frame = frame;
 		this.glc = frame.getGramHash().get(frame.getGlcSelecionado());
 		this.parser = parserFrame;
+		setLocation(this.frame.getLocation());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 884, 574);
 		contentPane = new JPanel();

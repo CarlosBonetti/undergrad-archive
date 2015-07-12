@@ -387,6 +387,7 @@ public class App extends JFrame {
 				try {
 					ParserGenerator parser = new ParserGenerator(gramHash.get(glcSelecionado));
 					AppParse parse = new AppParse(frame, parser);
+					parse.setLocation(getLocation());
 					parse.setVisible(true);
 					parse.setTitle("Descendente Recursivo de \"" + glcSelecionado + "\"");
 				} catch (Exception e) {
