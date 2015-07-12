@@ -14,7 +14,7 @@ public class Parser {
 	}	
 		
 	// Símbolo que está sendo analisado atualmente
-	private char sym;
+	private String sym;
 	
 	// Salva a sequência de ativações da análise
 	private String sequence = "";
@@ -28,7 +28,7 @@ public class Parser {
 		alex();
 		$(inicial)();
 		
-		if (sym != '$') {
+		if (!sym.equals("$")) {
 			error();
 		}
 
@@ -36,12 +36,12 @@ public class Parser {
 	}
 	
 	public void alex() {
-		sym = x.charAt(0);
+		sym = x.substring(0, 1);
 		x = x.substring(1);
 	}
 	
 	public void error() throws Exception {
-		throw new ParseException(sym + "", 0);
+		throw new ParseException(sym, 0);
 	}
 	
 	$(metodos)	

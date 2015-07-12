@@ -26,7 +26,8 @@ public class ParserGenerator {
 
 	/**
 	 * Cria um novo gerador de parser para a gramática
-	 * @throws java.lang.Exception 
+	 *
+	 * @throws java.lang.Exception
 	 */
 	public ParserGenerator(GLC glc) throws java.lang.Exception {
 		if (!glc.ehLL1()) {
@@ -80,6 +81,11 @@ public class ParserGenerator {
 			first = false;
 		}
 
+		// Caso seja uma produção do tipo A -> &, e A possui somente essa produção, não adiciona nada
+		if (producoes.size() == 1 && producoes.get(0).equals(GrammarUtils.PRODUCAO_VAZIA)) {
+			return result;
+		}
+
 		Template ultimoElseTemplate = this.getElseTemplate();
 		if (producoes.contains(GrammarUtils.PRODUCAO_VAZIA)) {
 			ultimoElseTemplate = ultimoElseTemplate.removeLine("$(body)");
@@ -93,18 +99,20 @@ public class ParserGenerator {
 		return result;
 	}
 
-	protected String getIfProducao(FormaSentencial formaSentencial, int index, String metodo) {
+	protected String getIfProducao(FormaSentencial formaSentencial, int index, String produtor) {
 		Template ifTemplate = this.getIfTemplate();
 		String simboloAtual = formaSentencial.get(index);
 
 		if (GrammarUtils.ehTerminal(simboloAtual)) {
 			// Cria if
-			ifTemplate = ifTemplate.replace("$(condition)", "sym == '" + simboloAtual + "'");
+			ifTemplate = ifTemplate.replace("$(condition)", "sym.equals(\"" + simboloAtual + "\")");
 			ifTemplate = ifTemplate.replace("$(body)", "alex();");
 		} else {
-			Set<String> lista = this.glc.first(simboloAtual);
+			FormaSentencial subFS = new FormaSentencial();
+			subFS.addAll(formaSentencial.subList(index, formaSentencial.size()));
+			Set<String> lista = this.glc.first(subFS);
 			if (lista.contains(GrammarUtils.EPSILON.toString())) {
-				lista.addAll(this.glc.follow(simboloAtual));
+				lista.addAll(this.glc.follow(produtor));
 			}
 
 			ifTemplate = ifTemplate.replace("$(condition)", this.getInOp(lista));
@@ -114,7 +122,7 @@ public class ParserGenerator {
 		// se não for o último símbolo da produção, chama recursivamente este método
 		// criando os ifs aninhados
 		if (index < formaSentencial.size() - 1) {
-			ifTemplate = ifTemplate.replace("$(post-body)", this.getIfProducao(formaSentencial, index + 1, metodo));
+			ifTemplate = ifTemplate.replace("$(post-body)", this.getIfProducao(formaSentencial, index + 1, produtor));
 		} else {
 			ifTemplate = ifTemplate.removeLine("$(post-body)");
 		}
@@ -135,7 +143,7 @@ public class ParserGenerator {
 
 		String lista = "";
 		for (String f : c) {
-			lista += String.format("'%s', ", f);
+			lista += String.format("\"%s\", ", f);
 		}
 		// Removendo o último ", " inserido:
 		lista = lista.isEmpty() ? lista : lista.substring(0, lista.length() - 2);
