@@ -26,7 +26,7 @@
 #include "colors.inc"                                        
 
 #declare C_WoodChair=rgb<31,10,8>*1.4/255;
-#declare C_CanvasChair=color rgb <0.1,0.491,0.598>;
+#declare C_CanvasChair=color rgb <0.9,0.491,0.2>;
 #declare C_Nail=color Bronze;
 #declare T_NailChair=texture{
         pigment{C_Nail}
