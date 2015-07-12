@@ -670,12 +670,7 @@ public class GLC implements Serializable {
 					}
 				}
 				if (GrammarUtils.ehTerminal(simbolo)) {
-					// se aux nao for vazio concatena com o simbolo gerando nova forma sentencial senao nova forma eh somente o simbolo
-					if (!aux.trim().isEmpty()) {
-						derivacoesDiretas.add(new FormaSentencial(aux + simbolo));
-						break;
-					}
-					derivacoesDiretas.add(new FormaSentencial(simbolo));
+					derivacoesDiretas.add(new FormaSentencial(aux + simbolo));
 					break;
 
 				} else if (GrammarUtils.ehNaoTerminal(simbolo)) {
@@ -738,7 +733,7 @@ public class GLC implements Serializable {
 								// se simbolo que eh ñ-terminal ter em suas derivacoes de simbolo2(terminal)
 								if (getFirstSet().get(simbolo).contains(simbolo2)) {
 									// se simbolo2 for diferente de '&' ou for ultimo simbolo da formaSentencial retorna true
-									if (!simbolo2.equals(GrammarUtils.EPSILON.toString()) || (--tamForma) == 0) {
+									if (!simbolo2.equals(GrammarUtils.EPSILON.toString()) || (tamForma--) == 0) {
 										return true;
 									} else {
 										continue;

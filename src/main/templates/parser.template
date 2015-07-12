@@ -32,7 +32,7 @@ public class Parser {
 
 	public String parse(String sentence) throws Exception {
 		sentence += " $";
-		x = sentence.split(" ");
+		x = sentence.trim().split(" ");
 		qntTokens = x.length;
 		alex();
 		$(inicial)();
