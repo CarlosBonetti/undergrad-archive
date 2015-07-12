@@ -45,8 +45,8 @@ public class Parser {
 	}
 
 	public void alex() {
-	sym = x[i];
-	i++;
+		sym = x[i].trim();
+		i++;
 	}
 
 	public void error(Set<String> lista) throws Exception {
