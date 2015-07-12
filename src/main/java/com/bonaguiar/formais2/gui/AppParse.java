@@ -39,6 +39,7 @@ public class AppParse extends JFrame {
 	 * @throws Exception 
 	 */
 	public AppParse(App frame, ParserGenerator parserFrame) throws Exception {
+		setResizable(false);
 		setBackground(new Color(169, 169, 169));
 		this.frame = frame;
 		this.glc = frame.getGramHash().get(frame.getGlcSelecionado());

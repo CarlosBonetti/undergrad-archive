@@ -117,7 +117,7 @@ public class App extends JFrame {
 							"Digite um nome para a gramática:");
 					while (nomeGram.trim().isEmpty() | ehChaveGlcNova(nomeGram)) {
 						nomeGram = JOptionPane
-								.showInputDialog("Campo obrigatório e único.!\nDigite um nome para a gramática:");
+								.showInputDialog(this, "Campo obrigatório e único.!\nDigite um nome para a gramática:");
 					}
 					adicionaNaListaGR(nomeGram, glc);
 
@@ -183,7 +183,7 @@ public class App extends JFrame {
 		setResizable(false);
 		loadPersistence();
 
-		setTitle("Programa Tela Inicial");
+		setTitle("Programa");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 326, 546);
 		getContentPane().setLayout(new CardLayout(0, 0));
@@ -307,7 +307,7 @@ public class App extends JFrame {
 				}
 			}
 		});
-		JButton btnFatorada = new JButton("Esta fatorada ?");
+		JButton btnFatorada = new JButton("Está fatorada ?");
 		btnFatorada.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -560,7 +560,7 @@ public class App extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				if (!modeloGLC.isEmpty() && !glcSelecionado.isEmpty()) {
 					int opcao = JOptionPane.showConfirmDialog(frame,
-							"Confirmar exclusão de " + glcSelecionado, null,
+							"Confirmar exclusão de \"" + glcSelecionado + "\"", null,
 							JOptionPane.YES_NO_OPTION);
 					if (JOptionPane.YES_OPTION == opcao) {
 						removeDaLista(glcSelecionado);
