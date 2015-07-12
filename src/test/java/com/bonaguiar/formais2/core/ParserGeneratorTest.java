@@ -81,12 +81,38 @@ public class ParserGeneratorTest {
 	}
 
 	@Test(expected = ParseException.class)
+	public void testarAnaliseIncorretaParser1() throws Throwable {
+		parser1.run("");
+		parser1.run("( * )");
+	}
+	
+	@Test(expected = ParseException.class)
 	public void testarAnaliseIncorretaParser2() throws Throwable {
 		parser2.run("b");
+		parser2.run("c c");
 	}
-
+	
 	@Test(expected = ParseException.class)
-	public void testarAnaliseIncorreta1() throws Throwable {
-		parser1.run("");
+	public void testarAnaliseIncorretaParser3() throws Throwable {
+		parser3.run("id = =");
+		parser3.run("= id");
+	}
+	
+	@Test(expected = ParseException.class)
+	public void testarAnaliseIncorretaParser4() throws Throwable {
+		parser4.run("a");
+		parser4.run("b");
+	}
+	
+	@Test(expected = ParseException.class)
+	public void testarAnaliseIncorretaParser5() throws Throwable {
+		parser5.run("begin , id end");
+		parser5.run("beging [ E ] end");
+	}
+	
+	@Test(expected = ParseException.class)
+	public void testarAnaliseIncorretaParser6() throws Throwable {
+		parser6.run("e e");
+		parser6.run("; ; e com com");
 	}
 }
