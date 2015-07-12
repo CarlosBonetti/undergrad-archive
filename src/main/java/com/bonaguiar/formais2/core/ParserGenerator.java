@@ -1,10 +1,10 @@
 package com.bonaguiar.formais2.core;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -91,7 +91,7 @@ public class ParserGenerator {
 		if (producoes.contains(GrammarUtils.PRODUCAO_VAZIA)) {
 			ultimoElseTemplate = ultimoElseTemplate.removeLine("$(body)");
 		} else {
-			String exc = "error(new HashSet<String>(Arrays.asList("+formatoArraysAsList(this.glc.getFirstSet().get(nt))+")));";
+			String exc = "error(new HashSet<String>(Arrays.asList(" + formatoArraysAsList(this.glc.getFirstSet().get(nt)) + ")));";
 			ultimoElseTemplate = ultimoElseTemplate.replace("$(body)", exc);
 		}
 
@@ -99,8 +99,9 @@ public class ParserGenerator {
 
 		return result;
 	}
-	private String formatoArraysAsList(Collection<String> c){
-		String aux ="";
+
+	private String formatoArraysAsList(Collection<String> c) {
+		String aux = "";
 		for (String f : c) {
 			aux += String.format("\"%s\", ", f);
 		}
@@ -108,7 +109,7 @@ public class ParserGenerator {
 		aux = aux.isEmpty() ? aux : aux.substring(0, aux.length() - 2);
 		return aux;
 	}
-	
+
 	protected String getIfProducao(FormaSentencial formaSentencial, int index, String produtor) {
 		Template ifTemplate = this.getIfTemplate();
 		String simboloAtual = formaSentencial.get(index);
@@ -143,17 +144,16 @@ public class ParserGenerator {
 		if (index != 0) {
 			ifTemplate.add("else {");
 			if (terminal) {
-				ifTemplate.add("	error(new HashSet<String>(Arrays.asList(\""+simboloAtual+"\")));");
-			} else{
-				ifTemplate.add("	error(new HashSet<String>(Arrays.asList("+formatoArraysAsList(lista)+ ")));");
+				ifTemplate.add("	error(new HashSet<String>(Arrays.asList(\"" + simboloAtual + "\")));");
+			} else {
+				ifTemplate.add("	error(new HashSet<String>(Arrays.asList(" + formatoArraysAsList(lista) + ")));");
 			}
 			ifTemplate.add("}");
 		}
 		new HashSet<String>(Arrays.asList("+aux+ "));
 		return ifTemplate.toString();
 	}
-	
-	
+
 	protected String getInOp(Collection<String> c) {
 		Template template = new Template();
 		template.add("Arrays.asList($(lista)).contains(sym)");
@@ -190,7 +190,16 @@ public class ParserGenerator {
 	}
 
 	protected Template getParserTemplate() throws IOException {
-		return new Template(Files.readAllLines(Paths.get("./src/main/templates/parser.template"), Charset.defaultCharset()));
+		InputStream resource = getClass().getResourceAsStream("/src/main/templates/parser.template");
+		BufferedReader input = new BufferedReader(new InputStreamReader(resource));
+
+		Template template = new Template();
+		String line;
+		while ((line = input.readLine()) != null) {
+			template.add(line);
+		}
+
+		return template;
 	}
 
 	/**
