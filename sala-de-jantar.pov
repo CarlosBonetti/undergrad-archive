@@ -14,13 +14,23 @@ background { color Blue }
 
 // Fonte de Luz Branca posicionada em x=20, y=4 e z=-13
 light_source { <20, 4, -13> color White }
-
+                                                          
 // Chao com textura de madeira
 plane { <0, 1, 0>, -1    
-    texture { 
-         Dark_Wood 
-         finish { Shiny } 
-         scale 0.1 
+    pigment { 
+        wood color_map { [0 rgb <.9,.7,.3>] [1 rgb <.6,.3,.1>] }
+        turbulence .5
+        scale <1, 1, 20>*.2
+    }
+    finish { specular 1 }
+    normal { 
+        gradient x 1
+        slope_map { 
+            [0 <0, 1>] // 0 height, strong slope up
+            [.05 <1, 0>] // maximum height, horizontal
+            [.95 <1, 0>] // maximum height, horizontal
+            [1 <0, -1>] // 0 height, strong slope down
+        }
     }
 }
 
@@ -50,32 +60,7 @@ sphere {
       finish { Shiny }
     }
   }
-
-polygon {
-    30,
-    <-0.8, 0.0>, <-0.8, 1.0>,    // Letter "P"
-    <-0.3, 1.0>, <-0.3, 0.5>,    // outer shape
-    <-0.7, 0.5>, <-0.7, 0.0>,
-    <-0.8, 0.0>,
-    <-0.7, 0.6>, <-0.7, 0.9>,    // hole
-    <-0.4, 0.9>, <-0.4, 0.6>,
-    <-0.7, 0.6>
-    <-0.25, 0.0>, <-0.25, 1.0>,  // Letter "O"
-    < 0.25, 1.0>, < 0.25, 0.0>,  // outer shape
-    <-0.25, 0.0>,
-    <-0.15, 0.1>, <-0.15, 0.9>,  // hole
-    < 0.15, 0.9>, < 0.15, 0.1>,
-    <-0.15, 0.1>,
-    <0.45, 0.0>, <0.30, 1.0>,    // Letter "V"
-    <0.40, 1.0>, <0.55, 0.1>,
-    <0.70, 1.0>, <0.80, 1.0>,
-    <0.65, 0.0>,
-    <0.45, 0.0>
-    pigment { color rgb <1, 0.3, 0> }
-
-    translate x*2
-  }
-
+      
 intersection {
       sphere { <0, 0, 0>, 1
         translate -0.5*x
