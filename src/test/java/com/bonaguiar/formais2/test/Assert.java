@@ -20,4 +20,12 @@ public class Assert {
 			throw new AssertionError("Collection sizes diverge. Expected <" + expected + "> but was <" + actual + ">");
 		}
 	}
+	
+	public static <T> void assertContains(String msg) {
+		try {
+			assertTrue(msg.contains("Esperava-se:"));
+		} catch (AssertionError e) {
+			throw new AssertionError("Msg de erro não segue o padrão");
+		}
+	}
 }

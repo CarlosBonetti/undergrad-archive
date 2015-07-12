@@ -1,11 +1,14 @@
 package com.bonaguiar.formais2.core;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import com.bonaguiar.formais2.test.Assert;
 
 public class ParserGeneratorTest {
 
@@ -15,7 +18,7 @@ public class ParserGeneratorTest {
 	private JavaParser parser4;
 	private JavaParser parser5;
 	private JavaParser parser6;
-
+	
 	@Before
 	public void setup() throws Exception {
 		GLC glc = new GLC("E -> T E2 \n" + "E2 -> + T E2 | & \n" + "T -> F T2 \n" + "T2 -> * F T2 | & \n" + "F -> ( E ) | d");
@@ -72,7 +75,7 @@ public class ParserGeneratorTest {
 	@Test
 	public void testarAnaliseCorretasDeParser5() throws Throwable {
 		assertEquals("P D C", parser5.run("begin com end"));
-		// assertEquals("S", parser5.run("begin com end"));
+		 assertEquals("P D I I I C", parser5.run("begin int , id , id com end"));
 	}
 
 	@Test
@@ -80,39 +83,39 @@ public class ParserGeneratorTest {
 		assertEquals("P B K K V V C P1", parser6.run("c v"));
 	}
 
-	@Test(expected = ParseException.class)
+	@Test
 	public void testarAnaliseIncorretaParser1() throws Throwable {
-		parser1.run("");
-		parser1.run("( * )");
+		Assert.assertContains(parser1.run(""));
+		Assert.assertContains(parser1.run("( * )"));
 	}
 	
-	@Test(expected = ParseException.class)
+	@Test
 	public void testarAnaliseIncorretaParser2() throws Throwable {
-		parser2.run("b");
-		parser2.run("c c");
+		Assert.assertContains(parser2.run("b"));
+		Assert.assertContains(parser2.run("c c"));
 	}
 	
-	@Test(expected = ParseException.class)
+	@Test
 	public void testarAnaliseIncorretaParser3() throws Throwable {
-		parser3.run("id = =");
-		parser3.run("= id");
+		Assert.assertContains(parser3.run("id = ="));
+		Assert.assertContains(parser3.run("= id"));
 	}
 	
-	@Test(expected = ParseException.class)
+	@Test
 	public void testarAnaliseIncorretaParser4() throws Throwable {
-		parser4.run("a");
-		parser4.run("b");
+		Assert.assertContains(parser4.run("a"));
+		Assert.assertContains(parser4.run("b"));
 	}
 	
-	@Test(expected = ParseException.class)
+	@Test
 	public void testarAnaliseIncorretaParser5() throws Throwable {
-		parser5.run("begin , id end");
-		parser5.run("beging [ E ] end");
+		Assert.assertContains(parser5.run("begin , id end"));
+		Assert.assertContains(parser5.run("beging [ E ] end"));
 	}
 	
-	@Test(expected = ParseException.class)
+	@Test
 	public void testarAnaliseIncorretaParser6() throws Throwable {
-		parser6.run("e e");
-		parser6.run("; ; e com com");
+		Assert.assertContains(parser6.run("e e"));
+		Assert.assertContains(parser6.run("; ; e com com"));
 	}
 }

@@ -702,6 +702,7 @@ public class GLC implements Serializable {
 			// auxiliar para saber o tamanho da sentenca
 			int tamForma = lista.get(i).size();
 			for (String simbolo : lista.get(i)) {
+				--tamForma;
 				// se for terminal, faz validacoes diretas
 				if (GrammarUtils.ehTerminal(simbolo)) {
 					// percorre a lista sem valores de atual e anterores i
@@ -733,7 +734,7 @@ public class GLC implements Serializable {
 								// se simbolo que eh ñ-terminal ter em suas derivacoes de simbolo2(terminal)
 								if (getFirstSet().get(simbolo).contains(simbolo2)) {
 									// se simbolo2 for diferente de '&' ou for ultimo simbolo da formaSentencial retorna true
-									if (!simbolo2.equals(GrammarUtils.EPSILON.toString()) || (tamForma--) == 0) {
+									if (!simbolo2.equals(GrammarUtils.EPSILON.toString()) || (tamForma) == 0) {
 										return true;
 									} else {
 										continue;
@@ -741,7 +742,7 @@ public class GLC implements Serializable {
 								}
 							} else if (GrammarUtils.ehNaoTerminal(simbolo2)) {
 								// verifica de existem firsts semelhantes
-								if (firstsComFirsts(simbolo, simbolo2, (--tamForma) > 0)) {
+								if (firstsComFirsts(simbolo, simbolo2, (tamForma) > 0)) {
 									return true;
 								}
 							}
