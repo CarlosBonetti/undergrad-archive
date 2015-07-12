@@ -71,7 +71,7 @@ public class AppParse extends JFrame {
 		JPanel panel = new JPanel();
 		contentPane.add(panel, BorderLayout.CENTER);
 		
-		JLabel lblSentenca = new JLabel("Entre com a Sentença:");
+		JLabel lblSentenca = new JLabel("Entre com a Sentença:*");
 		
 		JTextArea textArea = new JTextArea();
 		textArea.setFont(new Font("Dialog", Font.BOLD, 12));
@@ -88,9 +88,9 @@ public class AppParse extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				String parse = "";
 				try {
-					parse = parser.getParser().run(textField.getText().trim()).replace(" ", "\n");
+					parse = parser.getParser().run(textField.getText().trim()).replace(" ", "\n ");
 					
-					textArea_Analisado.setText(parse);
+					textArea_Analisado.setText(" "+parse);
 					
 				} catch (Throwable e) {
 					textArea_Analisado.setText(parse+"\nNão deu...");
@@ -107,7 +107,7 @@ public class AppParse extends JFrame {
 		
 		JLabel lblNewLabel = new JLabel("Sequência:");
 		
-		JLabel lblaSentenaDeve = new JLabel("<html>***A sentença deve<br>conter 1 espaço entre<br>os diferentes tokens.<br> </html>");
+		JLabel lblaSentenaDeve = new JLabel("<html>*A sentença deve<br>conter 1 espaço entre<br>os diferentes tokens.<br> </html>");
 		
 		GroupLayout gl_panel = new GroupLayout(panel);
 		gl_panel.setHorizontalGroup(
