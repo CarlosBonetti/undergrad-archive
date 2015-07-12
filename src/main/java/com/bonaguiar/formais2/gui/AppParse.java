@@ -78,7 +78,7 @@ public class AppParse extends JFrame {
 		textArea.setBackground(new Color(255, 235, 205));
 		JScrollPane jp = new JScrollPane(textArea);
 		textArea.setEditable(false);
-		textArea.setText(parserFrame.getParser().toString());
+		textArea.setText(parserFrame.getParser().toString().replace("\t", "      "));
 		
 		textField = new JTextField();
 		textField.setColumns(10);
@@ -100,6 +100,8 @@ public class AppParse extends JFrame {
 		});
 		
 		textArea_Analisado = new JTextArea();
+		textArea_Analisado.setFont(new Font("Dialog", Font.BOLD, 12));
+		textArea_Analisado.setBackground(new Color(255, 245, 238));
 		JScrollPane jp2 = new JScrollPane(textArea_Analisado);
 		textArea_Analisado.setEditable(false);
 		
