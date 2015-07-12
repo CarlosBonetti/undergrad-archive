@@ -60,7 +60,7 @@ public class ParserGeneratorTest {
 	@Test
 	public void testarAnaliseCorretasDeParser3() throws Throwable {
 		assertEquals("S L L1 L L", parser3.run("id = * id"));
-		assertEquals("S L", parser3.run("id"));
+		assertEquals("S L L1", parser3.run("id"));
 	}
 
 	@Test
