@@ -26,6 +26,8 @@ public class ParserGenerator {
 	 */
 	protected GLC glc;
 
+	private static Template parserTemplate;
+
 	/**
 	 * Cria um novo gerador de parser para a gramática
 	 *
@@ -190,16 +192,18 @@ public class ParserGenerator {
 	}
 
 	protected Template getParserTemplate() throws IOException {
-		InputStream resource = getClass().getResourceAsStream("/src/main/templates/parser.template");
-		BufferedReader input = new BufferedReader(new InputStreamReader(resource));
+		if (parserTemplate == null) {
+			InputStream resource = getClass().getResourceAsStream("/src/main/templates/parser.template");
+			BufferedReader input = new BufferedReader(new InputStreamReader(resource));
 
-		Template template = new Template();
-		String line;
-		while ((line = input.readLine()) != null) {
-			template.add(line);
+			parserTemplate = new Template();
+			String line;
+			while ((line = input.readLine()) != null) {
+				parserTemplate.add(line);
+			}
 		}
 
-		return template;
+		return parserTemplate;
 	}
 
 	/**
