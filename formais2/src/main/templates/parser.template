@@ -1,0 +1,70 @@
+import java.security.InvalidParameterException;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
+
+public class Parser {
+
+	public static void main(String[] args) throws Exception {
+		if (args == null || args.length == 0 || args[0] == null) {
+			throw new InvalidParameterException("Forneça uma sentença para ser analisada!");
+		}
+
+		Parser parser = new Parser();
+		System.out.println(parser.parse(args[0]));
+	}
+
+	// Símbolo que está sendo analisado atualmente
+	private String sym;
+
+	// Salva a sequência de ativações da análise
+	private String sequence = "";
+
+	// Parte da sentença ainda não analisada
+	private String[] x;
+
+	// quantidade de tokens da sentença
+	private int qntTokens;
+
+	// aux para ir ao próximo símbolo da sentença
+	private int i =0;
+
+	public String parse(String sentence) throws Exception {
+		sentence += " $";
+		x = sentence.trim().split(" ");
+		qntTokens = x.length;
+		alex();
+		$(inicial)();
+
+		if (!sym.equals("$")) {
+			error(new HashSet<String>(Arrays.asList("$")));
+		}
+
+		return sequence.trim();
+	}
+
+	public void alex() {
+		sym = x[i].trim();
+		i++;
+	}
+
+	public void error(Set<String> lista) throws Exception {
+
+		String msg = String.format("Símbolo '%s' não reconhecido.\nEsperava-se:\n", sym );
+		String aux = "";
+		for (String esperava : lista) {
+			aux += String.format("\"%s\" ", esperava);
+		}
+		if (sym.equals("$") || sym.trim().isEmpty()) {
+			msg = "Final_de_sentença inválido.\nEsperava-se:\n";
+		}
+		else if (aux.trim().equals("\"$\""))
+			aux = "o_fim_da_sentença";
+
+		System.out.println(sym);
+		throw new ParseException(msg + aux, 0);
+	}
+
+	$(metodos)
+}
