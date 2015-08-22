@@ -1,0 +1,4 @@
+*.o
+/cg
+.cproject
+.project
