@@ -1,0 +1,204 @@
+Index: include/system/config.h
+===================================================================
+--- include/system/config.h	(revision 3712)
++++ include/system/config.h	(working copy)
+@@ -7,15 +7,15 @@
+ // ARCHITECTURE, MACHINE, AND APPLICATION SELECTION
+ // This section is generated automatically from makedefs by $EPOS/etc/makefile
+ //============================================================================
+-#define MODE xxx
+-#define ARCH xxx
+-#define MACH xxx
+-#define MMOD xxx
+-#define APPL xxx
+-#define __mode_xxx__
+-#define __arch_xxx__
+-#define __mach_xxx__
+-#define __mmod_xxx__
++#define MODE library
++#define ARCH ia32
++#define MACH pc
++#define MMOD legacy
++#define APPL thread_test
++#define __mode_library__
++#define __arch_ia32__
++#define __mach_pc__
++#define __mmod_legacy__
+
+ #if defined (__arch_avr__) || defined (__mmod_lm3s811__)
+ #define __no_networking__
+@@ -71,8 +71,8 @@
+ //============================================================================
+ // ASSERT (for pre and post conditions)
+ //============================================================================
+-//#define assert(expr)    ((expr) ? static_cast<void>(0) : Assert::fail (#expr, __FILE__, __LINE__, __PRETTY_FUNCTION__))
+-#define assert(expr)    (static_cast<void>(0))
++#define assert(expr)    ((expr) ? static_cast<void>(0) : Assert::fail (#expr, __FILE__, __LINE__, __PRETTY_FUNCTION__))
++//#define assert(expr)    (static_cast<void>(0))
+
+ //============================================================================
+ // CONFIGURATION
+Index: include/system/traits.h
+===================================================================
+--- include/system/traits.h	(revision 3712)
++++ include/system/traits.h	(working copy)
+@@ -39,7 +39,7 @@
+     static const bool error   = true;
+     static const bool warning = true;
+     static const bool info    = false;
+-    static const bool trace   = false;
++    static const bool trace   = true;
+ };
+
+ template<> struct Traits<Lists>: public Traits<void>
+Index: include/thread.h
+===================================================================
+--- include/thread.h	(revision 3712)
++++ include/thread.h	(working copy)
+@@ -86,6 +86,10 @@
+     void constructor_prolog(unsigned int stack_size);
+     void constructor_epilog(const Log_Addr & entry, unsigned int stack_size);
+
++    void wakeup();
++    void wakeup_joiners();
++
++    static void wait(Queue * waiting_queue);
+     static Thread * volatile running() { return _running; }
+
+     static void lock() { CPU::int_disable(); }
+@@ -108,6 +112,9 @@
+     volatile State _state;
+     Queue::Element _link;
+
++    Queue _joining;
++    Thread * _joined;
++
+     static Scheduler_Timer * _timer;
+
+ private:
+Index: src/abstraction/thread.cc
+===================================================================
+--- src/abstraction/thread.cc	(revision 3712)
++++ src/abstraction/thread.cc	(working copy)
+@@ -58,6 +58,13 @@
+                     << ",context={b=" << _context
+                     << "," << *_context << "})" << endl;
+
++    // No Threads should be waiting for a deleted one
++    assert(_joining.empty());
++
++    // If deleted thread is joining another one, remove it from the list of that thread
++    if (_joined)
++        _joined->_joining.remove(&_link);
++
+     _ready.remove(this);
+     _suspended.remove(this);
+
+@@ -73,11 +80,18 @@
+
+     db<Thread>(TRC) << "Thread::join(this=" << this << ",state=" << _state << ")" << endl;
+
+-    while(_state != FINISHING)
+-        yield(); // implicit unlock()
++    // A Thread should not join itself
++    assert(this != _running);
+
+-    unlock();
++    // Avoid cyclic joining (transitive cyclic joining untreated)
++    assert(this->_joined != _running);
+
++    if(_state != FINISHING) {
++        _running->_joined = this;
++        Thread::wait(&_joining); // implicit unlock()
++    } else
++        unlock();
++
+     return *reinterpret_cast<int *>(_stack);
+ }
+
+@@ -140,6 +154,36 @@
+ }
+
+
++void Thread::wakeup()
++{
++    lock();
++
++    db<Thread>(TRC) << "Thread::wakeup(this=" << this << ")" << endl;
++
++   _state = READY;
++   _ready.insert(&_link);
++
++   unlock();
++}
++
++
++void Thread::wakeup_joiners()
++{
++    lock();
++
++    db<Thread>(TRC) << "Thread::wakeup_joiners(this=" << this << ")" << endl;
++
++    Thread * joiner;
++
++    while(!_joining.empty()) {
++        joiner = _joining.remove()->object();
++        joiner->_joined = 0;
++        joiner->wakeup(); // implicit unlock()
++    }
++
++    unlock();
++}
++
+ // Class methods
+ void Thread::yield()
+ {
+@@ -163,6 +207,28 @@
+ }
+
+
++void Thread::wait(Queue * waiting_queue)
++{
++    lock();
++
++    db<Thread>(TRC) << "Thread::wait(running=" << _running << ")" << endl;
++
++    if(!_ready.empty()) {
++        Thread * prev = _running;
++        prev->_state = WAITING;
++        waiting_queue->insert(&prev->_link);
++
++        _running = _ready.remove()->object();
++        _running->_state = RUNNING;
++
++        Thread::dispatch(prev, _running);
++    } else
++        Thread::idle();
++
++    unlock();
++}
++
++
+ void Thread::exit(int status)
+ {
+     lock();
+@@ -169,6 +235,11 @@
+
+     db<Thread>(TRC) << "Thread::exit(status=" << status << ") [running=" << running() << "]" << endl;
+
++    *reinterpret_cast<int *>(_running->_stack) = status;
++    _running->wakeup_joiners(); // implicit unlock();
++
++    lock();
++
+     while(_ready.empty() && !_suspended.empty())
+         idle(); // implicit unlock();
+
+@@ -177,7 +248,6 @@
+     if(!_ready.empty()) {
+         Thread * prev = _running;
+         prev->_state = FINISHING;
+-        *reinterpret_cast<int *>(prev->_stack) = status;
+
+         _running = _ready.remove()->object();
+         _running->_state = RUNNING;

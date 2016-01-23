@@ -1,0 +1,856 @@
+Index: app/parallel_philosophers_dinner.cc
+===================================================================
+--- app/parallel_philosophers_dinner.cc	(revisão 3796)
++++ app/parallel_philosophers_dinner.cc	(cópia de trabalho)
+@@ -64,6 +64,35 @@
+         table.v();
+     }
+ 
++    cout << "\nPhilosopher\t" << "C_0\t\t" << "C_1\t\t" << "C_2\t\t" << "C_3" << endl;
++
++    for(int i = 0; i < 5; i++) {
++           int ret = phil[i]->join();
++           Thread::Stats::Microsecond * a = phil[i]->total_running_time();
++           table.p();
++           Display::position(28 + i, 0);
++           cout << i << endl;
++           Display::position(28 + i, 15);
++           cout << a[0] << endl;
++           Display::position(28 + i, 31);
++           cout << a[1] << endl;
++           Display::position(28 + i, 47);
++           cout << a[2] << endl;
++           Display::position(28 + i, 65);
++           cout << a[3]<< endl;
++//           cout << " " << i << "\t" << a[0] << "\t"<< a[1]<< "\t"<< a[2]<< "\t"<< a[3]<< endl;
++           table.v();
++       }
++
++	   for(int i = 0; i < 5; i++) {
++		   int ret = phil[i]->join();
++		   table.p();
++			Display::position(34 + i, 0);
++			cout << "Philosopher " << i << " total running time: "
++				<< phil[i]->total_running_time_all() << "                    ";
++		   table.v();
++	   }
++
+     for(int i = 0; i < 5; i++)
+         delete chopstick[i];
+     for(int i = 0; i < 5; i++)
+@@ -82,6 +111,7 @@
+     for(int i = iterations; i > 0; i--) {
+ 
+         table.p();
++
+         Display::position(l, c);
+         cout << "thinking[" << Machine::cpu_id() << "]";
+         table.v();
+@@ -110,6 +140,12 @@
+ 
+         chopstick[first]->v();   // release first chopstick
+         chopstick[second]->v();  // release second chopstick
++
++        table.p();
++        Display::position(20 + n, 0);
++        cout << "Philosopher " << n << " total running time: "
++            << Thread::self()->total_running_time_all() << "                    ";
++        table.v();
+     }
+ 
+     table.p();
+Index: app/parallel_philosophers_dinner_traits.h
+===================================================================
+--- app/parallel_philosophers_dinner_traits.h	(revisão 3796)
++++ app/parallel_philosophers_dinner_traits.h	(cópia de trabalho)
+@@ -28,8 +28,8 @@
+     enum {Legacy};
+     static const unsigned int MODEL = Legacy;
+ 
+-    static const unsigned int CPUS = 8;
+-    static const unsigned int NODES = 1; // > 1 => NETWORKING    
++    static const unsigned int CPUS = 4;
++    static const unsigned int NODES = 1; // > 1 => NETWORKING
+ };
+ 
+ 
+@@ -119,15 +119,15 @@
+ {
+     static const bool smp = Traits<System>::multicore;
+ 
+-    typedef Scheduling_Criteria::GRR Criterion;
++    typedef Scheduling_Criteria::CFS<Thread> Criterion;
+     static const unsigned int QUANTUM = 100000; // us
+ 
+-    static const bool trace_idle = hysterically_debugged;
++    static const bool trace_idle = Traits<Debug>::info;
+ };
+ 
+ template<> struct Traits<Scheduler<Thread> >: public Traits<void>
+ {
+-    static const bool debugged = Traits<Thread>::trace_idle || hysterically_debugged;
++    static const bool debugged = Traits<Debug>::trace;
+ };
+ 
+ template<> struct Traits<Address_Space>: public Traits<void>
+Index: include/scheduler.h
+===================================================================
+--- include/scheduler.h	(revisão 3796)
++++ include/scheduler.h	(cópia de trabalho)
+@@ -29,6 +29,7 @@
+         static const bool timed = false;
+         static const bool dynamic = false;
+         static const bool preemptive = true;
++        static const bool partitioned = false;
+ 
+     public:
+         Priority(int p = NORMAL): _priority(p) {}
+@@ -54,6 +55,7 @@
+         static const bool timed = true;
+         static const bool dynamic = false;
+         static const bool preemptive = true;
++        static const bool partitioned = false;
+ 
+     public:
+         RR(int p = NORMAL): Priority(p) {}
+@@ -72,6 +74,7 @@
+         static const bool timed = false;
+         static const bool dynamic = false;
+         static const bool preemptive = false;
++        static const bool partitioned = false;
+ 
+     public:
+         FCFS(int p = NORMAL); // Defined at Alarm
+@@ -88,6 +91,69 @@
+ 
+         static unsigned int current_head() { return Machine::cpu_id(); }
+     };
++
++    // Partitioned Round-Robin
++    // The typename T must have a class method choose_queue() to
++    // designate the queue id for new criterion objects
++    template<typename T>
++    class PRR: public RR
++    {
++    public:
++        static const unsigned int QUEUES = Traits<Machine>::CPUS;
++        static const bool partitioned = true;
++
++    public:
++        PRR(int p = NORMAL): RR(p) {
++            if (_priority == IDLE || _priority == MAIN)
++                _queue = Machine::cpu_id();
++            else
++                _queue = T::choose_queue();
++        }
++
++        static unsigned int current_queue() { return Machine::cpu_id(); }
++        unsigned int queue() const { return _queue; }
++
++    protected:
++        unsigned int _queue;
++    };
++
++    // Completely Fair Scheduler
++    // The typename T must have a class method choose_queue() to
++    // designate the queue id for new criterion objects
++    template<typename T>
++    class CFS: public RR
++    {
++    public:
++        enum {
++            IDLE   = (unsigned(1) << (sizeof(int) * 8 - 1)) - 1,
++            MAIN   = IDLE / 2 - 1,
++            HIGH   = IDLE / 2,
++            NORMAL = IDLE / 2,
++            LOW    = IDLE / 2
++        };
++
++        static const unsigned int QUEUES = Traits<Machine>::CPUS;
++        static const bool partitioned = true;
++
++        static unsigned int current_queue() { return Machine::cpu_id(); }
++        unsigned int queue() const { return _queue; }
++
++    public:
++        CFS(int p = NORMAL): RR(p), _changes(0) {
++            if (_priority == IDLE || _priority == MAIN)
++                _queue = Machine::cpu_id();
++            else
++                _queue = T::choose_queue();
++        }
++
++        CFS(int p, unsigned int target_queue): RR(p), _changes(0) {
++            _queue = target_queue;
++        }
++
++    protected:
++        unsigned int _queue;
++        unsigned int _changes;
++    };
+ }
+ 
+ 
+@@ -99,6 +165,14 @@
+ class Scheduling_Queue<T, Scheduling_Criteria::GRR>:
+ public Multihead_Scheduling_List<T> {};
+ 
++template<typename T>
++class Scheduling_Queue<T, Scheduling_Criteria::PRR<T>>:
++public Scheduling_Multilist<T> {};
++
++template<typename T>
++class Scheduling_Queue<T, Scheduling_Criteria::CFS<T>>:
++public Scheduling_Multilist<T> {};
++
+ // Scheduler
+ // Objects subject to scheduling by Scheduler must declare a type "Criterion"
+ // that will be used as the scheduling queue sorting criterion (viz, through
+Index: include/system/config.h
+===================================================================
+--- include/system/config.h	(revisão 3796)
++++ include/system/config.h	(cópia de trabalho)
+@@ -7,15 +7,15 @@
+ // ARCHITECTURE, MACHINE, AND APPLICATION SELECTION
+ // This section is generated automatically from makedefs by $EPOS/etc/makefile
+ //============================================================================
+-#define MODE xxx
+-#define ARCH xxx
+-#define MACH xxx
+-#define MMOD xxx
+-#define APPL xxx
+-#define __mode_xxx__
+-#define __arch_xxx__
+-#define __mach_xxx__
+-#define __mmod_xxx__
++#define MODE library
++#define ARCH ia32
++#define MACH pc
++#define MMOD legacy
++#define APPL parallel_philosophers_dinner
++#define __mode_library__
++#define __arch_ia32__
++#define __mach_pc__
++#define __mmod_legacy__
+ 
+ #if defined (__arch_avr__) || defined (__mmod_lm3s811__)
+ #define __no_networking__
+Index: include/system/traits.h
+===================================================================
+--- include/system/traits.h	(revisão 3796)
++++ include/system/traits.h	(cópia de trabalho)
+@@ -16,7 +16,7 @@
+ 
+ template<> struct Traits<Build>
+ {
+-    enum {LIBRARY};
++    enum {LIBRARY, BUILTIN, KERNEL};
+     static const unsigned int MODE = LIBRARY;
+ 
+     enum {IA32};
+@@ -28,7 +28,7 @@
+     enum {Legacy};
+     static const unsigned int MODEL = Legacy;
+ 
+-    static const unsigned int CPUS = 1;
++    static const unsigned int CPUS = 4;
+     static const unsigned int NODES = 1; // > 1 => NETWORKING
+ };
+ 
+@@ -112,7 +112,7 @@
+     static const bool reboot = true;
+ 
+     static const unsigned int STACK_SIZE = Traits<Machine>::STACK_SIZE;
+-    static const unsigned int HEAP_SIZE = (Traits<Application>::MAX_THREADS + 1) * Traits<Application>::STACK_SIZE;
++    static const unsigned int HEAP_SIZE = (Traits<Application>::MAX_THREADS + Traits<Build>::CPUS) * Traits<Application>::STACK_SIZE;
+ };
+ 
+ template<> struct Traits<Thread>: public Traits<void>
+@@ -119,15 +119,15 @@
+ {
+     static const bool smp = Traits<System>::multicore;
+ 
+-    typedef Scheduling_Criteria::RR Criterion;
+-    static const unsigned int QUANTUM = 10000; // us
++    typedef Scheduling_Criteria::CFS<Thread> Criterion;
++    static const unsigned int QUANTUM = 100000; // us
+ 
+-    static const bool trace_idle = hysterically_debugged;
++    static const bool trace_idle = Traits<Debug>::info;
+ };
+ 
+ template<> struct Traits<Scheduler<Thread> >: public Traits<void>
+ {
+-    static const bool debugged = Traits<Thread>::trace_idle || hysterically_debugged;
++    static const bool debugged = Traits<Debug>::trace;
+ };
+ 
+ template<> struct Traits<Address_Space>: public Traits<void>
+Index: include/system/types.h
+===================================================================
+--- include/system/types.h	(revisão 3796)
++++ include/system/types.h	(cópia de trabalho)
+@@ -91,6 +91,10 @@
+     class FCFS;
+     class RR;
+     class GRR;
++    template<typename>
++    class PRR;
++    template<typename>
++    class CFS;
+ };
+ 
+ class Address_Space;
+Index: include/thread.h
+===================================================================
+--- include/thread.h	(revisão 3796)
++++ include/thread.h	(cópia de trabalho)
+@@ -26,7 +26,9 @@
+ protected:
+     static const bool smp = Traits<Thread>::smp;
+     static const bool preemptive = Traits<Thread>::Criterion::preemptive;
++    static const bool partitioned = Traits<Thread>::Criterion::partitioned;
+     static const bool reboot = Traits<System>::reboot;
++    static const unsigned int ATTEMPTS_BEFORE_MIGRATE = 15;
+ 
+     static const unsigned int QUANTUM = Traits<Thread>::QUANTUM;
+     static const unsigned int STACK_SIZE = Traits<Application>::STACK_SIZE;
+@@ -70,6 +72,105 @@
+     // Thread Queue
+     typedef Ordered_Queue<Thread, Criterion, Scheduler<Thread>::Element> Queue;
+ 
++    class Stats {
++    public:
++        typedef TSC::Time_Stamp Time_Stamp;
++        typedef RTC::Microsecond Microsecond;
++
++        enum State {
++            RUNNING, WAITING
++        };
++
++    public:
++        Stats() : _last_deactivation(now()),
++                  _last_activation(0),
++                  _total_running_time{0},
++                  _waiting_mean(0),
++                  _running_mean(0),
++                  _state(WAITING),
++                  _activations(0) {}
++
++        static Microsecond now() {
++            return IA32_TSC::time_stamp() * 1000000 / CPU::clock();
++        }
++
++        void first_init() {
++            _last_deactivation = now();
++            _last_activation = _last_deactivation;
++            _state = RUNNING;
++        }
++
++        void waiting() {
++            assert(_state == RUNNING);
++            _state = WAITING;
++            _last_deactivation = now();
++            _running_mean = (_running_mean + running_time()) / 2;
++            _total_running_time[Machine::cpu_id()] += _last_deactivation - _last_activation;
++        }
++
++        void running() {
++            assert(_state == WAITING);
++            _state = RUNNING;
++            _last_activation = now();
++            _waiting_mean = (_waiting_mean + waiting_time()) / 2;
++            _activations++;
++        }
++
++        static Microsecond ideal_waiting_time() {
++            if (Thread::count() == 0)
++                return 0;
++
++            float run_proportion = Machine::n_cpus() / Thread::count();
++            float wait_proportion = 1 - run_proportion;
++
++            return wait_proportion * QUANTUM;
++
++            // 2 cpus
++            // 4 threads
++            // quantum de 1000 ms
++            // 2 / 4 = 1/2 do tempo de execução
++            // 1 - (1/2) = 1/2
++            //
++        }
++
++        unsigned int activations() { return _activations; }
++
++        void reset_activations() { _activations = 0; }
++
++        Microsecond waiting_mean() const { return _waiting_mean; }
++
++        Microsecond running_mean() const { return _running_mean; }
++
++        Microsecond waiting_time() const {
++            return _last_activation - _last_deactivation;
++        }
++
++        Microsecond running_time() const {
++            return now() - _last_activation;
++        }
++
++        Microsecond * total_running_time() {
++            return _total_running_time;
++        }
++
++        Microsecond total_running_time_all() const {
++            Microsecond total_time = 0;
++            for (unsigned int i = 0; i < Traits<Build>::CPUS; i++) {
++                total_time += _total_running_time[i];
++            }
++            return total_time;
++        }
++
++    protected:
++        Microsecond _last_deactivation; // last time thread has left the CPU
++        Microsecond _last_activation;   // last time thread has obtained the CPU
++        Microsecond _total_running_time[Traits<Build>::CPUS];
++        Microsecond _waiting_mean;
++        Microsecond _running_mean;
++        State _state;
++        unsigned int _activations;
++    };
++
+ public:
+     template<typename ... Tn>
+     Thread(int (* entry)(Tn ...), Tn ... an);
+@@ -82,15 +183,28 @@
+     const volatile Priority & priority() const { return _link.rank(); }
+     void priority(const Priority & p);
+ 
++    Stats::Microsecond * total_running_time() { return _stats.total_running_time(); }
++    Stats::Microsecond total_running_time_all() const { return _stats.total_running_time_all(); }
++    static unsigned int less_used_cpu();
++    void update_priority();
++    void migrate();
++
+     int join();
+     void pass();
+     void suspend() { suspend(false); }
+     void resume();
+ 
++    static unsigned int count() { return _thread_count - Machine::n_cpus(); }
++
+     static Thread * volatile self() { return running(); }
+     static void yield();
+     static void exit(int status = 0);
+ 
++
++    static unsigned int choose_queue() {
++        return _scheduler.underloaded_queue();
++    }
++
+ protected:
+     void constructor_prolog(unsigned int stack_size);
+     void constructor_epilog(const Log_Addr & entry, unsigned int stack_size);
+@@ -101,6 +215,8 @@
+ 
+     Criterion & criterion() { return const_cast<Criterion &>(_link.rank()); }
+ 
++    unsigned int cpu_owner() { return _link.rank().queue(); }
++
+     static void lock(bool disable_int = true) {
+         if(disable_int)
+             CPU::int_disable();
+@@ -124,6 +240,7 @@
+     static void wakeup_all(Queue * q);
+ 
+     static void reschedule();
++    static void reschedule(unsigned int target_cpu);
+     static void time_slicer(const IC::Interrupt_Id & interrupt);
+ 
+     static void dispatch(Thread * prev, Thread * next, bool charge = true);
+@@ -140,11 +257,14 @@
+     Queue * _waiting;
+     Thread * volatile _joining;
+     Queue::Element _link;
++    Stats _stats;
+ 
+     static volatile unsigned int _thread_count;
+     static Scheduler_Timer * _timer;
+     static Scheduler<Thread> _scheduler;
+     static Spin _lock;
++
++    static Thread * _idles[Traits<Build>::CPUS];
+ };
+ 
+ 
+@@ -178,6 +298,7 @@
+ 
+ private:
+     Thread * _handler;
++
+ };
+ 
+ __END_SYS
+Index: include/utility/heap.h
+===================================================================
+--- include/utility/heap.h	(revisão 3796)
++++ include/utility/heap.h	(cópia de trabalho)
+@@ -19,7 +19,7 @@
+     using Grouping_List<char>::empty;
+     using Grouping_List<char>::size;
+ 
+-    Heap() {
++    Heap(): _int_enabled(false) {
+         db<Init, Heaps>(TRC) << "Heap() => " << this << endl;
+     }
+ 
+@@ -30,6 +30,7 @@
+     }
+ 
+     void * alloc(unsigned int bytes) {
++        enter();
+         db<Heaps>(TRC) << "Heap::alloc(this=" << this << ",bytes=" << bytes;
+ 
+         if(!bytes)
+@@ -59,10 +60,12 @@
+ 
+         db<Heaps>(TRC) << ") => " << reinterpret_cast<void *>(addr) << endl;
+ 
++        leave();
+         return addr;
+     }
+ 
+     void free(void * ptr, unsigned int bytes) {
++        enter();
+         db<Heaps>(TRC) << "Heap::free(this=" << this << ",ptr=" << ptr << ",bytes=" << bytes << ")" << endl;
+ 
+         if(ptr && (bytes >= sizeof(Element))) {
+@@ -70,6 +73,7 @@
+             Element * m1, * m2;
+             insert_merging(e, &m1, &m2);
+         }
++        leave();
+     }
+ 
+     static void typed_free(void * ptr) {
+@@ -85,8 +89,23 @@
+         heap->free(addr, bytes);
+     }
+ 
++protected:
++    void enter() {
++        _int_enabled = CPU::int_enabled();
++        CPU::int_disable();
++        _lock.acquire();
++    }
++
++    void leave() {
++        _lock.release();
++        if(_int_enabled)
++            CPU::int_enable();
++    }
++
+ private:
+     void out_of_memory();
++    Spin _lock;
++    bool _int_enabled;
+ };
+ 
+ __END_UTIL
+Index: include/utility/list.h
+===================================================================
+--- include/utility/list.h	(revisão 3796)
++++ include/utility/list.h	(cópia de trabalho)
+@@ -1242,6 +1242,19 @@
+         return _list[e->rank().queue()].choose(e);
+     }
+ 
++    unsigned int underloaded_queue() {
++        unsigned int queue = 0;
++        unsigned int queue_size = _list[queue].size();
++
++        for(unsigned int i = 1; i < Q; i++)
++            if (_list[i].size() < queue_size) {
++                queue = i;
++                queue_size = _list[i].size();
++            }
++
++        return queue;
++    }
++
+ private:
+     L _list[Q];
+ };
+Index: src/abstraction/thread.cc
+===================================================================
+--- src/abstraction/thread.cc	(revisão 3796)
++++ src/abstraction/thread.cc	(cópia de trabalho)
+@@ -17,6 +17,7 @@
+ Scheduler_Timer * Thread::_timer;
+ Scheduler<Thread> Thread::_scheduler;
+ Spin Thread::_lock;
++Thread * Thread::_idles[];
+ 
+ // Methods
+ void Thread::constructor_prolog(unsigned int stack_size)
+@@ -25,7 +26,9 @@
+ 
+     _thread_count++;
+     _scheduler.insert(this);
+-
++    if (_link.rank() == IDLE){
++    	_idles[Machine::cpu_id()] = this;
++    }
+     _stack = new (SYSTEM) char[stack_size];
+ }
+ 
+@@ -32,7 +35,8 @@
+ 
+ void Thread::constructor_epilog(const Log_Addr & entry, unsigned int stack_size)
+ {
+-    db<Thread>(TRC) << "Thread(entry=" << entry
++    db<Thread>(TRC) << "Thread(target_cpu=" << cpu_owner()
++                    << ",entry=" << entry
+                     << ",state=" << _state
+                     << ",priority=" << _link.rank()
+                     << ",stack={b=" << reinterpret_cast<void *>(_stack)
+@@ -44,7 +48,7 @@
+         _scheduler.suspend(this);
+ 
+     if(preemptive && (_state == READY) && (_link.rank() != IDLE))
+-        reschedule();
++        reschedule(cpu_owner());
+     else
+         if((_state == RUNNING) || (_link.rank() != IDLE)) // Keep interrupts disabled during init_first()
+             unlock(false);
+@@ -103,7 +107,7 @@
+ {
+     lock();
+ 
+-    db<Thread>(TRC) << "Thread::priority(this=" << this << ",prio=" << c << ")" << endl;
++    unsigned int prev_owner = cpu_owner();
+ 
+     _link.rank(Criterion(c));
+ 
+@@ -112,8 +116,16 @@
+         _scheduler.insert(this);
+     }
+ 
++    db<Thread>(TRC) << "Thread::priority(this=" << this
++        << ",target_cpu=" << cpu_owner() << ")"
++        << ",prio=" << c << ")" << endl;
++
+     if(preemptive) {
+-        reschedule();
++        reschedule(prev_owner); // implicit unlock()
++        if (prev_owner != cpu_owner()) {
++            lock();
++            reschedule(cpu_owner());
++        }
+     }
+ }
+ 
+@@ -187,7 +199,7 @@
+         _scheduler.resume(this);
+ 
+         if(preemptive)
+-            reschedule();
++            reschedule(cpu_owner());
+     } else {
+         db<Thread>(WRN) << "Resume called for unsuspended object!" << endl;
+ 
+@@ -264,7 +276,7 @@
+         _scheduler.resume(t);
+ 
+         if(preemptive)
+-            reschedule();
++            reschedule(t->cpu_owner());
+     } else
+         unlock();
+ }
+@@ -285,7 +297,7 @@
+             _scheduler.resume(t);
+ 
+             if(preemptive) {
+-                reschedule();
++                reschedule(t->cpu_owner());
+                 lock();
+             }
+          }
+@@ -308,6 +320,17 @@
+ }
+ 
+ 
++void Thread::reschedule(unsigned int target_cpu) {
++    db<Thread>(TRC) << "Thread::reschedule(target_cpu=" << target_cpu << ")" << endl;
++
++    if (target_cpu != Machine::cpu_id()) {
++        IC::ipi_send(target_cpu, IC::INT_RESCHEDULER);
++        unlock(); // Since reschedule() also has an implicit unlock() ...
++    } else
++        reschedule();
++}
++
++
+ void Thread::time_slicer(const IC::Interrupt_Id & i)
+ {
+     lock();
+@@ -316,18 +339,92 @@
+ }
+ 
+ 
++void Thread::update_priority() {
++    if (link()->rank() == IDLE)
++        return;
++
++    int new_priority = NORMAL + Stats::ideal_waiting_time() - _stats.waiting_mean();
++
++    assert(new_priority < IDLE);
++    assert(new_priority > 0);
++
++    db<Thread>(TRC) << "Thread::update_priority[this=" << this
++        << ",old_priority=" << link()->rank()
++        << ",new_priority=" << new_priority
++        << "]" << endl;
++
++    link()->rank(Criterion(new_priority, cpu_owner()));
++}
++
++
++unsigned int Thread::less_used_cpu() {
++    unsigned int cpu = 0;
++    Stats::Microsecond max_mean = 0;
++
++    db<Thread>(TRC) << "Thread::less_used_cpu()" << endl;
++
++    for (unsigned int i = 0; i < Traits<Build>::CPUS; i++) {
++        Stats::Microsecond mean = _idles[i]->_stats.running_mean();
++        db<Thread>(TRC) << "    idle[" << i << "] | running_mean = " << mean << endl;
++        if (mean >= max_mean) {
++            cpu = i;
++            max_mean = mean;
++        }
++    }
++
++    db<Thread>(TRC) << "    less_used_cpu = [" << cpu << "] | running_mean = " << max_mean << endl;
++
++    return cpu;
++}
++
++
++void Thread::migrate() {
++    assert(link()->rank() != IDLE);
++
++    db<Thread>(TRC) << "Thread::migrate(this=" << this
++                    << ",prev_cpu=" << cpu_owner() << ")" << endl;
++
++    if (_state == READY)
++        _scheduler.remove(this);
++
++    link()->rank(Criterion(link()->rank(), less_used_cpu()));
++
++    if (_state == READY)
++        _scheduler.insert(this);
++
++    db<Thread>(TRC) << "Thread::migrate(this=" << this
++                    << ",target_cpu=" << this->cpu_owner() << ")" << endl;
++
++    _stats.reset_activations();
++}
++
++
+ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
+ {
+     if(charge) {
+-        if(Criterion::timed)
++        if(Criterion::timed) {
+             _timer->reset();
++        }
+     }
+ 
++    prev->_stats.waiting();
++    next->_stats.running();
++
++    prev->update_priority();
++
+     if(prev != next) {
+         if(prev->_state == RUNNING)
+             prev->_state = READY;
+         next->_state = RUNNING;
+ 
++        next->update_priority();
++
++        if (   prev->link()->rank() != IDLE
++            && prev->_stats.activations() >= ATTEMPTS_BEFORE_MIGRATE)
++        {
++            prev->migrate();
++        }
++
+         db<Thread>(TRC) << "Thread::dispatch(prev=" << prev << ",next=" << next << ")" << endl;
+         db<Thread>(INF) << "prev={" << prev << ",ctx=" << *prev->_context << "}" << endl;
+         db<Thread>(INF) << "next={" << next << ",ctx=" << *next->_context << "}" << endl;
+@@ -339,9 +436,10 @@
+                              // then unlocking must be moved into the mediator. For x86 and ARM it doesn't seam to be the case.
+ 
+         CPU::switch_context(&prev->_context, next->_context);
+-    } else
++    } else {
+         if(smp)
+             _lock.release();
++    }
+ 
+     CPU::int_enable();
+ }
+@@ -356,7 +454,6 @@
+         CPU::int_enable();
+         CPU::halt();
+     }
+-
+     CPU::int_disable();
+     if(Machine::cpu_id() == 0) {
+         db<Thread>(WRN) << "The last thread has exited!" << endl;
+Index: src/abstraction/thread_init.cc
+===================================================================
+--- src/abstraction/thread_init.cc	(revisão 3796)
++++ src/abstraction/thread_init.cc	(cópia de trabalho)
+@@ -3,6 +3,7 @@
+ #include <system.h>
+ #include <thread.h>
+ #include <alarm.h>
++#include <ic.h>
+ 
+ __BEGIN_SYS
+ 
+@@ -16,6 +17,11 @@
+     // neither by IDLE (which has a lower priority)
+     if(Criterion::timed && (Machine::cpu_id() == 0))
+         _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
++
++    if(Criterion::partitioned && (Machine::cpu_id() == 0)) {
++        IC::int_vector(IC::INT_RESCHEDULER, time_slicer);
++        IC::enable(IC::INT_RESCHEDULER);
++    }
+ }
+ 
+ __END_SYS
+Index: src/init/init_first.cc
+===================================================================
+--- src/init/init_first.cc	(revisão 3796)
++++ src/init/init_first.cc	(cópia de trabalho)
+@@ -28,6 +28,8 @@
+ 
+         db<Init>(INF) << "Initializing the first thread: " << endl;
+ 
++        CPU::int_disable();
++
+         Thread * first;
+         if(Machine::cpu_id() == 0) {
+             // If EPOS is a library, then adjust the application entry point to __epos_app_entry,
+@@ -55,6 +57,8 @@
+         // available to user threads
+         Machine::smp_barrier();
+ 
++        first->_stats.first_init();
++
+         first->_context->load();
+     }
+ };

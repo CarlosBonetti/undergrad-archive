@@ -1,0 +1,594 @@
+diff --git a/p3/app/philosophers_dinner_log.cc b/p3/app/philosophers_dinner_log.cc
+new file mode 100644
+index 0000000..b16323d
+--- /dev/null
++++ b/p3/app/philosophers_dinner_log.cc
+@@ -0,0 +1,95 @@
++// EPOS Semaphore Abstraction Test Program
++
++#include <utility/ostream.h>
++#include <thread.h>
++#include <mutex.h>
++#include <semaphore.h>
++#include <alarm.h>
++#include <display.h>
++#include <machine.h>
++#include <string.h>
++
++using namespace EPOS;
++
++const int iterations = 5;
++
++Mutex table;
++
++Thread * phil[5];
++Semaphore * chopstick[5];
++
++OStream cout;
++
++int delay;
++
++int philosopher(int n, int l, int c)
++{
++    int first = (n < 4)? n : 0;
++    int second = (n < 4)? n + 1 : 4;
++
++    for(int i = iterations; i > 0; i--) {
++
++        table.lock();
++        cout << "<" << Machine::cpu_id() << ">:\tthinking\tphilo=" << n << endl;
++        table.unlock();
++
++        int a = 1, b = 1;
++        for ( a = 1 ; a <= 10000 ; a++ )
++            for ( b = 1 ; b <= 2000 ; b++ )
++            	delay= b/a;
++
++        chopstick[first]->p();    // get first chopstick
++        chopstick[second]->p();   // get second chopstick
++
++        table.lock();
++        cout << "<" << Machine::cpu_id() << ">:\teating\t\tphilo=" << n << endl;
++        table.unlock();
++
++        for ( a = 1 ; a <= 10000 ; a++ )
++            for ( b = 1 ; b <= 2000 ; b++ )
++            	delay= b/a;
++
++        chopstick[first]->v();    // release first chopstick
++        chopstick[second]->v();   // release second chopstick
++    }
++
++    table.lock();
++    cout << "<" << Machine::cpu_id() << ">:\tdone\t\tphilo=" << n << endl;
++    table.unlock();
++    return iterations;
++}
++
++
++int main()
++{
++    table.lock();
++    cout << "The Philosopher's Dinner:" << endl;
++    cout << "\nCPU\tSTATE\t\tPHILOSOPHER" << endl;
++    table.unlock();
++
++    for(int i = 0; i < 5; i++)
++        chopstick[i] = new Semaphore;
++
++    phil[0] = new Thread(&philosopher, 0, 5, 5);
++    phil[1] = new Thread(&philosopher, 1, 5, 20);
++    phil[2] = new Thread(&philosopher, 2, 5, 35);
++    phil[3] = new Thread(&philosopher, 3, 5, 50);
++    phil[4] = new Thread(&philosopher, 4, 5, 65);
++
++
++    for(int i = 0; i < 5; i++) {
++        int ret = phil[i]->join();
++        table.lock();
++        cout << "Philosopher " << i << " ate " << ret << " times " << endl;
++        table.unlock();
++    }
++
++    for(int i = 0; i < 5; i++)
++        delete chopstick[i];
++    for(int i = 0; i < 5; i++)
++        delete phil[i];
++
++    cout << "The end!" << endl;
++
++    return 0;
++}
+diff --git a/p3/bin/eposmkbi b/p3/bin/eposmkbi
+new file mode 100755
+index 0000000..ef23832
+Binary files /dev/null and b/p3/bin/eposmkbi differ
+diff --git a/p3/include/scheduler.h b/p3/include/scheduler.h
+index 2a2d9e4..c9071c9 100644
+--- a/p3/include/scheduler.h
++++ b/p3/include/scheduler.h
+@@ -41,8 +41,21 @@ namespace Scheduling_Criteria
+         volatile int _priority;
+     };
+ 
++    // Multihead for Global Scheduling
++    class Multihead
++    {
++    public:
++        static const unsigned int HEADS = Traits<Build>::CPUS;
++        static unsigned int current_head() {
++            return Machine::cpu_id();
++        }
++    };
++
++    // Multilist for Partitioned Scheduling
++    // TODO: P4
++
+     // Round-Robin
+-    class RR: public Priority
++    class RR: public Priority, public Multihead
+     {
+     public:
+         enum {
+@@ -81,7 +94,7 @@ namespace Scheduling_Criteria
+ 
+ // Scheduling_Queue
+ template<typename T, typename R = typename T::Criterion>
+-class Scheduling_Queue: public Scheduling_List<T> {};
++class Scheduling_Queue: public Multihead_Scheduling_List<T> {};
+ 
+ // Scheduler
+ // Objects subject to scheduling by Scheduler must declare a type "Criterion"
+@@ -114,7 +127,9 @@ public:
+     }
+ 
+     void insert(T * obj) {
+-        db<Scheduler>(TRC) << "Scheduler[chosen=" << chosen() << "]::insert(" << obj << ")" << endl;
++        db<Scheduler>(TRC) << "Scheduler[chosen=" << chosen()
++            << ",schedulables= " << schedulables()
++            << "]::insert(" << obj << ")" << endl;
+ 
+         Base::insert(obj->link());
+     }
+@@ -158,7 +173,7 @@ public:
+     }
+ 
+     T * choose(T * obj) {
+-        db<Scheduler>(TRC) << "Scheduler[chosen=" << chosen() << "]::choose(" << obj;
++        db<Scheduler>(TRC) << "Scheduler[chosen=" << chosen() << "]::choose(" << obj << ") => ";
+ 
+         if(!Base::choose(obj->link()))
+             obj = 0;
+diff --git a/p3/include/system/config.h b/p3/include/system/config.h
+index 2bfcfc8..3b396f4 100644
+--- a/p3/include/system/config.h
++++ b/p3/include/system/config.h
+@@ -7,15 +7,15 @@
+ // ARCHITECTURE, MACHINE, AND APPLICATION SELECTION
+ // This section is generated automatically from makedefs by $EPOS/etc/makefile
+ //============================================================================
+-#define MODE xxx
+-#define ARCH xxx
+-#define MACH xxx
+-#define MMOD xxx
+-#define APPL xxx
+-#define __mode_xxx__
+-#define __arch_xxx__
+-#define __mach_xxx__
+-#define __mmod_xxx__
++#define MODE library
++#define ARCH ia32
++#define MACH pc
++#define MMOD legacy
++#define APPL multicore_test
++#define __mode_library__
++#define __arch_ia32__
++#define __mach_pc__
++#define __mmod_legacy__
+ 
+ #if defined (__arch_avr__) || defined (__mmod_lm3s811__)
+ #define __no_networking__
+@@ -71,8 +71,8 @@ namespace EPOS {
+ //============================================================================
+ // ASSERT (for pre and post conditions)
+ //============================================================================
+-//#define assert(expr)    ((expr) ? static_cast<void>(0) : Assert::fail (#expr, __FILE__, __LINE__, __PRETTY_FUNCTION__))
+-#define assert(expr)    (static_cast<void>(0))
++#define assert(expr)    ((expr) ? static_cast<void>(0) : Assert::fail (#expr, __FILE__, __LINE__, __PRETTY_FUNCTION__))
++//#define assert(expr)    (static_cast<void>(0))
+ 
+ //============================================================================
+ // CONFIGURATION
+diff --git a/p3/include/system/traits.h b/p3/include/system/traits.h
+index 3dbf1dc..11384cb 100644
+--- a/p3/include/system/traits.h
++++ b/p3/include/system/traits.h
+@@ -28,7 +28,7 @@ template<> struct Traits<Build>
+     enum {Legacy};
+     static const unsigned int MODEL = Legacy;
+ 
+-    static const unsigned int CPUS = 1;
++    static const unsigned int CPUS = 8;
+     static const unsigned int NODES = 1; // > 1 => NETWORKING
+ };
+ 
+@@ -127,7 +127,7 @@ template<> struct Traits<Thread>: public Traits<void>
+ 
+ template<> struct Traits<Scheduler<Thread> >: public Traits<void>
+ {
+-    static const bool debugged = Traits<Thread>::trace_idle || hysterically_debugged;
++    static const bool debugged = true;
+ };
+ 
+ template<> struct Traits<Address_Space>: public Traits<void>
+diff --git a/p3/include/thread.h b/p3/include/thread.h
+index 03db6a1..2c6995d 100644
+--- a/p3/include/thread.h
++++ b/p3/include/thread.h
+@@ -101,8 +101,16 @@ protected:
+ 
+     Criterion & criterion() { return const_cast<Criterion &>(_link.rank()); }
+ 
+-    static void lock() { CPU::int_disable(); }
+-    static void unlock() { CPU::int_enable(); }
++    static void lock() {
++        CPU::int_disable();
++        _lock.acquire();
++    }
++
++    static void unlock() {
++        _lock.release();
++        CPU::int_enable();
++    }
++
+     static bool locked() { return CPU::int_disabled(); }
+ 
+     void suspend(bool locked);
+@@ -119,7 +127,9 @@ protected:
+     static int idle();
+ 
+ private:
++    static Spin _lock;
+     static void init();
++    static volatile unsigned int _cpus_ready;
+ 
+ protected:
+     char * _stack;
+diff --git a/p3/include/utility/heap.h b/p3/include/utility/heap.h
+index 8adb789..f1c8e44 100644
+--- a/p3/include/utility/heap.h
++++ b/p3/include/utility/heap.h
+@@ -143,17 +143,25 @@ public:
+ 
+ private:
+     void enter() {
+-        _lock.acquire();
++        // Save whether interruptions are already disabled or not
++        // If interruptions are already disabled, we do not enable it on leave() since
++        // the caller is already managing interruptions
++        _lock_enable_interruption = CPU::int_enabled();
++
+         CPU::int_disable();
++        _lock.acquire();
+     }
+ 
+     void leave() {
+         _lock.release();
+-        CPU::int_enable();
++
++        if (_lock_enable_interruption)
++            CPU::int_enable();
+     }
+ 
+ private:
+     Spin _lock;
++    bool _lock_enable_interruption;
+ };
+ 
+ 
+diff --git a/p3/include/utility/queue.h b/p3/include/utility/queue.h
+index f7104cf..4430bac 100644
+--- a/p3/include/utility/queue.h
++++ b/p3/include/utility/queue.h
+@@ -179,7 +179,7 @@ private:
+ 
+     void leave() {
+         _lock.release();
+-        CPU::int_disable();
++        CPU::int_enable();
+     }
+ 
+ private:
+diff --git a/p3/include/utility/spin.h b/p3/include/utility/spin.h
+index b278884..fff2ca8 100644
+--- a/p3/include/utility/spin.h
++++ b/p3/include/utility/spin.h
+@@ -27,6 +27,11 @@ public:
+     void acquire() {
+         int me = This_Thread::id();
+ 
++        db<Spin>(TRC) << "try Spin::acquire[SPIN=" << this
++                              << ",ID=" << me
++                              << "]() => {owner=" << _owner
++                              << ",level=" << _level << "}" << endl;
++
+         while(CPU::cas(_owner, 0, me) != me);
+         _level++;
+ 
+diff --git a/p3/lib/libarch_ia32.a b/p3/lib/libarch_ia32.a
+new file mode 100644
+index 0000000..3de5513
+Binary files /dev/null and b/p3/lib/libarch_ia32.a differ
+diff --git a/p3/lib/libinit_ia32.a b/p3/lib/libinit_ia32.a
+new file mode 100644
+index 0000000..de92d0e
+Binary files /dev/null and b/p3/lib/libinit_ia32.a differ
+diff --git a/p3/lib/libmach_ia32.a b/p3/lib/libmach_ia32.a
+new file mode 100644
+index 0000000..6404a8f
+Binary files /dev/null and b/p3/lib/libmach_ia32.a differ
+diff --git a/p3/lib/libsys_ia32.a b/p3/lib/libsys_ia32.a
+new file mode 100644
+index 0000000..d8c916f
+Binary files /dev/null and b/p3/lib/libsys_ia32.a differ
+diff --git a/p3/lib/libutil_ia32.a b/p3/lib/libutil_ia32.a
+new file mode 100644
+index 0000000..b881a4d
+Binary files /dev/null and b/p3/lib/libutil_ia32.a differ
+diff --git a/p3/src/abstraction/semaphore_test.cc b/p3/src/abstraction/semaphore_test.cc
+index 2d20a06..447fe75 100644
+--- a/p3/src/abstraction/semaphore_test.cc
++++ b/p3/src/abstraction/semaphore_test.cc
+@@ -6,10 +6,11 @@
+ #include <semaphore.h>
+ #include <alarm.h>
+ #include <display.h>
++#include <machine.h>
+ 
+ using namespace EPOS;
+ 
+-const int iterations = 10;
++const int iterations = 5;
+ 
+ Mutex table;
+ 
+@@ -17,6 +18,7 @@ Thread * phil[5];
+ Semaphore * chopstick[5];
+ 
+ OStream cout;
++int delay;
+ 
+ int philosopher(int n, int l, int c)
+ {
+@@ -27,20 +29,24 @@ int philosopher(int n, int l, int c)
+ 
+         table.lock();
+         Display::position(l, c);
+-        cout << "thinking";
++        cout << Machine::cpu_id() << " thinking " ;
+         table.unlock();
+ 
+-        Delay thinking(2000000);
++        for ( int a = 1 ; a <= 10000 ; a++ )
++            for ( int b = 1 ; b <= 2000 ; b++ )
++            	delay= b/a;
+ 
+         chopstick[first]->p();    // get first chopstick
+         chopstick[second]->p();   // get second chopstick
+ 
+         table.lock();
+         Display::position(l, c);
+-        cout << " eating ";
++        cout << Machine::cpu_id() << "  eating  ";
+         table.unlock();
+ 
+-        Delay eating(1000000);
++        for ( int a = 1 ; a <= 10000 ; a++ )
++            for ( int b = 1 ; b <= 2000 ; b++ )
++            	delay= b/a;
+ 
+         chopstick[first]->v();    // release first chopstick
+         chopstick[second]->v();   // release second chopstick
+@@ -48,7 +54,7 @@ int philosopher(int n, int l, int c)
+ 
+     table.lock();
+     Display::position(l, c);
+-    cout << "  done  ";
++    cout << Machine::cpu_id() << "  done   ";
+     table.unlock();
+ 
+     return iterations;
+diff --git a/p3/src/abstraction/thread.cc b/p3/src/abstraction/thread.cc
+index c45b154..0e69dd6 100644
+--- a/p3/src/abstraction/thread.cc
++++ b/p3/src/abstraction/thread.cc
+@@ -16,12 +16,17 @@ __BEGIN_SYS
+ volatile unsigned int Thread::_thread_count;
+ Scheduler_Timer * Thread::_timer;
+ Scheduler<Thread> Thread::_scheduler;
++Spin Thread::_lock;
++
++volatile unsigned int Thread::_cpus_ready = 0;
+ 
+ // Methods
+ void Thread::constructor_prolog(unsigned int stack_size)
+ {
+     lock();
+ 
++    db<Thread>(TRC) << "Thread::constructor_prolog(this=" << this << ")" << endl;
++
+     _thread_count++;
+     _scheduler.insert(this);
+ 
+@@ -86,6 +91,8 @@ Thread::~Thread()
+         break;
+     }
+ 
++    db<Thread>(TRC) << "~Thread(after)[thread_count=" << _thread_count << "]" << endl;
++
+     if(_joining)
+         _joining->resume();
+ 
+@@ -306,9 +313,13 @@ void Thread::reschedule()
+ 
+ void Thread::time_slicer(const IC::Interrupt_Id & i)
+ {
+-    lock();
+-
+-    reschedule();
++    if (Thread::_cpus_ready != Machine::n_cpus()) {
++        db<Scheduler<Thread>>(TRC) << "Thread::time_slicer() => Threads still booting... stopping reschedule" << endl;
++    } else {
++        lock();
++        db<Scheduler<Thread>>(TRC) << "Thread::time_slicer()" << endl;
++        reschedule();
++    }
+ }
+ 
+ 
+@@ -319,32 +330,55 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
+             _timer->reset();
+     }
+ 
++    if (prev->priority() == IDLE && next->priority() == IDLE) {
++        db<Thread>(TRC) << "Thread::dispatch IDLE BY IDLE(prev=" << prev << ",next=" << next << ")" << endl;
++        next = _scheduler.choose(prev);
++    }
++
+     if(prev != next) {
+         if(prev->_state == RUNNING)
+             prev->_state = READY;
+         next->_state = RUNNING;
+ 
+-        db<Thread>(TRC) << "Thread::dispatch(prev=" << prev << ",next=" << next << ")" << endl;
++        db<Thread>(TRC) << "Thread::dispatch(prev=" << prev << ",next=" << next << ", chosen=" << _scheduler.chosen() << ")" << endl;
+         db<Thread>(INF) << "prev={" << prev << ",ctx=" << *prev->_context << "}" << endl;
+         db<Thread>(INF) << "next={" << next << ",ctx=" << *next->_context << "}" << endl;
+ 
++        // Release the spin lock here before switching context, otherwise
++        // a deadlock may occur (owner values are different for different threads, see This_Thread::id())
++        // We do not need to enable interruptions here since the 'iret' - interruption return - assembly
++        // instruction (inside CPU::switch_context) already does the job by changing FLAGS (IF - interrupt flag)
++        _lock.release();
++
+         CPU::switch_context(&prev->_context, next->_context);
++    } else {
++        // _lock.release() must be called just once! Otherwise _level will be
++        // incorrect (spin is released just when _level is 0)
++        unlock();
+     }
+-
+-    unlock();
+ }
+ 
+ 
+ int Thread::idle()
+ {
+     while(_thread_count > Machine::n_cpus()) { // someone else besides idles
+-        if(Traits<Thread>::trace_idle)
+-            db<Thread>(TRC) << "Thread::idle(CPU=" << Machine::cpu_id() << ",this=" << running() << ")" << endl;
++        //if(Traits<Thread>::trace_idle)
++            db<Thread>(TRC) << "Thread::idle(CPU="
++                << Machine::cpu_id()
++            << ",this=" << running()
++            << ",thread_count=" << _thread_count
++            << ")" << endl;
+ 
+         CPU::int_enable();
+         CPU::halt();
+     }
+ 
++    db<Thread>(TRC) << "Thread::idle[out of loop](CPU="
++                    << Machine::cpu_id()
++                << ",this=" << running()
++                << ",thread_count=" << _thread_count
++                << ")" << endl;
++
+     CPU::int_disable();
+     if(Machine::cpu_id() == 0) {
+         db<Thread>(WRN) << "The last thread has exited!" << endl;
+diff --git a/p3/src/abstraction/thread_init.cc b/p3/src/abstraction/thread_init.cc
+index ba357bb..a0fab89 100644
+--- a/p3/src/abstraction/thread_init.cc
++++ b/p3/src/abstraction/thread_init.cc
+@@ -4,6 +4,8 @@
+ #include <thread.h>
+ #include <alarm.h>
+ 
++#include <scheduler.h>
++
+ __BEGIN_SYS
+ 
+ void Thread::init()
+@@ -14,8 +16,17 @@ void Thread::init()
+     // Letting reschedule() happen during thread creation is harmless, since
+     // MAIN is created first and dispatch won't replace it nor by itself
+     // neither by IDLE (which has a lower priority)
+-    if(Criterion::timed && (Machine::cpu_id() == 0))
++    if(Criterion::timed && (Machine::cpu_id() == 0)) {
++        db<Thread>(TRC) << "Thread::init() -> Initializing Scheduler_Timer" << endl;
++
++        db<Thread>(TRC) << "Scheduler::chosen() => " << Thread::_scheduler.chosen()
++                        << " current_head => " << Scheduler<Thread>::Criterion::current_head()
++                        << " " << Thread::_scheduler.size()
++                        << endl;
++
+         _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
++        //_timer->disable();
++    }
+ }
+ 
+ __END_SYS
+diff --git a/p3/src/init/init_first.cc b/p3/src/init/init_first.cc
+index 2250f7d..aa0fa4b 100644
+--- a/p3/src/init/init_first.cc
++++ b/p3/src/init/init_first.cc
+@@ -38,7 +38,7 @@ public:
+             // Idle thread creation must succeed main, thus avoiding implicit rescheduling.
+             new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
+         } else
+-            first = new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
++            first = new (SYSTEM) Thread(Thread::Configuration(Thread::RUNNING, Thread::IDLE), &Thread::idle);
+ 
+         Machine::smp_barrier();
+ 
+@@ -55,8 +55,13 @@ public:
+         // available to user threads
+         Machine::smp_barrier();
+ 
++        // Signalize as ready
++        CPU::finc(Thread::_cpus_ready);
++
++        db<Init, Thread>(INF) << CPU::int_enabled() << " first context load [cpus_ready=" << Thread::_cpus_ready << "]" << endl;
+         first->_context->load();
+     }
++
+ };
+ 
+ // Global object "init_first" must be constructed last in the context of the
+diff --git a/p3/src/init/init_system.cc b/p3/src/init/init_system.cc
+index 66397d6..55b43da 100644
+--- a/p3/src/init/init_system.cc
++++ b/p3/src/init/init_system.cc
+@@ -66,6 +66,8 @@ public:
+             db<Init>(INF) << "done!" << endl;
+         }
+ 
++        Machine::smp_barrier(); // signalizes "end of Init_System" to other CPUs
++
+         // Initialization continues at init_first
+     }
+ };
+diff --git a/p3/src/utility/ostream.cc b/p3/src/utility/ostream.cc
+index 41bb2f0..632e607 100644
+--- a/p3/src/utility/ostream.cc
++++ b/p3/src/utility/ostream.cc
+@@ -15,7 +15,7 @@ void OStream::preamble()
+ 
+     int me = Machine::cpu_id();
+     int last = CPU::cas(_lock, -1, me);
+-    for(int i = 0, owner = last; (i < 10) && (owner != me); i++, owner = CPU::cas(_lock, -1, me));
++    for(int i = 0, owner = last; (i < 100) && (owner != me); i++, owner = CPU::cas(_lock, -1, me));
+     if(last != me) {
+         tag[1] = '0' + Machine::cpu_id();
+         print(tag);

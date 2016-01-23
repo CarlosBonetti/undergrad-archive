@@ -1,0 +1,276 @@
+Index: include/synchronizer.h
+===================================================================
+--- include/synchronizer.h	(revision 3712)
++++ include/synchronizer.h	(working copy)
+@@ -10,8 +10,15 @@
+ 
+ class Synchronizer_Common
+ {
++private:
++    Thread::Queue _waiting;
++
+ protected:
+     Synchronizer_Common() {}
++    ~Synchronizer_Common() {
++        db<Synchronizer>(TRC) << "~Synchronizer_Common(this=" << this << ")" << endl;
++        wakeup_all();
++    }
+ 
+     // Atomic operations
+     bool tsl(volatile bool & lock) { return CPU::tsl(lock); }
+@@ -22,12 +29,20 @@
+     void begin_atomic() { Thread::lock(); }
+     void end_atomic() { Thread::unlock(); }
+ 
+-    void sleep() { Thread::yield(); } // implicit unlock()
+-    void wakeup() { end_atomic(); }
+-    void wakeup_all() { end_atomic(); }
++    void sleep()  { Thread::wait(&_waiting); } // implicit unlock();
++    void wakeup() {
++        if (!_waiting.empty()) {
++            _waiting.remove()->object()->wakeup();  // implicit unlock();
++        } else {
++            end_atomic();
++        }
++    }
++    void wakeup_all() {
++        while(!_waiting.empty())
++            wakeup(); // implicit unlock();
++    }
+ };
+ 
+ __END_SYS
+ 
+ #endif
+-
+Index: include/system/config.h
+===================================================================
+--- include/system/config.h	(revision 3712)
++++ include/system/config.h	(working copy)
+@@ -7,15 +7,15 @@
+ // ARCHITECTURE, MACHINE, AND APPLICATION SELECTION
+ // This section is generated automatically from makedefs by $EPOS/etc/makefile
+ //============================================================================
+-#define MODE xxx
+-#define ARCH xxx
+-#define MACH xxx
+-#define MMOD xxx
+-#define APPL xxx
+-#define __mode_xxx__
+-#define __arch_xxx__
+-#define __mach_xxx__
+-#define __mmod_xxx__
++#define MODE library
++#define ARCH ia32
++#define MACH pc
++#define MMOD legacy
++#define APPL producer_consumer
++#define __mode_library__
++#define __arch_ia32__
++#define __mach_pc__
++#define __mmod_legacy__
+ 
+ #if defined (__arch_avr__) || defined (__mmod_lm3s811__)
+ #define __no_networking__
+Index: include/thread.h
+===================================================================
+--- include/thread.h	(revision 3712)
++++ include/thread.h	(working copy)
+@@ -77,9 +77,11 @@
+     void pass();
+     void suspend();
+     void resume();
++    void wakeup();
+ 
+     static Thread * volatile self() { return running(); }
+     static void yield();
++    static void wait(Queue * waiting_queue);
+     static void exit(int status = 0);
+ 
+ protected:
+Index: src/abstraction/mutex.cc
+===================================================================
+--- src/abstraction/mutex.cc	(revision 3712)
++++ src/abstraction/mutex.cc	(working copy)
+@@ -21,11 +21,11 @@
+     db<Synchronizer>(TRC) << "Mutex::lock(this=" << this << ")" << endl;
+ 
+     begin_atomic();
+-    if(tsl(_locked))
+-        while(tsl(_locked))
+-            sleep(); // implicit end_atomic()
+-    else
+-        end_atomic();
++    while(tsl(_locked)) {
++        sleep(); // implicit end_atomic()
++        begin_atomic();
++    }
++    end_atomic();
+ }
+ 
+ 
+Index: src/abstraction/semaphore.cc
+===================================================================
+--- src/abstraction/semaphore.cc	(revision 3712)
++++ src/abstraction/semaphore.cc	(working copy)
+@@ -20,9 +20,12 @@
+ {
+     db<Synchronizer>(TRC) << "Semaphore::p(this=" << this << ",value=" << _value << ")" << endl;
+ 
++    begin_atomic();
+     fdec(_value);
+-    while(_value < 0)
+-        sleep();
++    if(_value < 0)
++        sleep(); // implicit end_atomic();
++    else
++        end_atomic();
+ }
+ 
+ 
+@@ -30,9 +33,12 @@
+ {
+     db<Synchronizer>(TRC) << "Semaphore::v(this=" << this << ",value=" << _value << ")" << endl;
+ 
++    begin_atomic();
+     finc(_value);
+     if(_value < 1)
+-        wakeup();
++        wakeup(); // implicit end_atomic();
++    else
++        end_atomic();
+ }
+ 
+ __END_SYS
+Index: src/abstraction/semaphore_test.cc
+===================================================================
+--- src/abstraction/semaphore_test.cc	(revision 3712)
++++ src/abstraction/semaphore_test.cc	(working copy)
+@@ -11,7 +11,7 @@
+ 
+ const int iterations = 10;
+ 
+-Mutex table;
++Semaphore table;
+ 
+ Thread * phil[5];
+ Semaphore * chopstick[5];
+@@ -25,10 +25,10 @@
+ 
+     for(int i = iterations; i > 0; i--) {
+ 
+-        table.lock();
++        table.p();
+         Display::position(l, c);
+         cout << "thinking";
+-        table.unlock();
++        table.v();
+ 
+         Delay thinking(2000000);
+ 
+@@ -35,10 +35,10 @@
+         chopstick[first]->p();   // get first chopstick
+         chopstick[second]->p();   // get second chopstick
+ 
+-        table.lock();
++        table.p();
+         Display::position(l, c);
+         cout << " eating ";
+-        table.unlock();
++        table.v();
+ 
+         Delay eating(1000000);
+ 
+@@ -46,10 +46,10 @@
+         chopstick[second]->v();   // release second chopstick
+     }
+ 
+-    table.lock();
++    table.p();
+     Display::position(l, c);
+     cout << "  done  ";
+-    table.unlock();
++    table.v();
+ 
+     return iterations;
+ }
+@@ -56,7 +56,7 @@
+ 
+ int main()
+ {
+-    table.lock();
++    table.p();
+     Display::clear();
+     Display::position(0, 0);
+     cout << "The Philosopher's Dinner:" << endl;
+@@ -85,14 +85,14 @@
+     Display::position(19, 0);
+ 
+     cout << "The dinner is served ..." << endl;
+-    table.unlock();
++    table.v();
+ 
+     for(int i = 0; i < 5; i++) {
+         int ret = phil[i]->join();
+-        table.lock();
++        table.p();
+         Display::position(20 + i, 0);
+         cout << "Philosopher " << i << " ate " << ret << " times " << endl;
+-        table.unlock();
++        table.v();
+     }
+ 
+     for(int i = 0; i < 5; i++)
+Index: src/abstraction/thread.cc
+===================================================================
+--- src/abstraction/thread.cc	(revision 3712)
++++ src/abstraction/thread.cc	(working copy)
+@@ -140,6 +140,19 @@
+ }
+ 
+ 
++void Thread::wakeup()
++{
++    lock();
++
++    db<Thread>(TRC) << "Thread::wakeup(this=" << this << ")" << endl;
++
++   _state = READY;
++   _ready.insert(&_link);
++
++   unlock();
++}
++
++
+ // Class methods
+ void Thread::yield()
+ {
+@@ -163,6 +176,28 @@
+ }
+ 
+ 
++void Thread::wait(Queue * waiting_queue)
++{
++    lock();
++
++    db<Thread>(TRC) << "Thread::wait(running=" << _running << ")" << endl;
++
++    if(!_ready.empty()) {
++        Thread * prev = _running;
++        prev->_state = WAITING;
++        waiting_queue->insert(&prev->_link);
++
++        _running = _ready.remove()->object();
++        _running->_state = RUNNING;
++
++        Thread::dispatch(prev, _running);
++    } else
++        Thread::idle();
++
++    unlock();
++}
++
++
+ void Thread::exit(int status)
+ {
+     lock();
