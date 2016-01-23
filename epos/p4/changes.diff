@@ -1,0 +1,384 @@
+Index: app/parallel_philosophers_dinner_traits.h
+===================================================================
+--- app/parallel_philosophers_dinner_traits.h	(revision 3789)
++++ app/parallel_philosophers_dinner_traits.h	(working copy)
+@@ -28,8 +28,8 @@
+     enum {Legacy};
+     static const unsigned int MODEL = Legacy;
+ 
+-    static const unsigned int CPUS = 8;
+-    static const unsigned int NODES = 1; // > 1 => NETWORKING    
++    static const unsigned int CPUS = 4;
++    static const unsigned int NODES = 1; // > 1 => NETWORKING
+ };
+ 
+ 
+@@ -39,7 +39,7 @@
+     static const bool error   = true;
+     static const bool warning = true;
+     static const bool info    = false;
+-    static const bool trace   = false;
++    static const bool trace   = true;
+ };
+ 
+ template<> struct Traits<Lists>: public Traits<void>
+@@ -119,10 +119,10 @@
+ {
+     static const bool smp = Traits<System>::multicore;
+ 
+-    typedef Scheduling_Criteria::GRR Criterion;
++    typedef Scheduling_Criteria::PRR<Thread> Criterion;
+     static const unsigned int QUANTUM = 100000; // us
+ 
+-    static const bool trace_idle = hysterically_debugged;
++    static const bool trace_idle = false;
+ };
+ 
+ template<> struct Traits<Scheduler<Thread> >: public Traits<void>
+Index: include/scheduler.h
+===================================================================
+--- include/scheduler.h	(revision 3789)
++++ include/scheduler.h	(working copy)
+@@ -29,6 +29,7 @@
+         static const bool timed = false;
+         static const bool dynamic = false;
+         static const bool preemptive = true;
++        static const bool partitioned = false;
+ 
+     public:
+         Priority(int p = NORMAL): _priority(p) {}
+@@ -54,6 +55,7 @@
+         static const bool timed = true;
+         static const bool dynamic = false;
+         static const bool preemptive = true;
++        static const bool partitioned = false;
+ 
+     public:
+         RR(int p = NORMAL): Priority(p) {}
+@@ -72,6 +74,7 @@
+         static const bool timed = false;
+         static const bool dynamic = false;
+         static const bool preemptive = false;
++        static const bool partitioned = false;
+ 
+     public:
+         FCFS(int p = NORMAL); // Defined at Alarm
+@@ -88,6 +91,31 @@
+ 
+         static unsigned int current_head() { return Machine::cpu_id(); }
+     };
++
++    // Partitioned Round-Robin
++    // The typename T must have a class method choose_queue() to
++    // designate the queue id for new criterion objects
++    template<typename T>
++    class PRR: public RR
++    {
++    public:
++        static const unsigned int QUEUES = Traits<Machine>::CPUS;
++        static const bool partitioned = true;
++
++    public:
++        PRR(int p = NORMAL): RR(p) {
++            if (_priority == IDLE || _priority == MAIN)
++                _queue = Machine::cpu_id();
++            else
++                _queue = T::choose_queue();
++        }
++
++        static unsigned int current_queue() { return Machine::cpu_id(); }
++        unsigned int queue() const { return _queue; }
++
++    private:
++        unsigned int _queue;
++    };
+ }
+ 
+ 
+@@ -99,6 +127,10 @@
+ class Scheduling_Queue<T, Scheduling_Criteria::GRR>:
+ public Multihead_Scheduling_List<T> {};
+ 
++template<typename T>
++class Scheduling_Queue<T, Scheduling_Criteria::PRR<T>>:
++public Scheduling_Multilist<T> {};
++
+ // Scheduler
+ // Objects subject to scheduling by Scheduler must declare a type "Criterion"
+ // that will be used as the scheduling queue sorting criterion (viz, through
+Index: include/system/config.h
+===================================================================
+--- include/system/config.h	(revision 3789)
++++ include/system/config.h	(working copy)
+@@ -7,15 +7,15 @@
+ // ARCHITECTURE, MACHINE, AND APPLICATION SELECTION
+ // This section is generated automatically from makedefs by $EPOS/etc/makefile
+ //============================================================================
+-#define MODE xxx
+-#define ARCH xxx
+-#define MACH xxx
+-#define MMOD xxx
+-#define APPL xxx
+-#define __mode_xxx__
+-#define __arch_xxx__
+-#define __mach_xxx__
+-#define __mmod_xxx__
++#define MODE library
++#define ARCH ia32
++#define MACH pc
++#define MMOD legacy
++#define APPL parallel_philosophers_dinner
++#define __mode_library__
++#define __arch_ia32__
++#define __mach_pc__
++#define __mmod_legacy__
+ 
+ #if defined (__arch_avr__) || defined (__mmod_lm3s811__)
+ #define __no_networking__
+Index: include/system/traits.h
+===================================================================
+--- include/system/traits.h	(revision 3789)
++++ include/system/traits.h	(working copy)
+@@ -16,7 +16,7 @@
+ 
+ template<> struct Traits<Build>
+ {
+-    enum {LIBRARY};
++    enum {LIBRARY, BUILTIN, KERNEL};
+     static const unsigned int MODE = LIBRARY;
+ 
+     enum {IA32};
+@@ -28,7 +28,7 @@
+     enum {Legacy};
+     static const unsigned int MODEL = Legacy;
+ 
+-    static const unsigned int CPUS = 1;
++    static const unsigned int CPUS = 4;
+     static const unsigned int NODES = 1; // > 1 => NETWORKING
+ };
+ 
+@@ -39,7 +39,7 @@
+     static const bool error   = true;
+     static const bool warning = true;
+     static const bool info    = false;
+-    static const bool trace   = false;
++    static const bool trace   = true;
+ };
+ 
+ template<> struct Traits<Lists>: public Traits<void>
+@@ -112,7 +112,7 @@
+     static const bool reboot = true;
+ 
+     static const unsigned int STACK_SIZE = Traits<Machine>::STACK_SIZE;
+-    static const unsigned int HEAP_SIZE = (Traits<Application>::MAX_THREADS + 1) * Traits<Application>::STACK_SIZE;
++    static const unsigned int HEAP_SIZE = (Traits<Application>::MAX_THREADS + Traits<Build>::CPUS) * Traits<Application>::STACK_SIZE;
+ };
+ 
+ template<> struct Traits<Thread>: public Traits<void>
+@@ -119,10 +119,10 @@
+ {
+     static const bool smp = Traits<System>::multicore;
+ 
+-    typedef Scheduling_Criteria::RR Criterion;
+-    static const unsigned int QUANTUM = 10000; // us
++    typedef Scheduling_Criteria::PRR<Thread> Criterion;
++    static const unsigned int QUANTUM = 100000; // us
+ 
+-    static const bool trace_idle = hysterically_debugged;
++    static const bool trace_idle = false;
+ };
+ 
+ template<> struct Traits<Scheduler<Thread> >: public Traits<void>
+Index: include/system/types.h
+===================================================================
+--- include/system/types.h	(revision 3789)
++++ include/system/types.h	(working copy)
+@@ -91,6 +91,8 @@
+     class FCFS;
+     class RR;
+     class GRR;
++    template<typename>
++    class PRR;
+ };
+ 
+ class Address_Space;
+Index: include/thread.h
+===================================================================
+--- include/thread.h	(revision 3789)
++++ include/thread.h	(working copy)
+@@ -26,6 +26,7 @@
+ protected:
+     static const bool smp = Traits<Thread>::smp;
+     static const bool preemptive = Traits<Thread>::Criterion::preemptive;
++    static const bool partitioned = Traits<Thread>::Criterion::partitioned;
+     static const bool reboot = Traits<System>::reboot;
+ 
+     static const unsigned int QUANTUM = Traits<Thread>::QUANTUM;
+@@ -91,6 +92,11 @@
+     static void yield();
+     static void exit(int status = 0);
+ 
++    static unsigned int choose_queue() {
++        assert(partitioned); // underloaded_queue() exists just for partitioned criterion
++        return _scheduler.underloaded_queue();
++    }
++
+ protected:
+     void constructor_prolog(unsigned int stack_size);
+     void constructor_epilog(const Log_Addr & entry, unsigned int stack_size);
+@@ -101,6 +107,8 @@
+ 
+     Criterion & criterion() { return const_cast<Criterion &>(_link.rank()); }
+ 
++    unsigned int cpu_owner() { return _link.rank().queue(); }
++
+     static void lock(bool disable_int = true) {
+         if(disable_int)
+             CPU::int_disable();
+@@ -124,6 +132,7 @@
+     static void wakeup_all(Queue * q);
+ 
+     static void reschedule();
++    static void reschedule(unsigned int target_cpu);
+     static void time_slicer(const IC::Interrupt_Id & interrupt);
+ 
+     static void dispatch(Thread * prev, Thread * next, bool charge = true);
+Index: include/utility/list.h
+===================================================================
+--- include/utility/list.h	(revision 3789)
++++ include/utility/list.h	(working copy)
+@@ -1242,6 +1242,19 @@
+         return _list[e->rank().queue()].choose(e);
+     }
+ 
++    unsigned int underloaded_queue() {
++        unsigned int queue = 0;
++        unsigned int queue_size = _list[queue].size();
++
++        for(unsigned int i = 1; i < Q; i++)
++            if (_list[i].size() < queue_size) {
++                queue = i;
++                queue_size = _list[i].size();
++            }
++
++        return queue;
++    }
++
+ private:
+     L _list[Q];
+ };
+Index: src/abstraction/thread.cc
+===================================================================
+--- src/abstraction/thread.cc	(revision 3789)
++++ src/abstraction/thread.cc	(working copy)
+@@ -32,7 +32,8 @@
+ 
+ void Thread::constructor_epilog(const Log_Addr & entry, unsigned int stack_size)
+ {
+-    db<Thread>(TRC) << "Thread(entry=" << entry
++    db<Thread>(TRC) << "Thread(target_cpu=" << cpu_owner()
++                    << ",entry=" << entry
+                     << ",state=" << _state
+                     << ",priority=" << _link.rank()
+                     << ",stack={b=" << reinterpret_cast<void *>(_stack)
+@@ -44,7 +45,7 @@
+         _scheduler.suspend(this);
+ 
+     if(preemptive && (_state == READY) && (_link.rank() != IDLE))
+-        reschedule();
++        reschedule(cpu_owner());
+     else
+         if((_state == RUNNING) || (_link.rank() != IDLE)) // Keep interrupts disabled during init_first()
+             unlock(false);
+@@ -105,6 +106,8 @@
+ 
+     db<Thread>(TRC) << "Thread::priority(this=" << this << ",prio=" << c << ")" << endl;
+ 
++    unsigned int prev_owner = cpu_owner();
++
+     _link.rank(Criterion(c));
+ 
+     if(_state != RUNNING) {
+@@ -113,7 +116,8 @@
+     }
+ 
+     if(preemptive) {
+-        reschedule();
++        reschedule(prev_owner); // implicit unlock()
++        reschedule(cpu_owner());
+     }
+ }
+ 
+@@ -264,7 +268,7 @@
+         _scheduler.resume(t);
+ 
+         if(preemptive)
+-            reschedule();
++            reschedule(t->cpu_owner());
+     } else
+         unlock();
+ }
+@@ -285,7 +289,7 @@
+             _scheduler.resume(t);
+ 
+             if(preemptive) {
+-                reschedule();
++                reschedule(t->cpu_owner());
+                 lock();
+             }
+          }
+@@ -308,6 +312,17 @@
+ }
+ 
+ 
++void Thread::reschedule(unsigned int target_cpu) {
++    db<Thread>(TRC) << "Thread::reschedule(target_cpu=" << target_cpu << ")" << endl;
++
++    if (target_cpu != Machine::cpu_id()) {
++        IC::ipi_send(target_cpu, IC::INT_RESCHEDULER);
++        unlock(); // Since reschedule() also has an implicit unlock() ...
++    } else
++        reschedule();
++}
++
++
+ void Thread::time_slicer(const IC::Interrupt_Id & i)
+ {
+     lock();
+Index: src/abstraction/thread_init.cc
+===================================================================
+--- src/abstraction/thread_init.cc	(revision 3789)
++++ src/abstraction/thread_init.cc	(working copy)
+@@ -3,6 +3,7 @@
+ #include <system.h>
+ #include <thread.h>
+ #include <alarm.h>
++#include <ic.h>
+ 
+ __BEGIN_SYS
+ 
+@@ -16,6 +17,11 @@
+     // neither by IDLE (which has a lower priority)
+     if(Criterion::timed && (Machine::cpu_id() == 0))
+         _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
++
++    if(Criterion::partitioned && (Machine::cpu_id() == 0)) {
++        IC::int_vector(IC::INT_RESCHEDULER, time_slicer);
++        IC::enable(IC::INT_RESCHEDULER);
++    }
+ }
+ 
+ __END_SYS
+Index: src/init/init_first.cc
+===================================================================
+--- src/init/init_first.cc	(revision 3789)
++++ src/init/init_first.cc	(working copy)
+@@ -28,6 +28,8 @@
+ 
+         db<Init>(INF) << "Initializing the first thread: " << endl;
+ 
++        CPU::int_disable();
++
+         Thread * first;
+         if(Machine::cpu_id() == 0) {
+             // If EPOS is a library, then adjust the application entry point to __epos_app_entry,

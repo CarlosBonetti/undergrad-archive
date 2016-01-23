@@ -1,0 +1,800 @@
+Index: include/scheduler.h
+===================================================================
+--- include/scheduler.h	(revision 3772)
++++ include/scheduler.h	(working copy)
+@@ -169,6 +169,96 @@
+     }
+ };
+ 
++// Multiple Scheduling_Queue
++template<typename T, unsigned int Size = Traits<Build>::CPUS, typename R = typename T::Criterion>
++class Multiple_Scheduling_Queue: public Multiple_Scheduling_List<T, Size> {};
++
++// Multiple Scheduler
++// Objects subject to scheduling by Scheduler must declare a type "Criterion"
++// that will be used as the scheduling queue sorting criterion (viz, through
++// operators <, >, and ==) and must also define a method "link" to export the
++// list element pointing to the object being handled.
++template<typename T, unsigned int Size = Traits<Build>::CPUS>
++class Multiple_Scheduler: public Multiple_Scheduling_Queue<T, Size>
++{
++private:
++    typedef Multiple_Scheduling_Queue<T, Size> Base;
++
++public:
++    typedef typename T::Criterion Criterion;
++    typedef Multiple_Scheduling_List<T, Size, Criterion> Queue;
++    typedef typename Queue::Element Element;
++
++public:
++    Multiple_Scheduler() {}
++
++    unsigned int schedulables() { return Base::size(); }
++
++    T * volatile chosen(unsigned int consumer_id = Machine::cpu_id()) {
++        // If called before insert(), chosen will dereference a null pointer!
++        // For threads, we this won't happen (see Thread::init()).
++        // But if you are unsure about your new use of the scheduler,
++        // please, pay the price of the extra "if" bellow.
++//      return const_cast<T * volatile>((Base::chosen()) ? Base::chosen()->object() : 0);
++        return const_cast<T * volatile>(Base::chosen(consumer_id)->object());
++    }
++
++    void insert(T * obj, unsigned int consumer_id = Machine::cpu_id()) {
++        db<Multiple_Scheduler>(TRC) << "Multiple_Scheduler[chosen=" << chosen(consumer_id) << "]::insert(" << obj << ")" << endl;
++
++        Base::insert(obj->link(), consumer_id);
++    }
++
++    T * remove(T * obj, unsigned int consumer_id = Machine::cpu_id()) {
++        db<Multiple_Scheduler>(TRC) << "Multiple_Scheduler[chosen=" << chosen(consumer_id) << "]::remove(" << obj << ")" << endl;
++
++        return Base::remove(obj->link(), consumer_id) ? obj : 0;
++    }
++
++    void suspend(T * obj, unsigned int consumer_id = Machine::cpu_id()) {
++        db<Multiple_Scheduler>(TRC) << "Multiple_Scheduler[chosen=" << chosen(consumer_id) << "]::suspend(" << obj << ")" << endl;
++
++        Base::remove(obj->link(), consumer_id);
++    }
++
++    void resume(T * obj, unsigned int consumer_id = Machine::cpu_id()) {
++        db<Multiple_Scheduler>(TRC) << "Multiple_Scheduler[chosen=" << chosen(consumer_id) << "]::resume(" << obj << ")" << endl;
++
++        Base::insert(obj->link(), consumer_id);
++    }
++
++    T * choose(unsigned int consumer_id = Machine::cpu_id()) {
++        db<Multiple_Scheduler>(TRC) << "Multiple_Scheduler[chosen=" << chosen(consumer_id) << "]::choose() => ";
++
++        T * obj = Base::choose(consumer_id)->object();
++
++        db<Multiple_Scheduler>(TRC) << obj << endl;
++
++        return obj;
++    }
++
++    T * choose_another(unsigned int consumer_id = Machine::cpu_id()) {
++        db<Multiple_Scheduler>(TRC) << "Multiple_Scheduler[chosen=" << chosen(consumer_id) << "]::choose_another() => ";
++
++        T * obj = Base::choose_another(consumer_id)->object();
++
++        db<Multiple_Scheduler>(TRC) << obj << endl;
++
++        return obj;
++    }
++
++    T * choose(T * obj, unsigned int consumer_id = Machine::cpu_id()) {
++        db<Multiple_Scheduler>(TRC) << "Multiple_Scheduler[chosen=" << chosen(consumer_id) << "]::choose(" << obj;
++
++        if(!Base::choose(obj->link(), consumer_id))
++            obj = 0;
++
++        db<Multiple_Scheduler>(TRC) << obj << endl;
++
++        return obj;
++    }
++};
++
+ __END_SYS
+ 
+ #endif
+Index: include/system/config.h
+===================================================================
+--- include/system/config.h	(revision 3772)
++++ include/system/config.h	(working copy)
+@@ -7,15 +7,15 @@
+ // ARCHITECTURE, MACHINE, AND APPLICATION SELECTION
+ // This section is generated automatically from makedefs by $EPOS/etc/makefile
+ //============================================================================
+-#define MODE xxx
+-#define ARCH xxx
+-#define MACH xxx
+-#define MMOD xxx
+-#define APPL xxx
+-#define __mode_xxx__
+-#define __arch_xxx__
+-#define __mach_xxx__
+-#define __mmod_xxx__
++#define MODE library
++#define ARCH ia32
++#define MACH pc
++#define MMOD legacy
++#define APPL multicore_test
++#define __mode_library__
++#define __arch_ia32__
++#define __mach_pc__
++#define __mmod_legacy__
+ 
+ #if defined (__arch_avr__) || defined (__mmod_lm3s811__)
+ #define __no_networking__
+@@ -71,8 +71,8 @@
+ //============================================================================
+ // ASSERT (for pre and post conditions)
+ //============================================================================
+-//#define assert(expr)    ((expr) ? static_cast<void>(0) : Assert::fail (#expr, __FILE__, __LINE__, __PRETTY_FUNCTION__))
+-#define assert(expr)    (static_cast<void>(0))
++#define assert(expr)    ((expr) ? static_cast<void>(0) : Assert::fail (#expr, __FILE__, __LINE__, __PRETTY_FUNCTION__))
++//#define assert(expr)    (static_cast<void>(0))
+ 
+ //============================================================================
+ // CONFIGURATION
+Index: include/system/traits.h
+===================================================================
+--- include/system/traits.h	(revision 3772)
++++ include/system/traits.h	(working copy)
+@@ -28,7 +28,7 @@
+     enum {Legacy};
+     static const unsigned int MODEL = Legacy;
+ 
+-    static const unsigned int CPUS = 1;
++    static const unsigned int CPUS = 8;
+     static const unsigned int NODES = 1; // > 1 => NETWORKING
+ };
+ 
+@@ -39,7 +39,7 @@
+     static const bool error   = true;
+     static const bool warning = true;
+     static const bool info    = false;
+-    static const bool trace   = false;
++    static const bool trace   = true;
+ };
+ 
+ template<> struct Traits<Lists>: public Traits<void>
+Index: include/system/types.h
+===================================================================
+--- include/system/types.h	(revision 3772)
++++ include/system/types.h	(working copy)
+@@ -85,6 +85,7 @@
+ class Active;
+ 
+ template<typename> class Scheduler;
++template<typename, unsigned int> class Multiple_Scheduler;
+ namespace Scheduling_Criteria
+ {
+     class Priority;
+Index: include/thread.h
+===================================================================
+--- include/thread.h	(revision 3772)
++++ include/thread.h	(working copy)
+@@ -19,6 +19,7 @@
+     friend class Init_First;
+     friend class System;
+     friend class Scheduler<Thread>;
++    friend class Multiple_Scheduler<Thread>;
+     friend class Synchronizer_Common;
+     friend class Alarm;
+     friend class IA32;
+@@ -100,8 +101,14 @@
+ 
+     Criterion & criterion() { return const_cast<Criterion &>(_link.rank()); }
+ 
+-    static void lock() { CPU::int_disable(); }
+-    static void unlock() { CPU::int_enable(); }
++    static void lock() {
++        CPU::int_disable();
++        //_lock.acquire();
++    }
++    static void unlock() {
++        //_lock.release();
++        CPU::int_enable();
++    }
+     static bool locked() { return CPU::int_disabled(); }
+ 
+     void suspend(bool locked);
+@@ -130,7 +137,8 @@
+ 
+     static volatile unsigned int _thread_count;
+     static Scheduler_Timer * _timer;
+-    static Scheduler<Thread> _scheduler;
++    static Multiple_Scheduler<Thread> _scheduler;
++    static Spin _lock;
+ };
+ 
+ 
+Index: include/utility/heap.h
+===================================================================
+--- include/utility/heap.h	(revision 3772)
++++ include/utility/heap.h	(working copy)
+@@ -30,6 +30,7 @@
+     }
+ 
+     void * alloc(unsigned int bytes) {
++        take();
+         db<Heaps>(TRC) << "Heap::alloc(this=" << this << ",bytes=" << bytes;
+ 
+         if(!bytes)
+@@ -59,10 +60,12 @@
+ 
+         db<Heaps>(TRC) << ") => " << reinterpret_cast<void *>(addr) << endl;
+ 
++        release();
+         return addr;
+     }
+ 
+     void free(void * ptr, unsigned int bytes) {
++        take();
+         db<Heaps>(TRC) << "Heap::free(this=" << this << ",ptr=" << ptr << ",bytes=" << bytes << ")" << endl;
+ 
+         if(ptr && (bytes >= sizeof(Element))) {
+@@ -70,6 +73,7 @@
+             Element * m1, * m2;
+             insert_merging(e, &m1, &m2);
+         }
++        release();
+     }
+ 
+     static void typed_free(void * ptr) {
+@@ -87,6 +91,17 @@
+ 
+ private:
+     void out_of_memory();
++    Spin _lock;
++
++    void take() {
++        _lock.acquire();
++        CPU::int_disable();
++    }
++
++    void release() {
++        _lock.release();
++        CPU::int_enable();
++    }
+ };
+ 
+ __END_UTIL
+Index: include/utility/list.h
+===================================================================
+--- include/utility/list.h	(revision 3772)
++++ include/utility/list.h	(working copy)
+@@ -1074,6 +1074,114 @@
+ };
+ 
+ 
++
++// Doubly-Linked, Scheduling List for multiple parallel scheduler consumers
++// Objects subject to scheduling must export a type "Criterion" compatible
++// with those available at scheduler.h .
++// In this implementation, the chosen element is kept outside the list
++// referenced by the _chosen attribute.
++template<typename T,
++          unsigned int Size,
++          typename R = typename T::Criterion,
++          typename El = List_Elements::Doubly_Linked_Scheduling<T, R> >
++class Multiple_Scheduling_List: private Ordered_List<T, R, El>
++{
++private:
++    typedef Ordered_List<T, R, El> Base;
++
++public:
++    typedef T Object_Type;
++    typedef R Rank_Type;
++    typedef El Element;
++    typedef typename Base::Iterator Iterator;
++
++public:
++    Multiple_Scheduling_List() {
++        assert(Size > 0);
++
++        for(unsigned int i = 0; i < Size; i++)
++            _chosen[i] = 0;
++    }
++
++    using Base::empty;
++    using Base::size;
++    using Base::head;
++    using Base::tail;
++    using Base::begin;
++    using Base::end;
++
++    Element * volatile & chosen(unsigned int consumer_id) { return _chosen[consumer_id]; }
++
++    void insert(Element * e, unsigned int consumer_id) {
++        db<Lists>(TRC) << "Scheduling_List::insert(e=" << e
++                       << ") => {p=" << (e ? e->prev() : (void *) -1)
++                       << ",o=" << (e ? e->object() : (void *) -1)
++                       << ",n=" << (e ? e->next() : (void *) -1)
++                       << "}" << endl;
++
++        if(_chosen[consumer_id])
++            Base::insert(e);
++        else
++            _chosen[consumer_id] = e;
++    }
++
++    Element * remove(Element * e, unsigned int consumer_id) {
++        db<Lists>(TRC) << "Scheduling_List::remove(e=" << e
++                       << ") => {p=" << (e ? e->prev() : (void *) -1)
++                       << ",o=" << (e ? e->object() : (void *) -1)
++                       << ",n=" << (e ? e->next() : (void *) -1)
++                       << "}" << endl;
++
++        if(e == _chosen[consumer_id])
++            _chosen[consumer_id] = Base::remove_head();
++        else
++            e = Base::remove(e);
++
++        return e;
++    }
++
++    Element * choose(unsigned int consumer_id) {
++        db<Lists>(TRC) << "Scheduling_List::choose()" << endl;
++
++        if(!empty()) {
++            Base::insert(_chosen[consumer_id]);
++            _chosen[consumer_id] = Base::remove_head();
++        }
++
++        return _chosen[consumer_id];
++    }
++
++    Element * choose_another(unsigned int consumer_id) {
++        db<Lists>(TRC) << "Scheduling_List::choose_another()" << endl;
++
++        if(!empty() && head()->rank() != R::IDLE) {
++            Element * tmp = _chosen[consumer_id];
++            _chosen[consumer_id] = Base::remove_head();
++            Base::insert(tmp);
++        }
++
++        return _chosen[consumer_id];
++    }
++
++    Element * choose(Element * e, unsigned int consumer_id) {
++        db<Lists>(TRC) << "Scheduling_List::choose(e=" << e
++                       << ") => {p=" << (e ? e->prev() : (void *) -1)
++                       << ",o=" << (e ? e->object() : (void *) -1)
++                       << ",n=" << (e ? e->next() : (void *) -1)
++                       << "}" << endl;
++
++        if(e != _chosen[consumer_id]) {
++            Base::insert(_chosen[consumer_id]);
++            _chosen[consumer_id] = Base::remove(e);
++        }
++
++        return _chosen[consumer_id];
++    }
++
++private:
++    Element * volatile _chosen[Size];
++};
++
+ // Doubly-Linked, Grouping List
+ template<typename T, 
+           typename El = List_Elements::Doubly_Linked_Grouping<T> >
+Index: include/utility/ostream.h
+===================================================================
+--- include/utility/ostream.h	(revision 3772)
++++ include/utility/ostream.h	(working copy)
+@@ -21,15 +21,17 @@
+     struct Err {};
+ 
+ public:
+-    OStream(): _base(10), _error(false) {}
++    OStream(): _base(10), _error(false), _owner(-1) {}
+ 
+     OStream & operator<<(const Begl & begl) {
+-        return *this;
++        take();
++        return *this << "[cpu=" << _owner << "]    ";
+     }
+     
+     OStream & operator<<(const Endl & endl) {
+         print("\n");
+         _base = 10;
++        release();
+         return *this;
+     }
+ 
+@@ -164,6 +166,9 @@
+ private:
+     void print(const char * s) { _print(s); }
+ 
++    void take();
++    void release();
++
+     int itoa(int v, char * s);
+     int utoa(unsigned int v, char * s, unsigned int i = 0);
+     int llitoa(long long int v, char * s);
+@@ -173,6 +178,7 @@
+ private:
+     int _base;
+     volatile bool _error;
++    volatile int _owner;
+ 
+     static const char _digits[];
+ }; 
+Index: include/utility/queue.h
+===================================================================
+--- include/utility/queue.h	(revision 3772)
++++ include/utility/queue.h	(working copy)
+@@ -179,7 +179,7 @@
+ 
+     void leave() {
+         _lock.release();
+-        CPU::int_disable();
++        CPU::int_enable();
+     }
+ 
+ private:
+Index: src/abstraction/alarm_test.cc
+===================================================================
+--- src/abstraction/alarm_test.cc	(revision 3772)
++++ src/abstraction/alarm_test.cc	(working copy)
+@@ -5,7 +5,7 @@
+ 
+ using namespace EPOS;
+ 
+-const int iterations = 10;
++const int iterations = 3;
+ 
+ void func_a(void);
+ void func_b(void);
+@@ -20,7 +20,9 @@
+     cout << "I'll now create two alarms and put myself in a delay ..." << endl;
+ 
+     Function_Handler handler_a(&func_a);
++    cout << "Func a created" << endl;
+     Alarm alarm_a(2000000, &handler_a, iterations);
++    cout << "Alarm a created" << endl;
+ 
+     Function_Handler handler_b(&func_b);
+     Alarm alarm_b(1000000, &handler_b, iterations);
+Index: src/abstraction/semaphore_test.cc
+===================================================================
+--- src/abstraction/semaphore_test.cc	(revision 3772)
++++ src/abstraction/semaphore_test.cc	(working copy)
+@@ -9,7 +9,7 @@
+ 
+ using namespace EPOS;
+ 
+-const int iterations = 10;
++const int iterations = 3;
+ 
+ Mutex table;
+ 
+Index: src/abstraction/thread.cc
+===================================================================
+--- src/abstraction/thread.cc	(revision 3772)
++++ src/abstraction/thread.cc	(working copy)
+@@ -15,7 +15,8 @@
+ // Class attributes
+ volatile unsigned int Thread::_thread_count;
+ Scheduler_Timer * Thread::_timer;
+-Scheduler<Thread> Thread::_scheduler;
++Multiple_Scheduler<Thread> Thread::_scheduler;
++Spin Thread::_lock;
+ 
+ // Methods
+ void Thread::constructor_prolog(unsigned int stack_size)
+@@ -292,7 +293,7 @@
+ 
+ void Thread::reschedule()
+ {
+-    db<Scheduler<Thread> >(TRC) << "Thread::reschedule()" << endl;
++    db<Multiple_Scheduler<Thread> >(TRC) << "Thread::reschedule()" << endl;
+ 
+     // lock() must be called before entering this method
+     assert(locked());
+@@ -307,7 +308,7 @@
+ void Thread::time_slicer(const IC::Interrupt_Id & i)
+ {
+     lock();
+-
++    db<Multiple_Scheduler<Thread>>(TRC) << "Thread::time_slicer()" << endl;
+     reschedule();
+ }
+ 
+@@ -337,24 +338,29 @@
+ 
+ int Thread::idle()
+ {
+-    while(_thread_count > 1) { // someone else besides idle
+-        if(Traits<Thread>::trace_idle)
+-            db<Thread>(TRC) << "Thread::idle(this=" << running() << ")" << endl;
++    while(true) {
++       db<Thread>(TRC) << "Thread::idle(CPU=" << Machine::cpu_id()
++           << ",n_cpus=" << Machine::n_cpus()
++           << ",running=" << running() << ")" << endl;
+ 
+-        CPU::int_enable();
+-        CPU::halt();
++       if (_thread_count > Machine::n_cpus() // We still have non-idles to execute
++           || Machine::cpu_id() != 0)        // Just CPU 0 can finish OS
++       {
++           CPU::int_enable();
++           CPU::halt();
++       } else {
++           // If we're here, we are CPU 0 and there are only Idle Threads on System...
++           db<Thread>(WRN) << "The main thread has exited!" << endl;
++           if(reboot) {
++               db<Thread>(WRN) << "Rebooting the machine ..." << endl;
++               Machine::reboot();
++           } else {
++               db<Thread>(WRN) << "Halting the machine ..." << endl;
++               CPU::halt();
++           }
++       }
+     }
+ 
+-    CPU::int_disable();
+-    db<Thread>(WRN) << "The last thread has exited!" << endl;
+-    if(reboot) {
+-        db<Thread>(WRN) << "Rebooting the machine ..." << endl;
+-        Machine::reboot();
+-    } else {
+-        db<Thread>(WRN) << "Halting the machine ..." << endl;
+-        CPU::halt();
+-    }
+-
+     return 0;
+ }
+ 
+Index: src/abstraction/thread_test.cc
+===================================================================
+--- src/abstraction/thread_test.cc	(revision 3772)
++++ src/abstraction/thread_test.cc	(working copy)
+@@ -50,7 +50,7 @@
+         for(int i = 0; i < 79; i++)
+             cout << "a";
+         cout << "" << endl;
+-        Alarm::delay(500000);
++        //Alarm::delay(500000);
+     }
+ 
+     return 'A';   
+@@ -62,7 +62,7 @@
+         for(int i = 0; i < 79; i++)
+             cout << "b";
+         cout << "" << endl;
+-        Alarm::delay(500000);
++        //Alarm::delay(500000);
+     }
+ 
+     return 'B';   
+Index: src/init/init_application.cc
+===================================================================
+--- src/init/init_application.cc	(revision 3772)
++++ src/init/init_application.cc	(working copy)
+@@ -17,18 +17,22 @@
+ 
+ public:
+     Init_Application() {
+-        db<Init>(TRC) << "Init_Application()" << endl;
++        if (Machine::cpu_id() == 0) {
++            db<Init>(TRC) << "Init_Application()" << endl;
+ 
+-        // Initialize Application's heap
+-        db<Init>(INF) << "Initializing application's heap: " << endl;
+-        if(Traits<System>::multiheap) { // Heap in data segment arranged by SETUP
+-            char * stack = MMU::align_page(&_end);
+-            char * heap = stack + MMU::align_page(Traits<Application>::STACK_SIZE);
+-            Application::_heap = new (&Application::_preheap[0]) Heap(heap, HEAP_SIZE);
+-        } else
+-            for(unsigned int frames = MMU::allocable(); frames; frames = MMU::allocable())
+-                System::_heap->free(MMU::alloc(frames), frames * sizeof(MMU::Page));
+-        db<Init>(INF) << "done!" << endl;
++            // Initialize Application's heap
++            db<Init>(INF) << "Initializing application's heap: " << endl;
++            if(Traits<System>::multiheap) { // Heap in data segment arranged by SETUP
++                char * stack = MMU::align_page(&_end);
++                char * heap = stack + MMU::align_page(Traits<Application>::STACK_SIZE);
++                Application::_heap = new (&Application::_preheap[0]) Heap(heap, HEAP_SIZE);
++            } else
++                for(unsigned int frames = MMU::allocable(); frames; frames = MMU::allocable())
++                    System::_heap->free(MMU::alloc(frames), frames * sizeof(MMU::Page));
++            db<Init>(INF) << "done!" << endl;
++        }
++
++        Machine::smp_barrier();
+     }
+ };
+ 
+Index: src/init/init_first.cc
+===================================================================
+--- src/init/init_first.cc	(revision 3772)
++++ src/init/init_first.cc	(working copy)
+@@ -17,8 +17,11 @@
+ public:
+     Init_First() {
+ 
+-        db<Init>(TRC) << "Init_First()" << endl;
++        db<Init>(TRC) << "Init_First(n_cpus=" << Machine::n_cpus()
++                    << ",cpu_id=" << Machine::cpu_id() << ")" << endl;
+ 
++        Machine::smp_barrier();
++
+         if(!Traits<System>::multithread) {
+             CPU::int_enable();
+             return;
+@@ -26,14 +29,21 @@
+ 
+         db<Init>(INF) << "Initializing the first thread: " << endl;
+ 
+-        // If EPOS is not a kernel, then adjust the application entry point to __epos_app_entry,
+-        // which will directly call main(). In this case, _init will have already been called,
+-        // before Init_Application, to construct main()'s global objects.
+-        Thread * first = new (SYSTEM) Thread(Thread::Configuration(Thread::RUNNING, Thread::MAIN), reinterpret_cast<int (*)()>(__epos_app_entry));
++        Thread * first;
++        if (Machine::cpu_id() == 0) {
++            // If EPOS is not a kernel, then adjust the application entry point to __epos_app_entry,
++            // which will directly call main(). In this case, _init will have already been called,
++            // before Init_Application, to construct main()'s global objects.
++            first = new (SYSTEM) Thread(Thread::Configuration(Thread::RUNNING, Thread::MAIN), reinterpret_cast<int (*)()>(__epos_app_entry));
+ 
+-        // Idle thread creation must succeed main, thus avoiding implicit rescheduling
+-        new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
++            // Idle thread creation must succeed main, thus avoiding implicit rescheduling
++            new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
++        } else {
++            first = new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
++        }
+ 
++        db<Init>(INF) << "Idle function: " << static_cast<Log_Addr>(&Thread::idle) << endl;
++
+         db<Init>(INF) << "done!" << endl;
+ 
+         db<Init>(INF) << "INIT ends here!" << endl;
+@@ -42,6 +52,8 @@
+ 
+         This_Thread::not_booting();
+ 
++        Machine::smp_barrier();
++
+         first->_context->load();
+     }
+ };
+Index: src/init/init_system.cc
+===================================================================
+--- src/init/init_system.cc	(revision 3772)
++++ src/init/init_system.cc	(working copy)
+@@ -15,43 +15,53 @@
+ 
+ public:
+     Init_System() {
+-        db<Init>(TRC) << "Init_System()" << endl;
++        // Set n_cpus and cpu_id:
++        Machine::smp_init(System::info()->bm.n_cpus);
+ 
+-        // Initialize the processor
+-        db<Init>(INF) << "Initializing the CPU: " << endl;
+-        CPU::init();
+-        db<Init>(INF) << "done!" << endl;
++        db<Init>(TRC) << "Init_System(n_cpus=" << Machine::n_cpus()
++            << ",cpu_id=" << Machine::cpu_id() << ")" << endl;
+ 
+-        // Initialize System's heap
+-        db<Init>(INF) << "Initializing system's heap: " << endl;
+-        if(Traits<System>::multiheap) {
+-            System::_heap_segment = new (&System::_preheap[0]) Segment(HEAP_SIZE, Segment::Flags::SYS);
+-            System::_heap = new (&System::_preheap[sizeof(Segment)]) Heap(Address_Space(MMU::current()).attach(System::_heap_segment, Memory_Map<Machine>::SYS_HEAP), System::_heap_segment->size());
+-        } else
+-            System::_heap = new (&System::_preheap[0]) Heap(MMU::alloc(MMU::pages(HEAP_SIZE)), HEAP_SIZE);
+-        db<Init>(INF) << "done!" << endl;
++        Machine::smp_barrier();
+ 
+-        // Initialize the machine
+-        db<Init>(INF) << "Initializing the machine: " << endl;
+-        Machine::init();
+-        db<Init>(INF) << "done!" << endl;
++        if (Machine::cpu_id() == 0) {
++            // Initialize the processor
++            db<Init>(INF) << "Initializing the CPU: " << endl;
++            CPU::init();
++            db<Init>(INF) << "done!" << endl;
+ 
+-        // Initialize system abstractions
+-        db<Init>(INF) << "Initializing system abstractions: " << endl;
+-        System::init();
+-        db<Init>(INF) << "done!" << endl;
++            // Initialize System's heap
++            db<Init>(INF) << "Initializing system's heap: " << endl;
++            if(Traits<System>::multiheap) {
++                System::_heap_segment = new (&System::_preheap[0]) Segment(HEAP_SIZE, Segment::Flags::SYS);
++                System::_heap = new (&System::_preheap[sizeof(Segment)]) Heap(Address_Space(MMU::current()).attach(System::_heap_segment, Memory_Map<Machine>::SYS_HEAP), System::_heap_segment->size());
++            } else
++                System::_heap = new (&System::_preheap[0]) Heap(MMU::alloc(MMU::pages(HEAP_SIZE)), HEAP_SIZE);
++            db<Init>(INF) << "done!" << endl;
+ 
+-        // Randomize the Random Numbers Generator's seed
+-        if(Traits<Random>::enabled) {
+-            db<Init>(INF) << "Randomizing the Random Numbers Generator's seed: " << endl;
+-            if(Traits<TSC>::enabled)
+-                Random::seed(TSC::time_stamp());
++            // Initialize the machine
++            db<Init>(INF) << "Initializing the machine: " << endl;
++            Machine::init();
++            db<Init>(INF) << "done!" << endl;
+ 
+-            if(!Traits<TSC>::enabled)
+-                db<Init>(WRN) << "Due to lack of entropy, Random is a pseudo random numbers generator!" << endl;
++            // Initialize system abstractions
++            db<Init>(INF) << "Initializing system abstractions: " << endl;
++            System::init();
+             db<Init>(INF) << "done!" << endl;
++
++            // Randomize the Random Numbers Generator's seed
++            if(Traits<Random>::enabled) {
++                db<Init>(INF) << "Randomizing the Random Numbers Generator's seed: " << endl;
++                if(Traits<TSC>::enabled)
++                    Random::seed(TSC::time_stamp());
++
++                if(!Traits<TSC>::enabled)
++                    db<Init>(WRN) << "Due to lack of entropy, Random is a pseudo random numbers generator!" << endl;
++                db<Init>(INF) << "done!" << endl;
++            }
+         }
+ 
++        Machine::smp_barrier();
++
+         // Initialization continues at init_first
+     }
+ };
+Index: src/setup/pc_setup.cc
+===================================================================
+--- src/setup/pc_setup.cc	(revision 3772)
++++ src/setup/pc_setup.cc	(working copy)
+@@ -146,7 +146,7 @@
+     // Multicore conditional start up
+     int cpu_id = Machine::cpu_id();
+ 
+-    db<Setup>(TRC) << "PC_Setup(bi=" << reinterpret_cast<void *>(bi) << ",sp=" << reinterpret_cast<void *>(CPU::sp()) << ")" << endl;
++    db<Setup>(TRC) << "PC_Setup(cpu_id=" << cpu_id << ",bi=" << reinterpret_cast<void *>(bi) << ",sp=" << reinterpret_cast<void *>(CPU::sp()) << ")" << endl;
+ 
+     db<Setup>(INF) << "System_Info=" << *si << endl;
+ 
+Index: src/utility/ostream.cc
+===================================================================
+--- src/utility/ostream.cc	(revision 3772)
++++ src/utility/ostream.cc	(working copy)
+@@ -1,11 +1,30 @@
+ // EPOS OStream Implementation
+ 
+ #include <utility/ostream.h>
++#include <machine.h>
+ 
+ __BEGIN_UTIL
+ 
+ const char OStream::_digits[] = "0123456789abcdef";
+ 
++void OStream::take()
++{
++    // We cannot use Spin lock here
++
++    int me = Machine::cpu_id();
++
++    // Compare and exchange:
++    // Atomically compare _owner and -1. If they're equal, replace _owner by 'me' and return the new value of '_owner'
++    // Otherwise don't replace anything and return the current value of '_owner'
++    while(CPU::cas(_owner, -1, me) != me);
++}
++
++void OStream::release()
++{
++    // -1 means: no body 'owns' the output stream
++    _owner = -1;
++}
++
+ int OStream::itoa(int v, char * s)
+ {
+     unsigned int i = 0;

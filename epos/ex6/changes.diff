@@ -1,0 +1,506 @@
+Index: include/mmu.h
+===================================================================
+--- include/mmu.h	(revision 3740)
++++ include/mmu.h	(working copy)
+@@ -47,7 +47,8 @@
+             CT  = 0x020, // Contiguous (0=non-contiguous, 1=contiguous)
+             IO  = 0x040, // Memory Mapped I/O (0=memory, 1=I/O)
+             SYS = (PRE | RW ),
+-            APP = (PRE | RW | USR)
++            APP = (PRE | RW | USR),
++            UNC = (PRE | RW | CWT)
+         };
+ 
+     public:
+Index: include/system/config.h
+===================================================================
+--- include/system/config.h	(revision 3740)
++++ include/system/config.h	(working copy)
+@@ -7,15 +7,15 @@
+ // ARCHITECTURE, MACHINE, AND APPLICATION SELECTION
+ // This section is generated automatically from makedefs by $EPOS/etc/makefile
+ //============================================================================
+-#define MODE xxx
+-#define ARCH xxx
+-#define MACH xxx
+-#define MMOD xxx
+-#define APPL xxx
+-#define __mode_xxx__
+-#define __arch_xxx__
+-#define __mach_xxx__
+-#define __mmod_xxx__
++#define MODE library
++#define ARCH ia32
++#define MACH pc
++#define MMOD legacy
++#define APPL mem_test
++#define __mode_library__
++#define __arch_ia32__
++#define __mach_pc__
++#define __mmod_legacy__
+ 
+ #if defined (__arch_avr__) || defined (__mmod_lm3s811__)
+ #define __no_networking__
+@@ -71,8 +71,8 @@
+ //============================================================================
+ // ASSERT (for pre and post conditions)
+ //============================================================================
+-//#define assert(expr)    ((expr) ? static_cast<void>(0) : Assert::fail (#expr, __FILE__, __LINE__, __PRETTY_FUNCTION__))
+-#define assert(expr)    (static_cast<void>(0))
++#define assert(expr)    ((expr) ? static_cast<void>(0) : Assert::fail (#expr, __FILE__, __LINE__, __PRETTY_FUNCTION__))
++//#define assert(expr)    (static_cast<void>(0))
+ 
+ //============================================================================
+ // CONFIGURATION
+Index: include/system/traits.h
+===================================================================
+--- include/system/traits.h	(revision 3740)
++++ include/system/traits.h	(working copy)
+@@ -39,7 +39,7 @@
+     static const bool error   = true;
+     static const bool warning = true;
+     static const bool info    = false;
+-    static const bool trace   = false;
++    static const bool trace   = true;
+ };
+ 
+ template<> struct Traits<Lists>: public Traits<void>
+@@ -54,7 +54,7 @@
+ 
+ template<> struct Traits<Heaps>: public Traits<void>
+ {
+-    static const bool debugged = hysterically_debugged;
++    static const bool debugged = true;
+ };
+ 
+ 
+Index: include/system.h
+===================================================================
+--- include/system.h	(revision 3740)
++++ include/system.h	(working copy)
+@@ -5,6 +5,18 @@
+ 
+ #include <utility/heap.h>
+ 
++// Specialized system allocators
++__BEGIN_API
++enum Heap_Type_System { SYSTEM };
++enum Heap_Type_Uncached { UNCACHED };
++__END_API
++
++inline void * operator new(size_t bytes, const EPOS::Heap_Type_System &);
++inline void * operator new[](size_t bytes, const EPOS::Heap_Type_System &);
++
++inline void * operator new(size_t bytes, const EPOS::Heap_Type_Uncached &);
++inline void * operator new[](size_t bytes, const EPOS::Heap_Type_Uncached &);
++
+ __BEGIN_SYS
+ 
+ class System
+@@ -11,9 +23,14 @@
+ {
+     friend class Init_System;
+     friend class Init_Application;
+-    friend void * kmalloc(size_t);
+-    friend void kfree(void *);
++    //friend void * kmalloc(size_t);
++    //friend void kfree(void *);
+ 
++    friend void * ::operator new(size_t bytes, const EPOS::Heap_Type_System &);
++    friend void * ::operator new[](size_t bytes, const EPOS::Heap_Type_System &);
++    friend void * ::operator new(size_t bytes, const EPOS::Heap_Type_Uncached &);
++    friend void * ::operator new[](size_t bytes, const EPOS::Heap_Type_Uncached &);
++
+ public:
+     static System_Info<Machine> * const info() { assert(_si); return _si; }
+ 
+@@ -24,8 +41,29 @@
+     static System_Info<Machine> * _si;
+     static char _preheap[sizeof(Heap)];
+     static Heap * _heap;
++
++    static char _preheap_uncached[sizeof(Heap)];
++    static Heap * _uncached_heap;
+ };
+ 
+ __END_SYS
+ 
++// System heaps allocator definition
++
++// SYSTEM heap allocator
++inline void * operator new(size_t bytes, const EPOS::Heap_Type_System & heap) {
++    return EPOS::System::_heap->alloc(bytes);
++}
++inline void * operator new[](size_t bytes, const EPOS::Heap_Type_System & heap) {
++    return EPOS::System::_heap->alloc(bytes);
++}
++
++// UNCACHED heap allocator
++inline void * operator new(size_t bytes, const EPOS::Heap_Type_Uncached & heap) {
++    return EPOS::System::_uncached_heap->alloc(bytes);
++}
++inline void * operator new[](size_t bytes, const EPOS::Heap_Type_Uncached & heap) {
++    return EPOS::System::_uncached_heap->alloc(bytes);
++}
++
+ #endif
+Index: include/thread.h
+===================================================================
+--- include/thread.h	(revision 3740)
++++ include/thread.h	(working copy)
+@@ -7,7 +7,6 @@
+ #include <utility/handler.h>
+ #include <cpu.h>
+ #include <machine.h>
+-#include <system/kmalloc.h>
+ 
+ extern "C" { void __exit(); }
+ 
+Index: include/utility/heap.h
+===================================================================
+--- include/utility/heap.h	(revision 3740)
++++ include/utility/heap.h	(working copy)
+@@ -6,23 +6,27 @@
+ #include <utility/debug.h>
+ #include <utility/list.h>
+ #include <utility/spin.h>
++#include <segment.h>
++#include <address_space.h>
+ 
++// Delete cannot be declared inline due to virtual destructors
++void operator delete(void * ptr);
++void operator delete[](void * ptr);
++
+ __BEGIN_UTIL
+ 
+ // Heap
+-class Heap: private Grouping_List<char>
++class Heap: private Grouping_List<char>, public Segment
+ {
+ public:
+     using Grouping_List<char>::empty;
+     using Grouping_List<char>::size;
+ 
+-    Heap() {
+-        db<Init, Heaps>(TRC) << "Heap() => " << this << endl;
+-    }
+-
+-    Heap(void * addr, unsigned int bytes) {
++    Heap(void * addr, unsigned int bytes, Flags flags = Flags::APP) : Segment(bytes, flags) {
+         db<Init, Heaps>(TRC) << "Heap(addr=" << addr << ",bytes=" << bytes << ") => " << this << endl;
+ 
++        Address_Space(MMU::current()).attach(this);
++
+         free(addr, bytes);
+     }
+ 
+@@ -36,6 +40,9 @@
+             while((bytes % sizeof(void *)))
+                 ++bytes;
+ 
++        // add room for heap pointer
++        bytes += sizeof(Heap *);
++
+         bytes += sizeof(int);         // add room for size
+         if(bytes < sizeof(Element))
+             bytes = sizeof(Element);
+@@ -48,6 +55,8 @@
+ 
+         int * addr = reinterpret_cast<int *>(e->object() + e->size());
+ 
++        *addr++ = reinterpret_cast<int>(this); // add heap pointer
++
+         *addr++ = bytes;
+ 
+         db<Heaps>(TRC) << ") => " << reinterpret_cast<void *>(addr) << endl;
+@@ -68,6 +77,7 @@
+     void free(void * ptr) {
+         int * addr = reinterpret_cast<int *>(ptr);
+         unsigned int bytes = *--addr;
++        --addr; // Subtract Heap pointer size
+         free(addr, bytes);
+     }
+ 
+Index: include/utility/malloc.h
+===================================================================
+--- include/utility/malloc.h	(revision 3740)
++++ include/utility/malloc.h	(working copy)
+@@ -36,7 +36,7 @@
+ }
+ 
+ // Delete cannot be declared inline due to virtual destructors
+-void operator delete(void * ptr);
+-void operator delete[](void * ptr);
++//void operator delete(void * ptr);
++//void operator delete[](void * ptr);
+ 
+ #endif
+Index: src/abstraction/alarm_init.cc
+===================================================================
+--- src/abstraction/alarm_init.cc	(revision 3740)
++++ src/abstraction/alarm_init.cc	(working copy)
+@@ -1,7 +1,7 @@
+ // EPOS Alarm Abstraction Initialization
+ 
+-#include <system/kmalloc.h>
+ #include <alarm.h>
++#include <system.h>
+ 
+ __BEGIN_SYS
+ 
+@@ -9,7 +9,8 @@
+ {
+     db<Init, Alarm>(TRC) << "Alarm::init()" << endl;
+ 
+-    _timer = new (kmalloc(sizeof(Alarm_Timer))) Alarm_Timer(handler);
++    //_timer = new (kmalloc(sizeof(Alarm_Timer))) Alarm_Timer(handler);
++    _timer = new (SYSTEM) Alarm_Timer(handler);
+ }
+ 
+ __END_SYS
+Index: src/abstraction/thread.cc
+===================================================================
+--- src/abstraction/thread.cc	(revision 3740)
++++ src/abstraction/thread.cc	(working copy)
+@@ -1,8 +1,8 @@
+ // EPOS Thread Abstraction Implementation
+ 
+-#include <system/kmalloc.h>
+ #include <machine.h>
+ #include <thread.h>
++#include <system.h>
+ 
+ // This_Thread class attributes
+ __BEGIN_UTIL
+@@ -26,7 +26,8 @@
+ 
+     _thread_count++;
+ 
+-    _stack = reinterpret_cast<char *>(kmalloc(stack_size));
++    //_stack = reinterpret_cast<char *>(kmalloc(stack_size));
++    _stack = new (SYSTEM) char[stack_size];
+ }
+ 
+ 
+@@ -94,7 +95,8 @@
+ 
+     unlock();
+ 
+-    kfree(_stack);
++    //kfree(_stack);
++    delete _stack;
+ }
+ 
+ 
+Index: src/abstraction/thread_init.cc
+===================================================================
+--- src/abstraction/thread_init.cc	(revision 3740)
++++ src/abstraction/thread_init.cc	(working copy)
+@@ -1,6 +1,5 @@
+ // EPOS Thread Abstraction Initialization
+ 
+-#include <system/kmalloc.h>
+ #include <system.h>
+ #include <thread.h>
+ #include <alarm.h>
+@@ -16,7 +15,8 @@
+     // MAIN is created first and dispatch won't replace it nor by itself
+     // neither by IDLE (which has a lower priority)
+     if(preemptive)
+-        _timer = new (kmalloc(sizeof(Scheduler_Timer))) Scheduler_Timer(QUANTUM, time_slicer);
++        //_timer = new (kmalloc(sizeof(Scheduler_Timer))) Scheduler_Timer(QUANTUM, time_slicer);
++        _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
+ }
+ 
+ __END_SYS
+Index: src/init/init_first.cc
+===================================================================
+--- src/init/init_first.cc	(revision 3740)
++++ src/init/init_first.cc	(working copy)
+@@ -1,7 +1,7 @@
+ // EPOS First Thread Initializer
+ 
+ #include <utility/heap.h>
+-#include <system/kmalloc.h>
++#include <system.h>
+ #include <thread.h>
+ 
+ extern "C" { void __epos_app_entry(); }
+@@ -28,10 +28,12 @@
+         // If EPOS is not a kernel, then adjust the application entry point to __epos_app_entry,
+         // which will directly call main(). In this case, _init will have already been called,
+         // before Init_Application, to construct main()'s global objects.
+-        Thread::_running = new (kmalloc(sizeof(Thread))) Thread(Thread::Configuration(Thread::RUNNING, Thread::MAIN), reinterpret_cast<int (*)()>(__epos_app_entry));
++        //Thread::_running = new (kmalloc(sizeof(Thread))) Thread(Thread::Configuration(Thread::RUNNING, Thread::MAIN), reinterpret_cast<int (*)()>(__epos_app_entry));
++        Thread::_running = new (SYSTEM) Thread(Thread::Configuration(Thread::RUNNING, Thread::MAIN), reinterpret_cast<int (*)()>(__epos_app_entry));
+ 
+         // Idle thread creation must succeed main, thus avoiding implicit rescheduling
+-        new (kmalloc(sizeof(Thread))) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
++        //new (kmalloc(sizeof(Thread))) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
++        new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
+ 
+         db<Init>(INF) << "done!" << endl;
+ 
+Index: src/init/init_system.cc
+===================================================================
+--- src/init/init_system.cc	(revision 3740)
++++ src/init/init_system.cc	(working copy)
+@@ -25,6 +25,11 @@
+         System::_heap = new (&System::_preheap[0]) Heap(MMU::alloc(MMU::pages(HEAP_SIZE)), HEAP_SIZE);
+         db<Init>(INF) << "done!" << endl;
+ 
++        // Initialize System's UNCACHED heap
++        db<Init>(INF) << "Initializing system's uncached heap: " << endl;
++        System::_uncached_heap = new (&System::_preheap_uncached[0]) Heap(MMU::alloc(MMU::pages(HEAP_SIZE)), HEAP_SIZE, Heap::Flags::UNC);
++        db<Init>(INF) << "done!" << endl;
++
+         // Initialize the machine
+         db<Init>(INF) << "Initializing the machine: " << endl;
+         Machine::init();
+Index: src/system/system_scaffold.cc
+===================================================================
+--- src/system/system_scaffold.cc	(revision 3740)
++++ src/system/system_scaffold.cc	(working copy)
+@@ -32,6 +32,9 @@
+ char System::_preheap[];
+ Heap * System::_heap;
+ 
++char System::_preheap_uncached[];
++Heap * System::_uncached_heap;
++
+ __END_SYS
+ 
+ // Bindings
+Index: src/utility/heap.cc
+===================================================================
+--- src/utility/heap.cc	(revision 3740)
++++ src/utility/heap.cc	(working copy)
+@@ -15,3 +15,16 @@
+ }
+ 
+ __END_UTIL
++
++void operator delete(void * ptr) {
++    int * addr = reinterpret_cast<int *>(ptr);
++    unsigned int bytes = *(--addr);
++    EPOS::Heap * heap = reinterpret_cast<EPOS::Heap *>(*--addr);
++    heap->free(addr, bytes);
++}
++void operator delete[](void * ptr) {
++    int * addr = reinterpret_cast<int *>(ptr);
++    unsigned int bytes = *(--addr);
++    EPOS::Heap * heap = reinterpret_cast<EPOS::Heap *>(*--addr);
++    heap->free(addr, bytes);
++}
+Index: src/utility/malloc.cc
+===================================================================
+--- src/utility/malloc.cc	(revision 3740)
++++ src/utility/malloc.cc	(working copy)
+@@ -1,13 +1,13 @@
+ // EPOS Application-level Dynamic Memory Utility Implementation
+ 
+-#include <system/config.h>
+-#include <utility/malloc.h>
++//#include <system/config.h>
++//#include <utility/malloc.h>
+ 
+ // C++ dynamic memory deallocators
+-void operator delete(void * object) {
+-    return free(object);
+-}
++//void operator delete(void * object) {
++//    return free(object);
++//}
+ 
+-void operator delete[](void * object) {
+-    return free(object);
+-}
++//void operator delete[](void * object) {
++//    return free(object);
++//}
+Index: src/utility/malloc_test.cc
+===================================================================
+--- src/utility/malloc_test.cc	(revision 3740)
++++ src/utility/malloc_test.cc	(working copy)
+@@ -3,6 +3,7 @@
+ #include <utility/ostream.h>
+ #include <utility/string.h>
+ #include <utility/malloc.h>
++#include <system.h>
+ 
+ using namespace EPOS;
+ 
+@@ -11,6 +12,7 @@
+     OStream cout;
+ 
+     cout << "Memory allocation test" << endl;
++
+     char * cp = new char('A');
+     cout << "new char('A')\t\t=> {p=" << (void *)cp << ",v=" << *cp << "}" << endl;
+     int * ip = new int(1);
+@@ -21,11 +23,36 @@
+     strcpy(sp, "string");
+     cout << "new char[1024]\t\t=> {p=" << (void *)sp << ",v=" << sp << "}" << endl;
+ 
+-    cout << "deleting everything!" << endl; 
++    char * z = new (SYSTEM) char[64];
++    int * addr = reinterpret_cast<int *>(z);
++    unsigned int bytes = *(--addr);
++    EPOS::Heap * heap = reinterpret_cast<EPOS::Heap *>(*(--addr));
++    cout << "new char[64] SYSTEM\t\t=> {p=" << (void *)z << ",z=" << *z << "}"
++         << "\t\t=> {bytes=" << bytes << ", heap_ptr=" << heap << "}" << endl;
++
++    char * x = new (SYSTEM) char('X');
++    cout << "new char('X')\t\t=> {p=" << (void *)x << ",v=" << *x << "}" << endl;
++
++    char * u = new (UNCACHED) char[64];
++    addr = reinterpret_cast<int *>(u);
++    bytes = *(--addr);
++    heap = reinterpret_cast<EPOS::Heap *>(*(--addr));
++    cout << "new char[64] UNCACHED\t\t=> {p=" << (void *)u << ",u=" << *u << "}"
++         << "\t\t=> {bytes=" << bytes << ", heap_ptr=" << heap << "}" << endl;
++
++    char * y = new (UNCACHED) char('Y');
++    cout << "new char('Y')\t\t=> {p=" << (void *)y << ",v=" << *y << "}" << endl;
++
++    cout << "deleting everything!" << endl;
++
+     delete cp;
+     delete ip;
+     delete lp;
+     delete sp;
++    delete x;
++    delete z;
++    delete u;
++    delete y;
+ 
+     cout << "and doing it all again!" << endl; 
+     cp = new char('A');
+@@ -38,6 +65,27 @@
+     strcpy(sp, "string");
+     cout << "new char[1024]\t\t=> {p=" << (void *)sp << ",v=" << sp << "}" << endl;
+ 
++    z = new (SYSTEM) char[64];
++    addr = reinterpret_cast<int *>(z);
++    bytes = *(--addr);
++    heap = reinterpret_cast<EPOS::Heap *>(*(--addr));
++    cout << "new char[64]\t\t=> {p=" << (void *)z << ",z=" << *z << "}"
++         << "\t\t=> {bytes=" << bytes << ", heap_ptr=" << heap << "}" << endl;
++
++    x = new (SYSTEM) char('X');
++    cout << "new char('X')\t\t=> {p=" << (void *)x << ",v=" << *x << "}" << endl;
+     
++    u = new (UNCACHED) char[64];
++    addr = reinterpret_cast<int *>(u);
++    bytes = *(--addr);
++    heap = reinterpret_cast<EPOS::Heap *>(*(--addr));
++    cout << "new char[64] UNCACHED\t\t=> {p=" << (void *)u << ",u=" << *u << "}"
++         << "\t\t=> {bytes=" << bytes << ", heap_ptr=" << heap << "}" << endl;
++
++    y = new (UNCACHED) char('Y');
++    cout << "new char('Y')\t\t=> {p=" << (void *)y << ",v=" << *y << "}" << endl;
++
++    cout << "deleting everything!" << endl;
++
+     return 0;
+ }
