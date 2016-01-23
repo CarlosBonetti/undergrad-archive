@@ -1,0 +1,29 @@
+{
+  "name": "telefonia-sim",
+  "version": "0.0.1",
+  "description": "A telephone company simulator",
+  "main": "src/simulation.js",
+  "scripts": {
+    "start": "gulp watch",
+    "test": "gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CarlosBonetti/telefonia-sim"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CarlosBonetti/telefonia-sim/issues"
+  },
+  "homepage": "https://github.com/CarlosBonetti/telefonia-sim",
+  "devDependencies": {
+    "babelify": "^6.4.0",
+    "browserify": "^11.2.0",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^5.3.0",
+    "gulp-connect": "^2.2.0",
+    "gulp-flowtype": "^0.4.8",
+    "gulp-mocha": "^2.1.3"
+  }
+}

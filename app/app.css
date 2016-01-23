@@ -1,0 +1,27 @@
+html, body {
+  font-size: 12px;
+}
+
+.help-block {
+  font-style: italic;
+}
+
+.help-block.call-type {
+  margin-top: -10px;
+}
+
+.calendar {
+  max-height: 85vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.stat-title {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 3px;
+}
+
+.sub-item {
+  display: block;
+  margin-left: 20px;
+}
