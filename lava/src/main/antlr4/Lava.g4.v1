@@ -1,0 +1,62 @@
+// Versão apresentada na especificação inicial
+
+grammar Lava;
+
+program  : class_def ;    
+
+class_def : 'class ' ID ':' eoc (INDENT class_stmt)+ ;
+class_stmt : method_def | attr_def | PASS ;
+
+attr_def : dec_cmd eoc ;
+method_def: TYPE ' ' ID '(' (param_list)? '):' eoc (INDENT stmt)+ ;
+param_list: TYPE ' ' ID (',' TYPE ' ' ID)* ;
+
+stmt_list: stmt+ ;						// Statement list (a block of statements)
+stmt: if_stmt | while_stmt | cmd ;   	// A statement
+
+// If statement
+if_stmt: 	'if' '(' bexpr ')' ':' eoc (INDENT stmt)+
+       | if_stmt 'else' (':' eoc (INDENT stmt)+ | ' ' if_stmt );
+    
+// While statement
+while_stmt: 'while' '(' bexpr ')' ':' eoc (INDENT stmt)+ ;		
+
+// A command
+cmd: (obj_cmd | func_cmd | ret_cmd 
+    | atr_cmd
+	| PASS) eoc ;	
+
+ret_cmd: 'return ' expr ;				// Return command
+atr_cmd: ID '=' expr ;					// Atribution command
+dec_cmd: TYPE ' ' atr_cmd ;
+obj_cmd: 'new ' ID '(' arglist? ')'; 	// Object creation command
+func_cmd: ID '(' arglist? ')' ;      	// Funcion call command
+
+arglist: expr (',' expr)* ; 		 	// List of arguments
+
+expr: bexpr | STR_LITERAL | obj_cmd;	// A expression
+
+// A boolean expression
+bexpr: numexpr ('>' | '<' | '>=' | '<=' | '==' | '!=') numexpr 
+     | numexpr  					 
+	 | 'true' | 'false' ;
+
+// A numeric expression 
+numexpr: numexpr ( '*' | '/' ) numexpr  
+	   | numexpr ( '+' | '-' ) numexpr 
+	   | '(' numexpr ')'	   
+       | func_cmd
+       | INT
+       | ID ;       
+
+eoc: NEWLINE+ ;                     // End of command, represented by one or more new lines
+           
+ID : [a-zA-Z][a-zA-Z0-9]* ;   		// An Identifier (variable, class and method names)
+INT: [0-9]+ ;                  		// An integer number    
+TYPE: 'int' | 'bool'           		// Types of the language
+	| 'void' | 'string' ;
+STR_LITERAL: '"' (.)*? '"' ;        // String literal 
+NEWLINE: '\r'? '\n' ;				// New line
+INDENT: '\t' ;
+PASS : 'pass' ;
+WS : (' ')+ -> skip ;          		// Skip spaces

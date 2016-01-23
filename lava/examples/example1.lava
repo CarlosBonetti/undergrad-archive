@@ -1,0 +1,9 @@
+int square(int a, string msg):
+	println(msg)
+	return a * a
+
+int sq = square(3, "Calculando quadrado do 3...")
+println(sq)
+
+int b = sq - 2
+println(b)

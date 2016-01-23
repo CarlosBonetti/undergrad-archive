@@ -1,0 +1,14 @@
+#Comments
+class className:
+    int a = 3
+    
+    int function(string b):
+        return 10
+
+    string generic(bool t):
+        while(true):
+            print("Hello!")
+        if(t):
+            oi()
+        else:
+            tchau()
