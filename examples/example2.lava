@@ -1,0 +1,8 @@
+bool teste(int k):
+	if(20 <= k):
+		pass
+	elsif ( 40 != k):
+		return 40 < 10
+	else:
+		return false	
+	

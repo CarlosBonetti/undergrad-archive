@@ -1,0 +1,7 @@
+#Todo identificador deve ser declarado antes de ser utilizado
+
+int a = 1
+
+b = "go"
+
+bool c = false

@@ -1,0 +1,7 @@
+# Identificadores não podem ser redeclarados
+
+int a= 4
+
+string b = "pass"
+
+int a = 5

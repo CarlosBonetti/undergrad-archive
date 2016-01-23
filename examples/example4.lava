@@ -1,0 +1,6 @@
+void function(int k, string out):
+	while(soma >= k):
+		k = k + 1
+		if(((soma + k) != (k*k)) and ((soma/k) < 200)):
+			print (out)
+		k = k - 1
